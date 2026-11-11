@@ -14,15 +14,16 @@ function stats(){
   ch.maxHp=100+25*u.hp+(R(1969)?20:0)+(R(-15000)?15:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
   ch.spd=1+.08*u.spd+(R(1000)?.06:0)+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
   ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1)*(R(80)?.92:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0)+(R(-2560)?.2:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);if(DU.on)duelStats();
 }
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
   bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
+  if(DU.on&&DU.hunter){duelHunterInit();return}
   arrive(2026,true);
 }
 function initTimer(y){if(G.timers[y]==null){G.timers[y]=ERA[y].mission.time+ch.timeB+(G.bonus[y]||0);delete G.bonus[y]}}
@@ -30,6 +31,7 @@ function arrive(year,first){
   G.cur=year;setCarry(false);ch.cells=0;ch.inv=1;ch.kbx=ch.kbz=0;clearLabels();if(WD){clearShots();closePortal()}genWorld(year);
   ch.x=WD.mx;ch.z=ZMIN+.6;ch.fx=0;ch.fz=1;ch.target=null;camX=ch.x;streamChunks(99);
   $('hudY').textContent=fy(year);$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
+  if(DU.on&&DU.hunter){hunterArrive(year);return}
   if(year===TH){G.boss={mode:'invade',t:2.2,on:false,n:null};toast('The Throne of Time. He is waiting.',true);return}
   if(year===NX){toast('The Nexus. No clocks, no Hunters. Walk to the bazaar to trade.');return}
   G.prev=year;
@@ -86,7 +88,7 @@ function succeedMission(y){
   const tl=G.timers[y]||0;G.status[y]='done';G.missions++;G.score+=100+2*Math.ceil(tl);delete G.timers[y];setCarry(false);
   const c=Math.round(30*ch.coinK);G.coins+=c;floatText(ch.x,2.8,ch.z,`+${c} coins`,'#ffd24a',true);
   SFX.ok();burst(WD.land.x,2,ZMIN,'#ffd24a',90,7,.5,3);if(WD.landGroup)burst(WD.land.x,6,FRONT,'#ffb35c',60,6,.6,2);GU.uFlash.value=.35;
-  toast(`✓ ${ERA[y].mission.must}`);ripple(y);renderTimeline();checkRound();
+  toast(`✓ ${ERA[y].mission.must}`);ripple(y);renderTimeline();if(DU.on&&!DU.hunter&&G.missions>=DU.goal){duelWin();return}checkRound();
 }
 function succeedRepair(){
   const rp=G.repairs.shift();G.repairsDone++;G.score+=60+Math.ceil(rp.time||0);G.coins+=Math.round(20*ch.coinK);SFX.ok();
@@ -148,7 +150,7 @@ function renderTimeline(){
 }
 let objCache='';
 function objectiveTarget(){
-  if(!G||!WD)return null;if(G.boss&&G.boss.n&&!G.boss.n.dying)return{p:G.boss.n,c:''};if(G.boss)return null;
+  if(!G||!WD)return null;if(DU.on&&DU.hunter)return WD.clue?{p:WD.clue,c:'c'}:null;if(G.boss&&G.boss.n&&!G.boss.n.dying)return{p:G.boss.n,c:''};if(G.boss)return null;
   if(G.cur===NX)return WD.merchant?{p:{x:WD.land.x,z:ZMIN},c:'m'}:null;
   const rp=activeRepair();if(rp&&WD.stab){if(ch.cells>0||!WD.items.some(i=>i.kind==='cell'))return{p:WD.stab,c:'c'};const c=nearest(WD.items.filter(i=>i.kind==='cell'));return c?{p:c,c:'c'}:null}
   if(missionOpen(G.cur)&&!rp){if(ch.carry)return{p:{x:WD.land.x,z:ZMIN},c:''};const it=WD.items.find(i=>i.kind==='item');return it?{p:it,c:''}:null}
@@ -159,11 +161,13 @@ function updateHUD(){
   const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('spells').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
   if(!G)return;
   let html='';const rp=activeRepair();
-  if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
+  if(DU.on&&DU.hunter)html=duelObj();
+  else if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
   else if(rp)html=`<span class="t ${rp.time<15?'low':''}">${fmt(rp.time)}</span><span>Paradox: cells ${WD.delivered+ch.cells}/3 → stabilizer</span>`;
   else if(missionOpen(G.cur)){const t=G.timers[G.cur];html=`<span class="t ${t<15?'low':''}">${fmt(t)}</span><span>${ch.carry?`Bring ${artItem()} to the ${ERA[G.cur].mission.label}`:`Find ${artItem()}`}</span>`}
   else if(G.cur===NX)html='<span>Walk to the bazaar to trade</span>';
   else if(G.cur!==TH)html=G.sealed?'<span>Line sealed · invade the Throne when ready</span>':G.free?'<span>Roam time freely</span>':'<span>Return to the Chrono·Cabin and pick an era</span>';
+  if(DU.on&&!DU.hunter&&!G.over)html+=`<span>Duel ${G.missions}/${DU.goal}</span>`;
   if(html!==objCache){$('obj').innerHTML=html;objCache=html}
   $('score').textContent=G.score;
   $('hpBar').style.width=(100*clamp(ch.hp/ch.maxHp,0,1))+'%';$('hpTxt').textContent=Math.ceil(Math.max(0,ch.hp));$('coins').textContent=G.coins;$('heatBar').style.width=Math.round(G.heat)+'%';
@@ -229,11 +233,11 @@ function renderPanel(){
   if(selYear===G.cur)txt+='you are here';else if(s==='repair')txt+='paradox: repair needed here';else if(s==='open')txt+=`mission open · ${fmt(G.timers[selYear]??e.mission.time+ch.timeB+(G.bonus[selYear]||0))}`;
   else if(s==='done')txt+='stable';else if(s==='failed')txt+='broken: repair it from the future';else txt+=selYear===2026?'your base':'no mission';
   $('dest').innerHTML=txt;$('nowY').textContent=G.cur===NX?'∞':G.cur===TH?'END':G.cur;$('go').disabled=selYear===G.cur;
-  $('invade').hidden=!G.sealed||G.boss;$('toNexus').hidden=!!G.boss||G.cur===NX;
+  $('invade').hidden=!G.sealed||G.boss;$('toNexus').hidden=!!G.boss||G.cur===NX||(DU.hunter&&G.cur===TH);$('toNexus').textContent=DU.hunter?'HQ':'NEXUS ∞';
 }
 $('close').onclick=()=>{closePanel();cv.focus()};
 $('go').onclick=()=>{if(selYear!==G.cur)travel(selYear)};
-$('toNexus').onclick=()=>travel(NX);
+$('toNexus').onclick=()=>travel(DU.hunter?TH:NX);
 $('invade').onclick=()=>travel(TH);
 
 /* ================= travel (time tunnel) ================= */
@@ -246,7 +250,7 @@ const tunnelMat=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{t:{value
 const tunnel=new THREE.Mesh(new THREE.CylinderGeometry(6,6,300,48,1,true),tunnelMat);tunnel.rotation.x=Math.PI/2;tunnelScene.add(tunnel);
 const tclock=new THREE.Group();for(let i=0;i<12;i++){const a=i/12*Math.PI*2,m=new THREE.Mesh(BOX(),new THREE.MeshBasicMaterial({color:'#ffd27a',toneMapped:false}));m.scale.set(.15,.6,.05);m.position.set(Math.cos(a)*3,Math.sin(a)*3,0);m.rotation.z=a+Math.PI/2;tclock.add(m)}tclock.position.z=-40;tunnelScene.add(tclock);
 function travel(to){
-  closePanel();if(trav)return;trav={t:0,to,switched:false,gen:false};ch.target=null;SFX.whoosh();keys.clear();
+  closePanel();if(trav)return;if(DU.on&&!DU.hunter)duelSend({t:'trav',from:G.cur,to});trav={t:0,to,switched:false,gen:false};ch.target=null;SFX.whoosh();keys.clear();
 }
 function updateTravel(dt){
   const tr=trav;tr.t+=dt;const t=tr.t;
@@ -556,6 +560,7 @@ function frame(now){
   if(!trav&&WD){
     const live=!(invOpen||panelOpen||briefOpen||shopOpen||miniOpen);
     let gdt=dt;if(hitStop>0){hitStop-=dt;gdt=dt*.08}
+    if(DU.on)duelTick(dt);
     if(mode==='play'&&G&&!G.over&&live)updateGame(gdt);
     else if(mode==='play'&&G&&miniOpen&&!G.over&&missionOpen(G.cur)){G.timers[G.cur]-=dt;if(G.timers[G.cur]<=0)failMission(G.cur)}
     if(ch.rig&&(mode==='play'||mode==='over')){ch.rig.g.position.set(ch.x,0,ch.z);faceTo(ch.rig,Math.atan2(ch.fx,ch.fz),dt,16);

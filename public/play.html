@@ -229,6 +229,14 @@ h1,h2,h3{font-weight:400;margin:0}
 .fslot{--c:#6e5320;min-width:84px;text-align:center;padding:8px 10px;border:1.5px solid var(--c);border-radius:8px;background:#0c0a0e;color:var(--cream);font:600 13px var(--f-ui);cursor:pointer}.fslot.empty{border-style:dashed;opacity:.4;cursor:default}
 .forgeres{margin-top:8px;font-size:14px;min-height:20px}
 @media (prefers-reduced-motion:reduce){.card{animation:none}.led,.chip.failed,.objective .t.low,.clock.low{animation:none}}
+
+#hclock{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:4;background:linear-gradient(180deg,#1a1226ee,#0e0916ee);border:1px solid #7a3aa8;border-radius:12px;padding:8px 14px 9px;box-shadow:0 0 18px #6a1aff55,inset 0 0 0 2px #0008;text-align:center;min-width:min(340px,86vw);pointer-events:none}
+.hc-l{font-size:10px;font-weight:700;letter-spacing:.3em;color:#c08aff}
+.hc-bar{display:flex;gap:2px;margin:6px 0 5px;height:14px}
+.hc-bar i{flex:1;border-radius:2px;background:#2a2040}.hc-bar i.on{background:#ff4a7a;box-shadow:0 0 8px #ff2a5a}.hc-bar i.me{outline:2px solid #fff;outline-offset:1px}.hc-bar i.lost{background:#3a2a30}
+.hc-t{font-family:var(--f-tube,monospace);font-size:17px;color:#ffb0c8;letter-spacing:.06em}
+.hc-s{font-size:11px;color:#b8a0d8;margin-top:2px;min-height:14px}
+@media(max-width:640px){#hclock{top:58px;padding:6px 10px}.hc-t{font-size:14px}}
 </style>
 
 <canvas id="stage" tabindex="0" aria-label="The Chrononaut game scene"></canvas>
@@ -266,8 +274,43 @@ h1,h2,h3{font-weight:400;margin:0}
     <div class="eyebrow">CHRONO·CABIN MOD.8</div>
     <h1 class="logo">The Chrononaut</h1>
     <p class="lore">History has holes, and you are the patch. Every era hides one event that must happen, Time Hunters are out to stop you, and at the end of the line waits the Time Lord. Beat him, and all of time is yours.</p>
-    <div class="center"><button class="btn" id="start">BEGIN</button></div>
+    <div class="center"><button class="btn" id="start">BEGIN</button><button class="btn ghost" id="duelBtn">ONLINE DUEL</button></div>
   </div>
+</div>
+
+
+<div class="overlay" id="duel" hidden>
+  <div class="card" style="width:min(460px,100%)">
+    <div class="brassplate"><span>ONLINE DUEL</span><span class="led"></span></div>
+    <p class="task" id="duelIntro">Two players, one timeline. One is the <em>Chrononaut</em> and must fix history. The other is a <em>Time Hunter</em> and must find and eliminate them.</p>
+    <div id="duelMenu">
+      <div class="label">CREATE A ROOM AS</div>
+      <div class="center"><button class="btn ghost" id="duelRun">CHRONONAUT</button><button class="btn ghost" id="duelHun">TIME HUNTER</button></div>
+      <div class="label" style="margin-top:18px">OR JOIN A FRIEND</div>
+      <div class="center"><input id="duelCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" style="width:110px;text-align:center;font:700 22px var(--f-tube,monospace);letter-spacing:.2em;text-transform:uppercase;background:#120d08;color:#ffd890;border:1px solid var(--brass-d);border-radius:8px;padding:8px"><button class="btn ghost" id="duelJoin">JOIN</button></div>
+    </div>
+    <div id="duelWait" hidden style="text-align:center">
+      <div class="label" id="duelRole"></div>
+      <div class="yearbig" id="duelRoom" style="font-size:54px;letter-spacing:.12em"></div>
+      <p class="task" id="duelStatus">Waiting for your opponent. Share this code.</p>
+    </div>
+    <p class="task" id="duelMsg" style="color:#ff9a8a;text-align:center;margin:8px 0 0" hidden></p>
+    <div class="center" style="margin-top:14px"><button class="btn ghost" id="duelBack">BACK</button></div>
+  </div>
+</div>
+<div class="overlay" id="duelEnd" hidden>
+  <div class="card" style="width:min(460px,100%);text-align:center">
+    <div class="date" id="deTag">DUEL OVER</div>
+    <div class="yearbig" id="deTitle" style="font-size:44px"></div>
+    <p class="task" id="deText"></p>
+    <div class="center"><button class="btn" id="deBack">MAIN MENU</button></div>
+  </div>
+</div>
+<div id="hclock" hidden>
+  <div class="hc-l">TEMPORAL SIGNATURE</div>
+  <div class="hc-bar" id="hcBar"></div>
+  <div class="hc-t" id="hcTxt"></div>
+  <div class="hc-s" id="hcSub"></div>
 </div>
 
 <div class="overlay" id="brief" hidden>
@@ -1241,7 +1284,7 @@ function updateLabels(dt){
   for(const n of WD.npcs){
     if(n.bt>0&&n.bubble&&!n.dying){n.bt-=dt;if(!n.bd){n.bd=document.createElement('div');n.bd.className='bubble'+(n.kind==='hunter'?' h':n.kind==='lord'?' l':'');LBL.appendChild(n.bd)}n.bd.textContent=n.bubble;const p=project(n.x,2.5*(n.k||1)+.3,n.z);n.bd.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;n.bd.hidden=p.behind}
     else if(n.bd){n.bd.remove();n.bd=null}
-    if((n.kind==='hunter')&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
+    if((n.kind==='hunter'||n.peer)&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
       const p=project(n.x,2.35,n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
     else if(n.hd){n.hd.remove();n.hd=null}
   }
@@ -1370,6 +1413,7 @@ function spawnHunter(p){
   burst(p.x,1.4,p.z,'#b44aff',40,6,.5);hint('hunt',TOUCH?'A Time Hunter! Use HIT to fight and DASH to dodge.':'A Time Hunter! J to hit, K to dash.',300);
 }
 function hurtNpc(n,dmg,dx,dz){
+  if(n.peer){floatText(n.x,2.2,n.z,String(Math.max(1,Math.round(dmg))),'#fff6d8');SFX.hit();hitStop=.045;burst(n.x,1.3,n.z,'#ffffff',8,3,.25);duelSend({t:'hit',d:Math.max(1,Math.round(dmg)),x:ch.x,z:ch.z});return}
   n.hp-=dmg;n.hitT=.15;hitStop=.045;shk=Math.max(shk,.25);floatText(n.x,2.2*(n.k||1),n.z,String(dmg),'#fff6d8');SFX.hit();
   const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
   burst(n.x,1.3*(n.k||1),n.z,'#ffffff',6,3,.25);
@@ -1399,6 +1443,7 @@ function hurtPlayer(dmg,src){
 }
 function artItem(){return'the '+ERA[G.cur].mission.item}
 function knockout(){
+  if(DU.on)return duelKnockout();
   if(G.boss&&G.boss.on)return lordWins();
   const lost=Math.floor(G.coins*.4);G.coins-=lost;ch.hp=ch.maxHp;ch.inv=2;
   if(ch.carry&&missionOpen(G.cur))dropItem('item',ch.x,ch.z);setCarry(false);
@@ -1415,7 +1460,7 @@ function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.
 function playerAttack(){
   if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
-  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
+  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer)return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
       n.dodgeCd=2.6;n.atkCd=.2;n.lunge=0;n.retreat=0;floatText(ch.x,2.6,ch.z,'DODGED','#d8a0ff');beep(1000,.05);return}
     hurtNpc(n,ch.dmg+(Math.random()*8-4|0),dx,dz)});
@@ -1430,10 +1475,10 @@ function updateCombat(dt){
   ch.atkCd-=dt;ch.dashCd-=dt;ch.inv-=dt;ch.swing-=dt;ch.regenWait-=dt;ch.hurtT-=dt;
   if(ch.regenWait<=0&&ch.hp<ch.maxHp)ch.hp=Math.min(ch.maxHp,ch.hp+ch.regen*dt);
   G.heat=Math.max(0,G.heat-.5*ch.coolK*dt);
-  const hl=G.heat>=10?1+heatLvl():0,cap=(G.cur===NX||G.boss||G.free)?0:hl;
+  const hl=G.heat>=10?1+heatLvl():0,cap=(G.cur===NX||G.boss||G.free||DU.on)?0:hl;
   WD.huntT-=dt;
   if(WD.portal){WD.portal.t-=dt;const P=WD.portal;P.r1.rotation.z+=dt*6;P.g.scale.setScalar(Math.min(1,(1-P.t/.9)*2.2));if(Math.random()<.5)burst(P.x,1.4,P.z,'#b44aff',2,2,.3,0,0);if(P.t<=0){const pp={x:P.x,z:P.z};closePortal();spawnHunter(pp)}}
-  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&Math.random()<.015)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(20,38-G.heat*.15):90}
+  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&!DU.on&&Math.random()<.015)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(20,38-G.heat*.15):90}
   for(const b of WD.shots){b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.m.position.set(b.x,b.y,b.z);if(Math.random()<.6)burst(b.x,b.y,b.z,b.g?'#ffd24a':'#b44aff',1,.4,.25,0,0);
     if(Math.hypot(b.x-ch.x,b.z-ch.z)<.55){b.life=0;hurtPlayer(b.dmg,{x:b.x,z:b.z,kind:b.g?'lord':'hunter'})}if(b.life<=0)scene.remove(b.m)}
   WD.shots=WD.shots.filter(b=>b.life>0);
@@ -1441,7 +1486,7 @@ function updateCombat(dt){
     if(g.r>0&&!g.hit&&ch.inv<=0&&Math.abs(Math.hypot(ch.x-g.x,ch.z-g.z)-g.r)<.45){g.hit=true;hurtPlayer(22,{x:g.x,z:g.z,kind:'lord'})}if(g.life<=0){scene.remove(g.m);g.m.material.dispose()}}
   WD.rings=WD.rings.filter(g=>g.life>0);
   for(const n of WD.npcs){
-    if(n.dying)continue;n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
+    if(n.dying)continue;if(n.peer){n.hitT-=dt;continue}n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
     if(n.kbx||n.kbz){n.x=n.x+n.kbx*dt;n.z=clamp(n.z+n.kbz*dt,ZMIN,ZMAX);const f=Math.pow(.02,dt);n.kbx*=f;n.kbz*=f;if(Math.hypot(n.kbx,n.kbz)<.2)n.kbx=n.kbz=0}
     if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
@@ -1468,7 +1513,7 @@ function updateCombat(dt){
 function updateNpcs(dt,live){
   for(const n of WD.npcs){
     if(n.dying){n.dying-=dt;animRig(n.rig,dt,{dead:Math.max(0,n.dying)});n.rig.g.position.set(n.x,0,n.z);if(n.dying<=0){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null}continue}
-    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'){
+    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&!n.peer){
       n.wait-=dt;const dx=n.tx-n.x,dz=n.tz-n.z,d=Math.hypot(dx,dz);
       if(n.wait>0||d<.2){n.moving=false;if(n.wait<=0){n.wait=1+Math.random()*4;n.tx=clamp(n.x+(Math.random()-.5)*16,-L+3,L-3);n.tz=ZMIN+Math.random()*(ZMAX-ZMIN)}}
       else{const sp=n.sp*dt;n.x+=dx/d*sp;n.z+=dz/d*sp;n.ang=Math.atan2(dx,dz);n.moving=true;if(d<.3)n.wait=1+Math.random()*4}
@@ -1655,7 +1700,7 @@ function refreshGearVisual(){
 const ELEM={past:{n:'Past',c:'#e8b865'},future:{n:'Future',c:'#5ff5d6'},void:{n:'Void',c:'#b44aff'},ember:{n:'Ember',c:'#ff7a3a'},storm:{n:'Storm',c:'#ffe45a'},echo:{n:'Echo',c:'#7ad0ff'}};
 const ELKEYS=Object.keys(ELEM);
 const MAGIC={cd:[0,0],cdMax:[1,1],haste:0,proj:[],fx:[],tm:[],wells:[],blades:null,ward:null,sparkT:0,warnT:0,forge:[],forgeMsg:''};
-const isFoe=n=>!n.dying&&(n.kind==='hunter'||n.kind==='lord'||n.kind==='citizen');
+const isFoe=n=>!n.dying&&(n.peer||n.kind==='hunter'||n.kind==='lord'||(n.kind==='citizen'&&!(DU.on&&DU.hunter)));
 const foesIn=(x,z,r)=>WD.npcs.filter(n=>isFoe(n)&&Math.hypot(n.x-x,n.z-z)<=r+(n.kind==='lord'?1:0));
 const pw=id=>1+.3*((G.spells[id]||1)-1);
 function hitFoe(n,dmg,fx,fz){if(n.dying)return;hurtNpc(n,Math.max(1,Math.round(dmg)),n.x-fx,n.z-fz)}
@@ -1852,6 +1897,133 @@ function fuse(){
   MAGIC.forgeMsg=was?`<b style="color:${c}">${S.n}</b> grew stronger: level ${was+1}!`:`New spell: <b style="color:${c}">${S.n}</b>. ${S.d}`;
   SFX.ok();$('sCoins').textContent=G.coins;renderForge();
 }
+/* ================= online duel: Chrononaut vs Time Hunter (2 players, WebSocket relay) ================= */
+const DU={on:false,role:null,hunter:false,ws:null,room:'',host:false,started:false,over:false,seed:0,goal:5,peer:null,peerY:null,range:null,trail:[],sendT:0,pingI:0,tight:null,clue:null};
+const DUEL_URL='https://the-chrononaut.causal-line.workers.dev/play.html';
+const duelCan=()=>location.protocol.startsWith('http')&&!/claude|anthropic/i.test(location.hostname);
+const duelSend=o=>{if(DU.ws&&DU.ws.readyState===1)try{DU.ws.send(JSON.stringify(o))}catch(e){}};
+const duelMsg=(m)=>{const e=$('duelMsg');e.textContent=m||'';e.hidden=!m};
+function duelReset(){if(DU.ws){try{DU.ws.onclose=null;DU.ws.close()}catch(e){}}clearInterval(DU.pingI);Object.assign(DU,{ws:null,room:'',host:false,started:false,role:null});$('duelMenu').hidden=false;$('duelWait').hidden=true;duelMsg('')}
+function duelOpen(){
+  duelReset();$('title').hidden=true;$('duel').hidden=false;
+  if(!duelCan()){$('duelMenu').hidden=true;duelMsg('Online duels need the website version (this preview blocks connections). Play at '+DUEL_URL)}
+}
+function duelConnect(code,host,role){
+  duelMsg('');DU.host=host;DU.role=role;DU.room=code;let url;
+  try{url=`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws?room=${code}&h=${host?1:0}`;DU.ws=new WebSocket(url)}catch(e){return duelMsg('Could not connect.')}
+  $('duelMenu').hidden=true;$('duelWait').hidden=false;$('duelRoom').textContent=code;
+  $('duelRole').textContent=host?(role==='hunter'?'YOU ARE THE TIME HUNTER':'YOU ARE THE CHRONONAUT'):'JOINING ROOM';
+  $('duelStatus').textContent=host?'Waiting for your opponent. Share this code.':'Connecting...';
+  DU.ws.onopen=()=>{DU.pingI=setInterval(()=>duelSend({t:'p'}),20000)};
+  DU.ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}duelRecv(m)};
+  DU.ws.onclose=()=>{clearInterval(DU.pingI);if(DU.started&&!DU.over)duelFinish(null,'The connection was lost.');else if(!DU.started){duelReset();duelMsg('Could not reach the duel server.')}};
+  DU.ws.onerror=()=>{};
+}
+function duelRecv(m){
+  switch(m.t){
+    case'err':{const w=m.m;duelReset();duelMsg(w);break}
+    case'peers':
+      if(m.n>=2&&DU.host&&!DU.started){const seed=(Math.random()*1e6)|0;duelSend({t:'start',seed,goal:DU.goal,hostRole:DU.role});duelStart(seed)}
+      else if(m.n<2&&DU.started&&!DU.over)duelFinish(null,'Your opponent left the duel.');
+      break;
+    case'start':if(!DU.started&&!DU.host){DU.role=m.hostRole==='hunter'?'runner':'hunter';DU.goal=m.goal||5;duelStart(m.seed)}break;
+    case's':duelPeerState(m);break;
+    case'hit':if(G&&!G.over&&DU.started)hurtPlayer(m.d,{x:m.x,z:m.z,kind:'hunter'});break;
+    case'trav':DU.trail.push({from:m.from,to:m.to,at:Date.now(),found:false});break;
+    case'ko':if(!DU.hunter&&G){G.coins+=40;G.score+=50;toast('You beat the Hunter! +40 coins',false);SFX.ok()}break;
+    case'end':duelFinish(DU.hunter?!m.runnerWon:!!m.runnerWon,m.text);break;
+  }
+}
+function duelStart(seed){
+  DU.started=true;DU.on=true;DU.over=false;DU.seed=seed;DU.hunter=DU.role==='hunter';DU.peer=null;DU.peerY=null;DU.range=null;DU.trail=[];DU.tight=null;DU.clue=null;
+  $('duel').hidden=true;audio();newGame();
+  toast(DU.hunter?'You are the Time Hunter. Read the clock, jump through time, find the Chrononaut.':`You are the Chrononaut. Complete ${DU.goal} missions to win. A Hunter is after you.`);
+}
+function duelStats(){if(DU.on&&DU.hunter){ch.maxHp=200;ch.dmg=24;ch.spd=1.1;ch.maxMana=999;ch.coinK=0;ch.hp=Math.min(ch.hp,ch.maxHp)}}
+function duelHunterInit(){
+  PSUIT=HUNTER_FIT;buildPlayer();G.timeline=[...YEARS];G.timeline.forEach(y=>{if(hasM(y))G.status[y]='done'});G.tier=99;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;
+  $('mute').hidden=false;arrive(TH,true);
+}
+function duelKnockout(){
+  if(DU.hunter){duelSend({t:'ko'});ch.hp=ch.maxHp;ch.inv=2;toast('You were beaten. Regrouping at HQ...',true);travel(TH);return}
+  duelSend({t:'end',runnerWon:false});duelFinish(false,'The Hunter caught you. History is unwritten.');
+}
+function duelWin(){duelSend({t:'end',runnerWon:true});duelFinish(true,'You patched enough of history. The Hunter never found you in time.')}
+function duelFinish(win,text){
+  if(DU.over)return;DU.over=true;if(G)G.over={duel:true,year:G.cur};
+  const t=$('deTitle');t.textContent=win==null?'DUEL ENDED':win?'VICTORY':'DEFEAT';
+  $('deText').textContent=text||(win?(DU.hunter?'You eliminated the Chrononaut. The timeline is yours to rewrite.':'The timeline holds.'):(DU.hunter?'The Chrononaut got away.':'The Hunter caught you.'));
+  if(win&&DU.hunter&&!text)$('deText').textContent='You hunted the Chrononaut down. History is safe from tampering.';
+  $('duelEnd').hidden=false;$('hclock').hidden=true;clearInterval(DU.pingI);try{DU.ws&&DU.ws.close()}catch(e){}
+}
+$('duelBtn').onclick=()=>{audio();duelOpen()};
+$('duelBack').onclick=()=>{duelReset();$('duel').hidden=true;$('title').hidden=false};
+$('duelRun').onclick=()=>{audio();duelConnect(duelCode(),true,'runner')};
+$('duelHun').onclick=()=>{audio();duelConnect(duelCode(),true,'hunter')};
+$('duelJoin').onclick=()=>{audio();const c=($('duelCode').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length<4)return duelMsg('Enter the 4-letter code.');duelConnect(c,false,null);$('duelStatus').textContent='Connecting...'};
+$('deBack').onclick=()=>location.reload();
+function duelCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=a[(Math.random()*a.length)|0];return c}
+
+/* ---- per-frame ---- */
+function duelPeerState(m){
+  DU.peer={...m,at:Date.now()};
+  if(DU.hunter&&DU.peerY!==m.y){DU.peerY=m.y;DU.tight=null;const idx=YEARS.indexOf(m.y);
+    if(idx<0)DU.range={lost:true};
+    else{const w=()=>Math.max(0,1+((Math.random()*4)|0)-((m.m||0)>>1));DU.range={lo:Math.max(0,idx-w()),hi:Math.min(YEARS.length-1,idx+w()),idx}}}
+}
+function duelTick(dt){
+  if(!G||!WD||DU.over)return;
+  const t=performance.now();
+  if(!trav&&t-DU.sendT>66){DU.sendT=t;duelSend({t:'s',y:G.cur,x:+ch.x.toFixed(2),z:+ch.z.toFixed(2),fx:+ch.fx.toFixed(2),fz:+ch.fz.toFixed(2),mv:ch.moving?1:0,sw:ch.swing>0?1:0,hp:Math.round(ch.hp),mh:ch.maxHp,m:G.missions||0})}
+  if(DU.hunter){ch.mana=ch.maxMana;duelClock();duelClueTick()}
+  /* puppet of the other player */
+  const P=DU.peer,same=!!P&&P.y===G.cur&&!trav&&Date.now()-P.at<4000;let n=WD.puppet;
+  if(same&&!n){n=addNpc({kind:'peer',peer:true,fit:DU.hunter?SUIT:HUNTER_FIT,x:P.x,z:P.z,hp:P.hp||100,sp:0});n.maxHp=P.mh||100;WD.puppet=n;
+    if(DU.hunter){toast('Target located!',true);SFX.ok()}else{toast('A Time Hunter has found you!',true);SFX.bad();burst(n.x,1.4,n.z,'#b44aff',40,6,.5)}}
+  else if(!same&&n){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null;WD.npcs=WD.npcs.filter(q=>q!==n);WD.puppet=null;n=null}
+  if(n){const k=1-Math.pow(.0005,dt);n.x=lerp(n.x,P.x,k);n.z=lerp(n.z,P.z,k);n.ang=Math.atan2(P.fx,P.fz);n.moving=!!P.mv;n.hp=P.hp;n.maxHp=P.mh;n.strikeT=Math.max(0,(n.strikeT||0)-dt);if(P.sw&&!n.swPrev)n.strikeT=.18;n.swPrev=P.sw}
+}
+function duelObj(){
+  if(G.cur===TH)return'<span>Use the machine to jump into history. Read the clock.</span>';
+  if(WD.clue)return'<span>Temporal residue nearby. Follow the arrow.</span>';
+  if(WD.puppet)return'<span>Eliminate the Chrononaut!</span>';
+  return'<span>No trace here. Check the clock, then jump.</span>';
+}
+function duelClock(){
+  const el=$('hclock');el.hidden=false;const R=DU.range,P=DU.peer;let key,lo=-1,hi=-1,txt='',sub='';
+  const here=P&&P.y===G.cur&&Date.now()-P.at<4000;
+  if(!R){txt='SCANNING...';sub='Waiting for a signature'}
+  else if(R.lost){txt='SIGNAL LOST';sub='He is out of reach, in the Nexus'}
+  else{lo=R.lo;hi=R.hi;if(here||(DU.tight&&DU.tight.y===DU.peerY&&Date.now()<DU.tight.until)){lo=hi=R.idx}
+    txt=lo===hi?`${fy(YEARS[lo])} · ${ERA[YEARS[lo]].name}`:`${fy(YEARS[lo])}  to  ${fy(YEARS[hi])}`;
+    sub=`${hi-lo+1} era${hi===lo?'':'s'} · he has fixed ${P?P.m||0:0}/${DU.goal}`}
+  const me=YEARS.indexOf(G.cur);key=[lo,hi,me,txt,sub].join('|');if(key===DU.ck)return;DU.ck=key;
+  $('hcBar').innerHTML=YEARS.map((y,i)=>`<i class="${i>=lo&&i<=hi&&lo>=0?'on':''} ${i===me?'me':''}" title="${fy(y)}"></i>`).join('');$('hcTxt').textContent=txt;$('hcSub').textContent=sub;
+}
+function hunterArrive(year){
+  DU.ck='';WD.clue=null;
+  if(year===TH){
+    const x0=WD.mx,add=(fit,x,z,k,line)=>{const n=addNpc({kind:'merchant',fit,x,z,hp:999,sp:0,k});n.bubble=line;n.bt=9;return n};
+    add(LORD_SUIT,x0+5,ZMIN+3,1.3,'Find the Chrononaut. Erase him from history.');
+    add(HUNTER_FIT,x0-4,ZMIN+2.4,1,'Read the clock. Follow the signature.');
+    add(ELITE_FIT,x0-8,ZMIN+4.5,1,'Search the eras he visited. He leaves traces.');
+    add(HUNTER_FIT,x0+9,ZMIN+5,1,'Fresh residue is the only sure thing.');
+    toast('Hunter HQ. The Time Lord wants the Chrononaut gone.');return}
+  /* temporal residue: where the Chrononaut departed from */
+  let e=null;for(const q of DU.trail)if(q.from===year&&!q.found)e=q;
+  if(e){const g=new THREE.Group(),x=clamp(WD.mx+(Math.random()-.5)*26,-L+4,L-4),z=ZMIN+2+Math.random()*7;g.position.set(x,0,z);
+    const o=new THREE.Mesh(OCTA(),glow('#5ff5d6',3.2));o.scale.set(.7,1.1,.7);g.add(o);
+    const ring=new THREE.Mesh(geo('lring',()=>new THREE.RingGeometry(1.05,1.3,48)),addMat('#5ff5d6',.7));ring.rotation.x=-Math.PI/2;ring.position.y=.05;g.add(ring);
+    const pl=new THREE.PointLight('#5ff5d6',14,7,1.6);pl.position.y=1.5;g.add(pl);WD.group.add(g);WD.anim.push(t=>{o.position.y=1.4+Math.sin(t*2.2)*.2;o.rotation.y=t*1.4});
+    WD.clue={x,z,g,e}}
+}
+function duelClueTick(){
+  const c=WD.clue;if(!c||busy())return;if(Math.hypot(c.x-ch.x,c.z-ch.z)>1.7)return;
+  c.e.found=true;WD.group.remove(c.g);WD.clue=null;SFX.pick();burst(c.x,1.4,c.z,'#5ff5d6',50,5,.5);
+  const age=Math.max(1,Math.round((Date.now()-c.e.at)/1000)),to=c.e.to;
+  if(to===NX)toast(`Residue: the Chrononaut slipped into the Nexus ${age}s ago. He is out of reach.`,true);
+  else{toast(`Residue: the Chrononaut jumped to ${fy(to)}, ${ERA[to].name}, ${age}s ago.`,true);if(DU.peerY===to)DU.tight={y:to,until:Date.now()+25000}}
+}
 
 /* ================= state ================= */
 let G=null,mode='title',T=0,camX=0,camZoom=1,trav=null;
@@ -1868,15 +2040,16 @@ function stats(){
   ch.maxHp=100+25*u.hp+(R(1969)?20:0)+(R(-15000)?15:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
   ch.spd=1+.08*u.spd+(R(1000)?.06:0)+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
   ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1)*(R(80)?.92:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0)+(R(-2560)?.2:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);if(DU.on)duelStats();
 }
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
   bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
+  if(DU.on&&DU.hunter){duelHunterInit();return}
   arrive(2026,true);
 }
 function initTimer(y){if(G.timers[y]==null){G.timers[y]=ERA[y].mission.time+ch.timeB+(G.bonus[y]||0);delete G.bonus[y]}}
@@ -1884,6 +2057,7 @@ function arrive(year,first){
   G.cur=year;setCarry(false);ch.cells=0;ch.inv=1;ch.kbx=ch.kbz=0;clearLabels();if(WD){clearShots();closePortal()}genWorld(year);
   ch.x=WD.mx;ch.z=ZMIN+.6;ch.fx=0;ch.fz=1;ch.target=null;camX=ch.x;streamChunks(99);
   $('hudY').textContent=fy(year);$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
+  if(DU.on&&DU.hunter){hunterArrive(year);return}
   if(year===TH){G.boss={mode:'invade',t:2.2,on:false,n:null};toast('The Throne of Time. He is waiting.',true);return}
   if(year===NX){toast('The Nexus. No clocks, no Hunters. Walk to the bazaar to trade.');return}
   G.prev=year;
@@ -1940,7 +2114,7 @@ function succeedMission(y){
   const tl=G.timers[y]||0;G.status[y]='done';G.missions++;G.score+=100+2*Math.ceil(tl);delete G.timers[y];setCarry(false);
   const c=Math.round(30*ch.coinK);G.coins+=c;floatText(ch.x,2.8,ch.z,`+${c} coins`,'#ffd24a',true);
   SFX.ok();burst(WD.land.x,2,ZMIN,'#ffd24a',90,7,.5,3);if(WD.landGroup)burst(WD.land.x,6,FRONT,'#ffb35c',60,6,.6,2);GU.uFlash.value=.35;
-  toast(`✓ ${ERA[y].mission.must}`);ripple(y);renderTimeline();checkRound();
+  toast(`✓ ${ERA[y].mission.must}`);ripple(y);renderTimeline();if(DU.on&&!DU.hunter&&G.missions>=DU.goal){duelWin();return}checkRound();
 }
 function succeedRepair(){
   const rp=G.repairs.shift();G.repairsDone++;G.score+=60+Math.ceil(rp.time||0);G.coins+=Math.round(20*ch.coinK);SFX.ok();
@@ -2002,7 +2176,7 @@ function renderTimeline(){
 }
 let objCache='';
 function objectiveTarget(){
-  if(!G||!WD)return null;if(G.boss&&G.boss.n&&!G.boss.n.dying)return{p:G.boss.n,c:''};if(G.boss)return null;
+  if(!G||!WD)return null;if(DU.on&&DU.hunter)return WD.clue?{p:WD.clue,c:'c'}:null;if(G.boss&&G.boss.n&&!G.boss.n.dying)return{p:G.boss.n,c:''};if(G.boss)return null;
   if(G.cur===NX)return WD.merchant?{p:{x:WD.land.x,z:ZMIN},c:'m'}:null;
   const rp=activeRepair();if(rp&&WD.stab){if(ch.cells>0||!WD.items.some(i=>i.kind==='cell'))return{p:WD.stab,c:'c'};const c=nearest(WD.items.filter(i=>i.kind==='cell'));return c?{p:c,c:'c'}:null}
   if(missionOpen(G.cur)&&!rp){if(ch.carry)return{p:{x:WD.land.x,z:ZMIN},c:''};const it=WD.items.find(i=>i.kind==='item');return it?{p:it,c:''}:null}
@@ -2013,11 +2187,13 @@ function updateHUD(){
   const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('spells').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
   if(!G)return;
   let html='';const rp=activeRepair();
-  if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
+  if(DU.on&&DU.hunter)html=duelObj();
+  else if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
   else if(rp)html=`<span class="t ${rp.time<15?'low':''}">${fmt(rp.time)}</span><span>Paradox: cells ${WD.delivered+ch.cells}/3 → stabilizer</span>`;
   else if(missionOpen(G.cur)){const t=G.timers[G.cur];html=`<span class="t ${t<15?'low':''}">${fmt(t)}</span><span>${ch.carry?`Bring ${artItem()} to the ${ERA[G.cur].mission.label}`:`Find ${artItem()}`}</span>`}
   else if(G.cur===NX)html='<span>Walk to the bazaar to trade</span>';
   else if(G.cur!==TH)html=G.sealed?'<span>Line sealed · invade the Throne when ready</span>':G.free?'<span>Roam time freely</span>':'<span>Return to the Chrono·Cabin and pick an era</span>';
+  if(DU.on&&!DU.hunter&&!G.over)html+=`<span>Duel ${G.missions}/${DU.goal}</span>`;
   if(html!==objCache){$('obj').innerHTML=html;objCache=html}
   $('score').textContent=G.score;
   $('hpBar').style.width=(100*clamp(ch.hp/ch.maxHp,0,1))+'%';$('hpTxt').textContent=Math.ceil(Math.max(0,ch.hp));$('coins').textContent=G.coins;$('heatBar').style.width=Math.round(G.heat)+'%';
@@ -2083,11 +2259,11 @@ function renderPanel(){
   if(selYear===G.cur)txt+='you are here';else if(s==='repair')txt+='paradox: repair needed here';else if(s==='open')txt+=`mission open · ${fmt(G.timers[selYear]??e.mission.time+ch.timeB+(G.bonus[selYear]||0))}`;
   else if(s==='done')txt+='stable';else if(s==='failed')txt+='broken: repair it from the future';else txt+=selYear===2026?'your base':'no mission';
   $('dest').innerHTML=txt;$('nowY').textContent=G.cur===NX?'∞':G.cur===TH?'END':G.cur;$('go').disabled=selYear===G.cur;
-  $('invade').hidden=!G.sealed||G.boss;$('toNexus').hidden=!!G.boss||G.cur===NX;
+  $('invade').hidden=!G.sealed||G.boss;$('toNexus').hidden=!!G.boss||G.cur===NX||(DU.hunter&&G.cur===TH);$('toNexus').textContent=DU.hunter?'HQ':'NEXUS ∞';
 }
 $('close').onclick=()=>{closePanel();cv.focus()};
 $('go').onclick=()=>{if(selYear!==G.cur)travel(selYear)};
-$('toNexus').onclick=()=>travel(NX);
+$('toNexus').onclick=()=>travel(DU.hunter?TH:NX);
 $('invade').onclick=()=>travel(TH);
 
 /* ================= travel (time tunnel) ================= */
@@ -2100,7 +2276,7 @@ const tunnelMat=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{t:{value
 const tunnel=new THREE.Mesh(new THREE.CylinderGeometry(6,6,300,48,1,true),tunnelMat);tunnel.rotation.x=Math.PI/2;tunnelScene.add(tunnel);
 const tclock=new THREE.Group();for(let i=0;i<12;i++){const a=i/12*Math.PI*2,m=new THREE.Mesh(BOX(),new THREE.MeshBasicMaterial({color:'#ffd27a',toneMapped:false}));m.scale.set(.15,.6,.05);m.position.set(Math.cos(a)*3,Math.sin(a)*3,0);m.rotation.z=a+Math.PI/2;tclock.add(m)}tclock.position.z=-40;tunnelScene.add(tclock);
 function travel(to){
-  closePanel();if(trav)return;trav={t:0,to,switched:false,gen:false};ch.target=null;SFX.whoosh();keys.clear();
+  closePanel();if(trav)return;if(DU.on&&!DU.hunter)duelSend({t:'trav',from:G.cur,to});trav={t:0,to,switched:false,gen:false};ch.target=null;SFX.whoosh();keys.clear();
 }
 function updateTravel(dt){
   const tr=trav;tr.t+=dt;const t=tr.t;
@@ -2410,6 +2586,7 @@ function frame(now){
   if(!trav&&WD){
     const live=!(invOpen||panelOpen||briefOpen||shopOpen||miniOpen);
     let gdt=dt;if(hitStop>0){hitStop-=dt;gdt=dt*.08}
+    if(DU.on)duelTick(dt);
     if(mode==='play'&&G&&!G.over&&live)updateGame(gdt);
     else if(mode==='play'&&G&&miniOpen&&!G.over&&missionOpen(G.cur)){G.timers[G.cur]-=dt;if(G.timers[G.cur]<=0)failMission(G.cur)}
     if(ch.rig&&(mode==='play'||mode==='over')){ch.rig.g.position.set(ch.x,0,ch.z);faceTo(ch.rig,Math.atan2(ch.fx,ch.fz),dt,16);

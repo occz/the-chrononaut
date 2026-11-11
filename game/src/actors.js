@@ -90,7 +90,7 @@ function updateLabels(dt){
   for(const n of WD.npcs){
     if(n.bt>0&&n.bubble&&!n.dying){n.bt-=dt;if(!n.bd){n.bd=document.createElement('div');n.bd.className='bubble'+(n.kind==='hunter'?' h':n.kind==='lord'?' l':'');LBL.appendChild(n.bd)}n.bd.textContent=n.bubble;const p=project(n.x,2.5*(n.k||1)+.3,n.z);n.bd.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;n.bd.hidden=p.behind}
     else if(n.bd){n.bd.remove();n.bd=null}
-    if((n.kind==='hunter')&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
+    if((n.kind==='hunter'||n.peer)&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
       const p=project(n.x,2.35,n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
     else if(n.hd){n.hd.remove();n.hd=null}
   }
@@ -219,6 +219,7 @@ function spawnHunter(p){
   burst(p.x,1.4,p.z,'#b44aff',40,6,.5);hint('hunt',TOUCH?'A Time Hunter! Use HIT to fight and DASH to dodge.':'A Time Hunter! J to hit, K to dash.',300);
 }
 function hurtNpc(n,dmg,dx,dz){
+  if(n.peer){floatText(n.x,2.2,n.z,String(Math.max(1,Math.round(dmg))),'#fff6d8');SFX.hit();hitStop=.045;burst(n.x,1.3,n.z,'#ffffff',8,3,.25);duelSend({t:'hit',d:Math.max(1,Math.round(dmg)),x:ch.x,z:ch.z});return}
   n.hp-=dmg;n.hitT=.15;hitStop=.045;shk=Math.max(shk,.25);floatText(n.x,2.2*(n.k||1),n.z,String(dmg),'#fff6d8');SFX.hit();
   const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
   burst(n.x,1.3*(n.k||1),n.z,'#ffffff',6,3,.25);
@@ -248,6 +249,7 @@ function hurtPlayer(dmg,src){
 }
 function artItem(){return'the '+ERA[G.cur].mission.item}
 function knockout(){
+  if(DU.on)return duelKnockout();
   if(G.boss&&G.boss.on)return lordWins();
   const lost=Math.floor(G.coins*.4);G.coins-=lost;ch.hp=ch.maxHp;ch.inv=2;
   if(ch.carry&&missionOpen(G.cur))dropItem('item',ch.x,ch.z);setCarry(false);
@@ -264,7 +266,7 @@ function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.
 function playerAttack(){
   if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
-  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
+  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer)return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
       n.dodgeCd=2.6;n.atkCd=.2;n.lunge=0;n.retreat=0;floatText(ch.x,2.6,ch.z,'DODGED','#d8a0ff');beep(1000,.05);return}
     hurtNpc(n,ch.dmg+(Math.random()*8-4|0),dx,dz)});
@@ -279,10 +281,10 @@ function updateCombat(dt){
   ch.atkCd-=dt;ch.dashCd-=dt;ch.inv-=dt;ch.swing-=dt;ch.regenWait-=dt;ch.hurtT-=dt;
   if(ch.regenWait<=0&&ch.hp<ch.maxHp)ch.hp=Math.min(ch.maxHp,ch.hp+ch.regen*dt);
   G.heat=Math.max(0,G.heat-.5*ch.coolK*dt);
-  const hl=G.heat>=10?1+heatLvl():0,cap=(G.cur===NX||G.boss||G.free)?0:hl;
+  const hl=G.heat>=10?1+heatLvl():0,cap=(G.cur===NX||G.boss||G.free||DU.on)?0:hl;
   WD.huntT-=dt;
   if(WD.portal){WD.portal.t-=dt;const P=WD.portal;P.r1.rotation.z+=dt*6;P.g.scale.setScalar(Math.min(1,(1-P.t/.9)*2.2));if(Math.random()<.5)burst(P.x,1.4,P.z,'#b44aff',2,2,.3,0,0);if(P.t<=0){const pp={x:P.x,z:P.z};closePortal();spawnHunter(pp)}}
-  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&Math.random()<.015)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(20,38-G.heat*.15):90}
+  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&!DU.on&&Math.random()<.015)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(20,38-G.heat*.15):90}
   for(const b of WD.shots){b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.m.position.set(b.x,b.y,b.z);if(Math.random()<.6)burst(b.x,b.y,b.z,b.g?'#ffd24a':'#b44aff',1,.4,.25,0,0);
     if(Math.hypot(b.x-ch.x,b.z-ch.z)<.55){b.life=0;hurtPlayer(b.dmg,{x:b.x,z:b.z,kind:b.g?'lord':'hunter'})}if(b.life<=0)scene.remove(b.m)}
   WD.shots=WD.shots.filter(b=>b.life>0);
@@ -290,7 +292,7 @@ function updateCombat(dt){
     if(g.r>0&&!g.hit&&ch.inv<=0&&Math.abs(Math.hypot(ch.x-g.x,ch.z-g.z)-g.r)<.45){g.hit=true;hurtPlayer(22,{x:g.x,z:g.z,kind:'lord'})}if(g.life<=0){scene.remove(g.m);g.m.material.dispose()}}
   WD.rings=WD.rings.filter(g=>g.life>0);
   for(const n of WD.npcs){
-    if(n.dying)continue;n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
+    if(n.dying)continue;if(n.peer){n.hitT-=dt;continue}n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
     if(n.kbx||n.kbz){n.x=n.x+n.kbx*dt;n.z=clamp(n.z+n.kbz*dt,ZMIN,ZMAX);const f=Math.pow(.02,dt);n.kbx*=f;n.kbz*=f;if(Math.hypot(n.kbx,n.kbz)<.2)n.kbx=n.kbz=0}
     if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
@@ -317,7 +319,7 @@ function updateCombat(dt){
 function updateNpcs(dt,live){
   for(const n of WD.npcs){
     if(n.dying){n.dying-=dt;animRig(n.rig,dt,{dead:Math.max(0,n.dying)});n.rig.g.position.set(n.x,0,n.z);if(n.dying<=0){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null}continue}
-    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'){
+    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&!n.peer){
       n.wait-=dt;const dx=n.tx-n.x,dz=n.tz-n.z,d=Math.hypot(dx,dz);
       if(n.wait>0||d<.2){n.moving=false;if(n.wait<=0){n.wait=1+Math.random()*4;n.tx=clamp(n.x+(Math.random()-.5)*16,-L+3,L-3);n.tz=ZMIN+Math.random()*(ZMAX-ZMIN)}}
       else{const sp=n.sp*dt;n.x+=dx/d*sp;n.z+=dz/d*sp;n.ang=Math.atan2(dx,dz);n.moving=true;if(d<.3)n.wait=1+Math.random()*4}
