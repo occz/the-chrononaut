@@ -14,13 +14,13 @@ function stats(){
   ch.maxHp=100+25*u.hp+(R(1969)?20:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
   ch.spd=1+.08*u.spd+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
   ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
 }
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
-  bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.inv=0;ch.carry=0;setCarry(false);
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+  bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
   arrive(2026,true);
@@ -156,7 +156,7 @@ function objectiveTarget(){
 }
 function nearest(a){let b=null,bd=1e9;for(const i of a){const d=Math.abs(i.x-ch.x);if(d<bd){bd=d;b=i}}return b}
 function updateHUD(){
-  const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
+  const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('spells').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
   if(!G)return;
   let html='';const rp=activeRepair();
   if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
@@ -167,7 +167,7 @@ function updateHUD(){
   if(html!==objCache){$('obj').innerHTML=html;objCache=html}
   $('score').textContent=G.score;
   $('hpBar').style.width=(100*clamp(ch.hp/ch.maxHp,0,1))+'%';$('hpTxt').textContent=Math.ceil(Math.max(0,ch.hp));$('coins').textContent=G.coins;$('heatBar').style.width=Math.round(G.heat)+'%';
-  $('relN').textContent=relicCount();$('atkN').textContent=ch.dmg;
+  updateMagicHUD();$('relN').textContent=relicCount();$('atkN').textContent=ch.dmg;
   if(G.boss&&G.boss.n)$('bossHp').style.width=(100*clamp(G.boss.n.hp/G.boss.n.maxHp,0,1))+'%';
   const it=interactable();$('bUse').hidden=!it;if(it){$('bUse').textContent=it.label;hint('use_'+it.k,(TOUCH?'Tap '+it.label+' to use ':'Press E to use ')+USE_H[it.k]+'.')}
 }
@@ -185,7 +185,7 @@ function showRepairBrief(rp){
 }
 let introHint=false;
 function hint(k,msg,delay=0){if(!G||G.hints[k])return;G.hints[k]=1;setTimeout(()=>G&&!G.over&&toast(msg),delay)}
-const USE_H={machine:'the time machine',shop:'the Bazaar',land:'the task'};
+const USE_H={fountain:'the mana fountain',machine:'the time machine',shop:'the Bazaar',land:'the task'};
 function showIntro(){
   $('briefCard').classList.remove('paradox');$('bDate').textContent='BASE OF OPERATIONS';$('bYear').textContent='2026';$('bEra').textContent='Present Day';
   $('bMustL').textContent='YOUR JOB';$('bMust').textContent='Keep the causal line intact.';
@@ -193,22 +193,24 @@ function showIntro(){
   introHint=true;openBrief();
 }
 function openBrief(){briefOpen=true;$('brief').hidden=false;keys.clear();setTimeout(()=>$('bGo').focus(),50)}
-$('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(introHint){introHint=false;hint('move',TOUCH?'Tap the ground to walk to the time machine.':'Walk with WASD or the arrow keys.',500)}};
+$('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(introHint){introHint=false;hint('move',TOUCH?'Tap the ground to walk to the time machine.':'Walk with WASD or the arrow keys.',500);hint('spell',TOUCH?'Tap the spell button to cast Chrono Bolt. Mana is limited: refill it at the Nexus fountain.':'Press E to cast Chrono Bolt. Mana is limited: refill it at the Nexus fountain.',7500)}};
 
 /* ================= interactions ================= */
 function interactable(){
   if(!G||busy()||!WD)return null;
   if(Math.abs(ch.x-WD.mx)<2.2&&ch.z<ZMIN+2)return{k:'machine',label:'MACHINE'};
   if(G.cur===NX&&Math.abs(ch.x-WD.land.x)<2.6&&ch.z<ZMIN+2.2)return{k:'shop',label:'BAZAAR'};
+  if(G.cur===NX&&WD.fountain&&Math.abs(ch.x-WD.fountain.x)<2.8&&ch.z<ZMIN+2.6)return{k:'fountain',label:'FOUNTAIN'};
   if(missionOpen(G.cur)&&!activeRepair()&&ch.carry&&Math.abs(ch.x-WD.land.x)<2.4&&ch.z<ZMIN+2.2)return{k:'land',label:'USE'};
   return null;
 }
-function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='land')openMini(G.cur)}
+function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='fountain')drinkFountain();else if(it.k==='land')openMini(G.cur)}
 function checkPickups(){
-  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'?1.2:.9))continue;
+  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'||it.kind==='mseed'?1.2:.9))continue;
     if(it.kind==='item'&&missionOpen(G.cur)&&!ch.carry&&!activeRepair()){removeItem(it);setCarry(true);SFX.pick();burst(ch.x,1.5,ch.z,'#ffb35c',24,3,.35);toast(`You have ${artItem()}! Bring it to the ${ERA[G.cur].mission.label}.`)}
     else if(it.kind==='relic'){removeItem(it);G.relics[G.cur]=true;stats();G.score+=40;SFX.ok();burst(ch.x,1.5,ch.z,'#b44aff',50,5,.45);const[n,d]=RELIC[G.cur];toast(`Relic: ${n} · ${d}`)}
     else if(it.kind==='gear'){pickGear(it)}
+    else if(it.kind==='mseed'){pickSeed(it)}
     else if(it.kind==='cell'&&activeRepair()){removeItem(it);ch.cells++;SFX.pick();burst(ch.x,1.5,ch.z,'#5ff5d6',24,3,.35);toast(`Chronon cell ${WD.delivered+ch.cells}/3`)}}
   if(WD.stab&&ch.cells>0&&Math.hypot(WD.stab.x-ch.x,WD.stab.z-ch.z)<1.6){for(let i=0;i<ch.cells;i++){const s=WD.stab.slots[WD.delivered+i];if(s)s.material.emissiveIntensity=4}WD.delivered+=ch.cells;ch.cells=0;SFX.pick();burst(WD.stab.x,1.2,WD.stab.z,'#5ff5d6',30,4,.4);if(WD.delivered>=3)succeedRepair()}
   if(ch.openOnArrive&&!ch.target){const k=ch.openOnArrive;ch.openOnArrive=null;const it=interactable();if(it&&it.k===k)interact()}
@@ -265,11 +267,12 @@ function renderShop(){
     return`<div class="ware"><div><h3>${w.n}${w.use?'':`<span class="pips">${Array.from({length:w.max},(_,k)=>`<i class="${k<lvl?'on':''}"></i>`).join('')}</span>`}</h3><p>${w.d}</p></div>
     <button class="buy" data-i="${i}" ${maxed||G.coins<c?'disabled':''}>${maxed?'MAX':`<span class="coin"></span>${c}`}</button></div>`}).join('');
   $('wares').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(WARES[+b.dataset.i]));
+  renderForge();
   $('sRelN').textContent=`${relicCount()}/14`;
   $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${y} · ???</span>`).join('');
 }
 function buy(w){const c=wareCost(w);if(G.coins<c)return;G.coins-=c;SFX.coin();
-  if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp}renderShop()}
+  if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp;if(w.k==='mana')ch.mana=ch.maxMana}renderShop()}
 $('sLeave').onclick=()=>{shopOpen=false;$('shop').hidden=true;cv.focus()};
 
 /* ================= minigames ================= */
@@ -481,7 +484,7 @@ addEventListener('keydown',e=>{
   if(busy())return;
   if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
   if(e.repeat)return;keys.add(k);
-  if(k==='j')playerAttack();else if(k==='k'||k===' '||k==='shift')playerDash();else if(k==='e'||k==='enter')interact();
+  if(k==='j')playerAttack();else if(k==='k'||k===' '||k==='shift')playerDash();else if(k==='q')castSpell(0);else if(k==='e'){if(interactable())interact();else castSpell(1)}else if(k==='enter')interact();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){ch.target=null;ch.openOnArrive=null}
 });
 addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(miniOpen)miniKey(k,false)});
@@ -494,13 +497,14 @@ cv.addEventListener('pointerdown',e=>{
   ndc.set(e.clientX/W*2-1,-(e.clientY/H)*2+1);ray.setFromCamera(ndc,camera);
   const hitObj=(o)=>{if(!o)return false;_box.setFromObject(o);return ray.ray.intersectsBox(_box)};
   if(WD.machine&&hitObj(WD.machine)){ch.target={x:WD.mx,z:ZMIN+.4};ch.openOnArrive='machine';return}
+  if(WD.fountain&&hitObj(WD.fountain.g)){ch.target={x:WD.fountain.x,z:ZMIN+.4};ch.openOnArrive='fountain';return}
   if(WD.landGroup&&(G.cur===NX||(missionOpen(G.cur)&&ch.carry))&&hitObj(WD.landGroup)){ch.target={x:WD.land.x,z:ZMIN+.4};ch.openOnArrive=G.cur===NX?'shop':'land';return}
   if(ray.ray.intersectPlane(plane,hitP)){ch.target={x:hitP.x,z:clamp(hitP.z,ZMIN,ZMAX)};ch.openOnArrive=null;
     if(hitP.z<ZMIN+.5&&Math.abs(hitP.x-WD.mx)<2.5){ch.target.x=WD.mx;ch.openOnArrive='machine'}
     burst(ch.target.x,.1,ch.target.z,'#ffd27a',6,1,.25,0,0)}
 });
 const hold=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();audio();fn()});
-hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);
+hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);hold('sp0',()=>castSpell(0));hold('sp1',()=>castSpell(1));
 $('mute').onclick=()=>{setMuted(!muted);if(!muted&&G)setAmbient(G.cur)};
 $('start').onclick=()=>{audio();newGame()};
 
@@ -510,14 +514,14 @@ function updatePlayer(dt){
   if(keys.has('arrowleft')||keys.has('a'))vx--;if(keys.has('arrowright')||keys.has('d'))vx++;if(keys.has('arrowup')||keys.has('w'))vz--;if(keys.has('arrowdown')||keys.has('s'))vz++;
   if(!vx&&!vz&&ch.target){const dx=ch.target.x-ch.x,dz=ch.target.z-ch.z,d=Math.hypot(dx,dz);if(d<.15)ch.target=null;else{vx=dx/d;vz=dz/d;if(d<.4){vx*=d/.4;vz*=d/.4}}}
   const l=Math.hypot(vx,vz);ch.moving=l>.01;
-  const sp=5.2*ch.spd;
+  const sp=5.2*ch.spd*(MAGIC.haste>0?1.6:1);
   if(ch.dashT>0){ch.dashT-=dt;ch.x+=ch.dashX*18*dt;ch.z+=ch.dashZ*18*dt;if(Math.random()<.8)burst(ch.x,1,ch.z,'#6ad8e8',2,.5,.35,0,0)}
   else if(ch.moving){const k=l>1?1/l:1;ch.x+=vx*k*sp*dt;ch.z+=vz*k*sp*dt;ch.fx=vx/l;ch.fz=vz/l;ch.stepT-=dt;if(ch.stepT<=0){ch.stepT=.32;noise(.05,.02,500,300)}}
   if(ch.kbx||ch.kbz){ch.x+=ch.kbx*dt;ch.z+=ch.kbz*dt;const f=Math.pow(.01,dt);ch.kbx*=f;ch.kbz*=f;if(Math.hypot(ch.kbx,ch.kbz)<.2)ch.kbx=ch.kbz=0}
   ch.x=ch.x;ch.z=clamp(ch.z,ZMIN,ZMAX);
 }
 function updateGame(dt){
-  updatePlayer(dt);checkPickups();updateCombat(dt);
+  updatePlayer(dt);checkPickups();updateCombat(dt);updateMagic(dt);
   const rp=activeRepair();
   if(G.boss&&!G.over){if(!G.boss.on){G.boss.t-=dt;if(G.boss.t<=0)spawnLord()}}
   else if(rp){rp.time-=dt;if(rp.time<=0)failRepair()}
@@ -564,7 +568,7 @@ function frame(now){
 }
 
 /* ================= boot ================= */
-function boot(){initInv();
+function boot(){initInv();initMagicUI();
   resize();
   const pool=[1985,2150,1927,1610,2400,2600,2088];const y=pool[(Math.random()*pool.length)|0];
   genWorld(y);camX=0;streamChunks(99);updateWorldStream(0);

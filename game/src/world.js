@@ -126,7 +126,8 @@ const YEARS=[1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,26
 const RELIC={1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
  1985:['Walkman','dash recharges 15% faster'],1999:['Y2K Survival Kit','-10% damage taken'],2026:['Lucky Coin','+25% coins'],2088:['Seed of Life','health regenerates twice as fast'],2150:['Mag Boots','+6% speed'],2240:['Memory Shard','+6 s on missions'],2400:['Alien Alloy','-12% damage taken'],2600:['Chronon Spark','+8 damage']};
 const WARES=[{k:'hp',n:'Reinforced Suit',d:'+25 max health',max:5,base:40},{k:'dmg',n:'Chrono Gauntlet',d:'+6 damage per hit',max:5,base:50},{k:'spd',n:'Flux Boots',d:'+8% walking speed',max:4,base:45},
- {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
+ {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'mana',n:'Mana Vessel',d:'+25 max mana',max:4,base:45},
+ {k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
 const TIERS=[[1969,1985,1999,2026,2088],[1927,1957,2150],[1903,2240],[1869,2400],[1610,2600]];
 const hasM=y=>!!(ERA[y]&&ERA[y].mission);
 
@@ -407,6 +408,7 @@ function updateWorldStream(dt){
   if(mode==='play'||mode==='title'||mode==='over')streamCitizens(dt);
 }
 function genWorld(year){
+  if(typeof clearMagic==='function')clearMagic();
   if(WD&&WD.group){scene.remove(WD.group);disposeTree(WD.group)}
   const e=ERA[year],lk=e.look;LK=lk;const seed=(year+3000)*7919+(typeof G!=='undefined'&&G?G.seed:0),r=rng(seed);
   WD={year,seed,group:new THREE.Group(),items:[],npcs:[],coins:[],shots:[],rings:[],portal:null,huntT:8,stab:null,delivered:0,anim:[],clouds:[],wx:null,cdSign:null,mx:0,land:null,machine:null,relic:null,
@@ -435,6 +437,7 @@ function genWorld(year){
     const beam=new THREE.Mesh(geo('lbeam',()=>new THREE.CylinderGeometry(1.1,1.1,14,32,1,true)),addMat('#ff8a2a',.06));beam.position.set(lx,7,ZMIN+.2);g.add(beam);WD.landBeam=beam}
   if(lk.lamps&&lk.night){for(let i=0;i<(TOUCH?3:4);i++){const p=new THREE.PointLight(lk.lamps,22,15,1.6);p.position.set(0,3.5,FRONT+3.2);g.add(p);WD.lampPool.push(p)}}
   WD.machine=buildMachine(g,WD.mx);
+  if(year===NX)WD.fountain=buildFountain(g,lx+10);
   buildWeather(g,lk);
   const envScene=new THREE.Scene();envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10,24,12),WD.skyMat));
   if(scene.environment)scene.environment.dispose();scene.environment=pmrem.fromScene(envScene,.02).texture;
@@ -444,6 +447,7 @@ function genWorld(year){
     if(missionOpen(year))placeItem(r);
     if(RELIC[year]&&!G.relics[year])placeRelic(r);
     if(activeRepair())placeRepair(r);
+    placeSeeds();
     if(year===NX)spawnMerchant();
   }
   setMachineYear(year);

@@ -211,6 +211,22 @@ h1,h2,h3{font-weight:400;margin:0}
 .ml i.up{color:#6fd16f;font-style:normal}.ml i.dn{color:#ff7a6a;font-style:normal}
 #invDetail{background:#0c0a0e;border:1px solid var(--brass-d);border-radius:8px;padding:10px;margin-top:10px;min-height:92px}#invDetail h3{font-size:17px;font-weight:600}#invDetail .sub{font-size:12px;color:var(--muted);margin:2px 0 6px}
 #invDetail .hint{margin:0;font-size:13px;color:var(--muted)}.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.btn.sm{font-size:13px;padding:7px 16px;letter-spacing:.1em}
+.status .bar.mana{height:12px;background:#08142a;margin-top:4px}.status .bar.mana i{background:linear-gradient(180deg,#8fd8ff,#2a5ac8)}.status .bar.mana span{line-height:12px;font-size:10px}
+.spells{position:fixed;z-index:3;display:flex;gap:12px;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+@media(pointer:coarse){.spells{left:auto;transform:none;right:var(--gut-r);bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
+.sp{--sc:#6e5320;position:relative;overflow:hidden;width:58px;height:58px;border-radius:50%;border:2px solid var(--sc);background:radial-gradient(circle at 40% 30%,#2c2c48,#0c0a14);color:#fff;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;pointer-events:auto;padding:0;box-shadow:0 0 12px color-mix(in srgb,var(--sc) 45%,transparent)}
+.sp .sg{display:block;font-size:24px;line-height:58px;color:var(--sc);font-weight:400}.sp .sk{position:absolute;top:3px;left:9px;font-size:11px;font-weight:700;color:#fff3d0}.sp .sc{position:absolute;bottom:3px;width:100%;left:0;text-align:center;font-size:10px;color:#8fd8ff;font-weight:700}
+.sp .cdo{position:absolute;inset:0;background:#000b;transform-origin:bottom;transform:scaleY(0);pointer-events:none}.sp.empty{opacity:.45}.sp.nomp .sg{filter:grayscale(1);opacity:.5}
+.spellbook{margin-top:16px;border-top:1px solid var(--brass-d);padding-top:12px}.spellbook .label span{font-weight:500;letter-spacing:.04em;font-size:12px}
+.slotrow,#spSlots{display:flex;gap:10px;margin-bottom:8px}.slotwrap{position:relative;width:78px}.slotwrap .kb{position:absolute;top:-7px;left:-5px;z-index:2;background:linear-gradient(180deg,#e2c26c,#a7802f);color:#2a1d08;font-weight:700;font-size:12px;border-radius:5px;padding:0 6px}
+.splist{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.gs{--rc:#6b5a3a;aspect-ratio:1;min-height:70px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:#0c0a0e;border:1.5px solid var(--rc);border-radius:8px;color:var(--cream);cursor:pointer;padding:3px;box-shadow:inset 0 0 14px color-mix(in srgb,var(--rc) 28%,transparent)}
+.gs.empty{opacity:.35;cursor:default;box-shadow:none;border-style:dashed;border-color:var(--brass-d)}.gs.sel{outline:2px solid #fff3d0;outline-offset:1px}.gs .gg{font-size:22px;color:var(--rc);line-height:1}.gs small{font-size:9.5px;line-height:1.1;text-align:center}.gs .lv{font-size:8px;letter-spacing:.1em;color:var(--rc)}
+#spDetail{background:#0c0a0e;border:1px solid var(--brass-d);border-radius:8px;padding:10px;margin-top:10px}#spDetail h3{font-size:17px;font-weight:600}#spDetail .sub{font-size:12px;color:var(--muted);margin:2px 0 4px}#spDetail .hint{margin:0;font-size:13px;color:var(--muted)}
+.seedrow{display:flex;flex-wrap:wrap;gap:6px}.seed{--c:#fff;display:flex;gap:6px;align-items:center;background:#0c0a0e;border:1px solid var(--c);color:var(--cream);border-radius:20px;padding:5px 12px;font:600 13px var(--f-ui);cursor:pointer}.seed i{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}.seed:disabled{opacity:.35;cursor:default}
+.forgeline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}.fslots{display:flex;align-items:center;gap:8px}.fslots em{color:var(--muted);font-style:normal}
+.fslot{--c:#6e5320;min-width:84px;text-align:center;padding:8px 10px;border:1.5px solid var(--c);border-radius:8px;background:#0c0a0e;color:var(--cream);font:600 13px var(--f-ui);cursor:pointer}.fslot.empty{border-style:dashed;opacity:.4;cursor:default}
+.forgeres{margin-top:8px;font-size:14px;min-height:20px}
 @media (prefers-reduced-motion:reduce){.card{animation:none}.led,.chip.failed,.objective .t.low,.clock.low{animation:none}}
 </style>
 
@@ -230,8 +246,13 @@ h1,h2,h3{font-weight:400;margin:0}
 <div class="toast" id="toast" hidden></div>
 <div class="status" id="status" hidden>
   <div class="bar" aria-label="Health"><i id="hpBar"></i><span id="hpTxt">100</span></div>
+  <div class="bar mana" aria-label="Mana"><i id="mpBar"></i><span id="mpTxt">100 / 100</span></div>
   <div class="srow"><span><span class="coin"></span><b id="coins" style="font-weight:600">0</b></span><span class="heat">HEAT<i class="heatbar"><i id="heatBar"></i></i></span></div>
   <div class="srow small"><span>RELICS <b id="relN" style="color:#dcc0ff">0</b>/14</span><span>ATK <b id="atkN" style="color:var(--cream)">20</b></span></div>
+</div>
+<div class="spells" id="spells" hidden>
+  <button class="sp" id="sp0" aria-label="Spell on Q"><b class="sg"></b><small class="sk">Q</small><small class="sc"></small><i class="cdo"></i></button>
+  <button class="sp" id="sp1" aria-label="Spell on E"><b class="sg"></b><small class="sk">E</small><small class="sc"></small><i class="cdo"></i></button>
 </div>
 <div class="actions" id="actions" hidden>
   <button id="bUse" aria-label="Use" hidden>USE</button>
@@ -276,6 +297,7 @@ h1,h2,h3{font-weight:400;margin:0}
       <div><div class="label">EQUIPPED</div><div class="eqrow" id="invEq"></div><div class="label">CHARACTER</div><div id="invStats"></div></div>
       <div><div class="label">BAG <span id="invBagN"></span></div><div class="baggrid" id="invBag"></div><div id="invDetail"></div></div>
     </div>
+    <div class="spellbook" id="spBook"><div class="label">SPELLS <span id="spSeeds"></span></div><div id="spSlots"></div><div class="splist" id="spList"></div><div id="spDetail"></div></div>
     <div class="center" style="margin-top:14px"><button class="btn ghost" id="iClose">CLOSE</button></div>
   </div>
 </div>
@@ -284,6 +306,7 @@ h1,h2,h3{font-weight:400;margin:0}
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <div class="brassplate"><span id="sTitle">TEMPORAL BAZAAR</span><span class="num"><span class="coin"></span><b id="sCoins">0</b></span></div>
     <div class="wares" id="wares"></div>
+    <div class="label" style="margin-top:14px">SPELL FORGE</div><div id="forge"></div>
     <div class="label" style="margin-top:14px">RELICS <span id="sRelN"></span></div>
     <div class="relics" id="sRelics"></div>
     <div class="center" style="margin-top:14px"><button class="btn ghost" id="sLeave">LEAVE</button></div>
@@ -653,7 +676,8 @@ const YEARS=[1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,26
 const RELIC={1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
  1985:['Walkman','dash recharges 15% faster'],1999:['Y2K Survival Kit','-10% damage taken'],2026:['Lucky Coin','+25% coins'],2088:['Seed of Life','health regenerates twice as fast'],2150:['Mag Boots','+6% speed'],2240:['Memory Shard','+6 s on missions'],2400:['Alien Alloy','-12% damage taken'],2600:['Chronon Spark','+8 damage']};
 const WARES=[{k:'hp',n:'Reinforced Suit',d:'+25 max health',max:5,base:40},{k:'dmg',n:'Chrono Gauntlet',d:'+6 damage per hit',max:5,base:50},{k:'spd',n:'Flux Boots',d:'+8% walking speed',max:4,base:45},
- {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
+ {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'mana',n:'Mana Vessel',d:'+25 max mana',max:4,base:45},
+ {k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
 const TIERS=[[1969,1985,1999,2026,2088],[1927,1957,2150],[1903,2240],[1869,2400],[1610,2600]];
 const hasM=y=>!!(ERA[y]&&ERA[y].mission);
 
@@ -934,6 +958,7 @@ function updateWorldStream(dt){
   if(mode==='play'||mode==='title'||mode==='over')streamCitizens(dt);
 }
 function genWorld(year){
+  if(typeof clearMagic==='function')clearMagic();
   if(WD&&WD.group){scene.remove(WD.group);disposeTree(WD.group)}
   const e=ERA[year],lk=e.look;LK=lk;const seed=(year+3000)*7919+(typeof G!=='undefined'&&G?G.seed:0),r=rng(seed);
   WD={year,seed,group:new THREE.Group(),items:[],npcs:[],coins:[],shots:[],rings:[],portal:null,huntT:8,stab:null,delivered:0,anim:[],clouds:[],wx:null,cdSign:null,mx:0,land:null,machine:null,relic:null,
@@ -962,6 +987,7 @@ function genWorld(year){
     const beam=new THREE.Mesh(geo('lbeam',()=>new THREE.CylinderGeometry(1.1,1.1,14,32,1,true)),addMat('#ff8a2a',.06));beam.position.set(lx,7,ZMIN+.2);g.add(beam);WD.landBeam=beam}
   if(lk.lamps&&lk.night){for(let i=0;i<(TOUCH?3:4);i++){const p=new THREE.PointLight(lk.lamps,22,15,1.6);p.position.set(0,3.5,FRONT+3.2);g.add(p);WD.lampPool.push(p)}}
   WD.machine=buildMachine(g,WD.mx);
+  if(year===NX)WD.fountain=buildFountain(g,lx+10);
   buildWeather(g,lk);
   const envScene=new THREE.Scene();envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10,24,12),WD.skyMat));
   if(scene.environment)scene.environment.dispose();scene.environment=pmrem.fromScene(envScene,.02).texture;
@@ -971,6 +997,7 @@ function genWorld(year){
     if(missionOpen(year))placeItem(r);
     if(RELIC[year]&&!G.relics[year])placeRelic(r);
     if(activeRepair())placeRepair(r);
+    placeSeeds();
     if(year===NX)spawnMerchant();
   }
   setMachineYear(year);
@@ -1221,7 +1248,7 @@ function shoot(x,y,z,vx,vz,dmg,gold){const m=new THREE.Mesh(SPH(),glow(gold?'#ff
 function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.kind==='merchant')continue;if(n.kind==='citizen'&&!n.hostile)continue;const d=Math.hypot(n.x-ch.x,n.z-ch.z);if(d<bd){bd=d;best=n}}
   if(best){const dx=best.x-ch.x,dz=best.z-ch.z,l=Math.hypot(dx,dz)||1;ch.fx=dx/l;ch.fz=dz/l}}
 function playerAttack(){
-  if(ch.atkCd>0||busy())return;ch.atkCd=.36;ch.swing=.18;SFX.swing();aimAssist();
+  if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
   WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
@@ -1251,6 +1278,7 @@ function updateCombat(dt){
   for(const n of WD.npcs){
     if(n.dying)continue;n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
     if(n.kbx||n.kbz){n.x=n.x+n.kbx*dt;n.z=clamp(n.z+n.kbz*dt,ZMIN,ZMAX);const f=Math.pow(.02,dt);n.kbx*=f;n.kbz*=f;if(Math.hypot(n.kbx,n.kbz)<.2)n.kbx=n.kbz=0}
+    if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
     if(n.hostile){
       const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=1.5,H_=n.kind==='hunter';
@@ -1260,11 +1288,11 @@ function updateCombat(dt){
       if(H_){n.shootCd-=dt;n.lungeCd-=dt;n.dodgeCd-=dt;
         if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,14+2*dTier());SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
         if(n.retreat>0){n.retreat-=dt;n.x=n.x-dx/d*5*dt;n.z=clamp(n.z-dz/d*5*dt,ZMIN,ZMAX);n.moving=true;continue}
-        if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt;n.z=clamp(n.z+n.lz*14*dt,ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
+        if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt*(n.slow>0?.5:1);n.z=clamp(n.z+n.lz*14*dt*(n.slow>0?.5:1),ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
         if(d>4&&n.shootCd<=0){n.swind=.4;n.burst=1+(dTier()>=1?1:0);n.shootCd=1.6+Math.random()*.9;continue}
         if(d>reach&&d<6&&n.lungeCd<=0){n.lunge=.24;n.lx=dx/d;n.lz=dz/d;n.lungeCd=1.7+Math.random();continue}}
       if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=H_?.22:.38;continue}
-      const sp=(H_?4.4:2.4)*dt,tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
+      const sp=(H_?4.4:2.4)*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
       n.x=n.x+ex/el*sp;n.z=clamp(n.z+ez/el*sp,ZMIN,ZMAX);n.moving=true;
     }else if(n.flee>0){n.flee-=dt;const dir=n.x<ch.x?-1:1;n.x=n.x+dir*4*dt;n.ang=dir*Math.PI/2;n.moving=true;n.tx=n.x;n.tz=n.z}
   }
@@ -1413,6 +1441,7 @@ function slotCell(g,attr,label){
   return g?`<button class="gc" ${attr} style="--rc:${RAR[g.rar].c}"><span class="gg">${SLOT_G[g.slot]}</span><small>${g.name}</small></button>`
     :`<button class="gc empty" ${attr} disabled><span class="gg">${SLOT_G[label]||''}</span><small>${label?SLOT_N[label]:''}</small></button>`}
 function renderInv(){
+  if(typeof renderSpells==='function')renderSpells();
   const sel=invSel&&(invSel.from==='bag'?G.bag[invSel.i]:G.eq[invSel.slot]);if(!sel)invSel=null;
   $('invEq').innerHTML=SLOTS.map(s=>slotCell(G.eq[s],G.eq[s]?`data-eq="${s}"`:'',s)).join('');
   $('invBag').innerHTML=Array.from({length:BAG_MAX},(_,i)=>G.bag[i]?slotCell(G.bag[i],`data-bag="${i}"`):`<button class="gc empty" disabled></button>`).join('');
@@ -1457,6 +1486,207 @@ function refreshGearVisual(){
   if(t){const g3=new THREE.Group(),c=RAR[t.rar].c;const ring=new THREE.Mesh(TOR(.1,.02),met(t));ring.position.set(0,.66,.2);g3.add(ring);g3.add(mesh(SPH(),glow(c,2.2+t.rar),0,.66,.2,.1,.1,.1,false));
     if(t.rar>=3){const o=new THREE.Mesh(TOR(.14,.012),glow(c,2));o.position.set(0,.66,.2);o.rotation.x=Math.PI/2.4;g3.add(o)}add(R.torso,g3)}
 }
+/* ================= magic: spells, seeds, mana, fountain, forge ================= */
+const ELEM={past:{n:'Past',c:'#e8b865'},future:{n:'Future',c:'#5ff5d6'},void:{n:'Void',c:'#b44aff'},ember:{n:'Ember',c:'#ff7a3a'},storm:{n:'Storm',c:'#ffe45a'},echo:{n:'Echo',c:'#7ad0ff'}};
+const ELKEYS=Object.keys(ELEM);
+const MAGIC={cd:[0,0],cdMax:[1,1],haste:0,proj:[],fx:[],tm:[],wells:[],blades:null,ward:null,sparkT:0,warnT:0,forge:[],forgeMsg:''};
+const isFoe=n=>!n.dying&&(n.kind==='hunter'||n.kind==='lord'||(n.kind==='citizen'&&n.hostile));
+const foesIn=(x,z,r)=>WD.npcs.filter(n=>isFoe(n)&&Math.hypot(n.x-x,n.z-z)<=r+(n.kind==='lord'?1:0));
+const pw=id=>1+.3*((G.spells[id]||1)-1);
+function hitFoe(n,dmg,fx,fz){if(n.dying)return;hurtNpc(n,Math.max(1,Math.round(dmg)),n.x-fx,n.z-fz)}
+function aim(range=11){let best=null,bd=range;
+  for(const n of WD.npcs){if(!isFoe(n))continue;const dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*ch.fx+dz*ch.fz)/(d||1)>-.3){bd=d;best=n}}
+  if(best){const dx=best.x-ch.x,dz=best.z-ch.z,l=Math.hypot(dx,dz)||1;ch.fx=dx/l;ch.fz=dz/l}return best}
+/* ---- visual helpers ---- */
+function mfx(m,life,upd){scene.add(m);MAGIC.fx.push({m,life,max:life,upd})}
+function ringFx(x,z,r,c,life=.5,y=.08){const m=new THREE.Mesh(geo('mring',()=>new THREE.RingGeometry(.88,1,56)),addMat(c,.85));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.scale.setScalar(.3);
+  mfx(m,life,k=>{m.scale.setScalar(.3+(r-.3)*(1-Math.pow(1-k,2)));m.material.opacity=.85*(1-k)})}
+function boltFx(x1,z1,x2,z2,c){
+  for(let j=0;j<3;j++){const pts=[],n=7;for(let i=0;i<=n;i++){const t=i/n,mid=i&&i<n;pts.push(new THREE.Vector3(x1+(x2-x1)*t+(mid?(Math.random()-.5)*.9:0)+j*.03,1.3+(mid?(Math.random()-.5)*.6:0),z1+(z2-z1)*t+(mid?(Math.random()-.5)*.9:0)))}
+    const m=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:c,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));m.userData.geo=true;mfx(m,.3,k=>{m.material.opacity=1-k})}
+  burst(x2,1.3,z2,c,14,3,.3)}
+function projectile(x,y,z,vx,vz,dmg,c,pierce){const m=new THREE.Mesh(SPH(),glow(c,5));m.scale.setScalar(.34);m.position.set(x,y,z);scene.add(m);MAGIC.proj.push({x,y,z,vx,vz,dmg,c,m,life:1.4,pierce,hit:new Set()})}
+const later=(t,fn)=>MAGIC.tm.push({t,fn});
+/* ---- spells ---- */
+const SPELLS={
+  bolt:{n:'Chrono Bolt',el:'past',t:1,cost:6,cd:.5,g:'✦',d:'A bolt of frozen time that homes in on nearby foes. Weak, but cheap.',
+    cast(p){aim(11);projectile(ch.x+ch.fx*.6,1.3,ch.z+ch.fz*.6,ch.fx*15,ch.fz*15,16*p,'#e8b865',false);SFX.shot()}},
+  ward:{n:'Echo Ward',el:'echo',t:1,cost:18,cd:7,g:'◉',d:'An echo of a second ago shields you. Nothing can hurt you for 2.4 s.',
+    cast(p){ch.inv=Math.max(ch.inv,2.4*p);MAGIC.ward={t:2.4*p,m:null};ringFx(ch.x,ch.z,2.4,'#7ad0ff',.6);burst(ch.x,1.2,ch.z,'#7ad0ff',24,3,.3);SFX.ok()}},
+  blink:{n:'Blink Step',el:'void',t:1,cost:12,cd:3,g:'➤',d:'Skip 7 steps ahead through the void. Foes at the landing are hurt.',
+    cast(p){burst(ch.x,1,ch.z,'#b44aff',22,3,.35);const nx=ch.x+ch.fx*7,nz=clamp(ch.z+ch.fz*7,ZMIN,ZMAX);ch.x=nx;ch.z=nz;ch.inv=Math.max(ch.inv,.4);
+      burst(nx,1,nz,'#b44aff',26,4,.4);ringFx(nx,nz,2.4,'#b44aff',.4);for(const n of foesIn(nx,nz,2.4))hitFoe(n,16*p,nx,nz);SFX.dash()}},
+  mend:{n:'Rewind Mend',el:'past',t:1,cost:24,cd:8,g:'✚',d:'Rewinds your wounds. Restores 40 health.',
+    cast(p){const h=Math.round(40*p);ch.hp=Math.min(ch.maxHp,ch.hp+h);floatText(ch.x,2.6,ch.z,'+'+h,'#86e09a',true);ringFx(ch.x,ch.z,2,'#86e09a',.6);burst(ch.x,1.4,ch.z,'#86e09a',26,2.5,.3);SFX.ok()}},
+  slow:{n:'Molasses Time',el:'future',t:1,cost:16,cd:7,g:'≋',d:'Time turns to syrup ahead of you. Foes inside move at 40% for 5 s.',
+    cast(p){aim(8);const x=ch.x+ch.fx*3.2,z=clamp(ch.z+ch.fz*3.2,ZMIN,ZMAX);ringFx(x,z,5.5,'#5ff5d6',.8);for(const n of foesIn(x,z,5.5)){if(n.kind==='lord')continue;n.slow=5*p;burst(n.x,1.2,n.z,'#5ff5d6',10,2,.28)}SFX.ok()}},
+  nova:{n:'Chrono Nova',el:'ember',t:1,cost:22,cd:6,g:'✹',d:'A burst of time in every direction. Damages and shoves away nearby foes.',
+    cast(p){ringFx(ch.x,ch.z,4.8,'#ff7a3a',.45);burst(ch.x,1.2,ch.z,'#ff7a3a',40,6,.4);shk=Math.max(shk,.45);for(const n of foesIn(ch.x,ch.z,4.8))hitFoe(n,26*p,ch.x,ch.z);SFX.hit()}},
+  haste:{n:'Fast Forward',el:'storm',t:1,cost:18,cd:14,g:'»',d:'You skip ahead of the clock: +60% speed and 40% faster attacks for 6 s.',
+    cast(p){MAGIC.haste=6*p;ringFx(ch.x,ch.z,2,'#ffe45a',.5);burst(ch.x,1.2,ch.z,'#ffe45a',24,4,.3);SFX.ok()}},
+  arc:{n:'Paradox Arc',el:'storm',t:2,cost:22,cd:3,g:'ϟ',d:'Lightning leaps between up to four foes. Hits for 22 each.',
+    cast(p){aim(11);let px=ch.x,pz=ch.z;const used=new Set();
+      for(let i=0;i<4;i++){let best=null,bd=11;for(const n of WD.npcs){if(!isFoe(n)||used.has(n))continue;const d=Math.hypot(n.x-px,n.z-pz);if(d<bd){bd=d;best=n}}
+        if(!best)break;used.add(best);boltFx(px,pz,best.x,best.z,'#ffe45a');hitFoe(best,22*p,px,pz);px=best.x;pz=best.z}
+      if(!used.size)boltFx(ch.x,ch.z,ch.x+ch.fx*7,ch.z+ch.fz*7,'#ffe45a');SFX.shot()}},
+  stasis:{n:'Stasis Field',el:'future',t:2,cost:30,cd:12,g:'❄',d:'Time stops around you. Every foe nearby is frozen for 3 s (the Time Lord is immune).',
+    cast(p){ringFx(ch.x,ch.z,7.5,'#5ff5d6',.7);for(const n of foesIn(ch.x,ch.z,7.5)){if(n.kind==='lord'){floatText(n.x,3,n.z,'IMMUNE','#5ff5d6');continue}n.frozen=3*p;n.wind=0;n.swind=0;n.lunge=0;n.retreat=0;burst(n.x,1.3,n.z,'#5ff5d6',14,3,.3)}shk=Math.max(shk,.3);SFX.ok()}},
+  well:{n:'Gravity Well',el:'void',t:2,cost:28,cd:10,g:'◍',d:'A pocket of collapsed time drags foes in and crushes them for 2.6 s.',
+    cast(p){aim(9);const x=ch.x+ch.fx*6,z=clamp(ch.z+ch.fz*6,ZMIN,ZMAX);const m=new THREE.Mesh(SPH(),glow('#b44aff',3));m.scale.setScalar(.8);m.position.set(x,1.2,z);scene.add(m);
+      MAGIC.wells.push({x,z,t:2.6*p,tick:0,m,p});ringFx(x,z,6,'#b44aff',.6);SFX.ok()}},
+  meteor:{n:'Chrono Meteors',el:'ember',t:2,cost:32,cd:9,g:'☄',d:'Three burning minutes fall from the sky onto your target. 30 damage each.',
+    cast(p){const t=aim(12),bx=t?t.x:ch.x+ch.fx*7,bz=t?t.z:ch.z+ch.fz*7;
+      for(let i=0;i<3;i++){const x=bx+(i?(Math.random()-.5)*4:0),z=clamp(bz+(i?(Math.random()-.5)*3:0),ZMIN,ZMAX),d=.25+i*.4;
+        const mk=new THREE.Mesh(geo('mring',()=>new THREE.RingGeometry(.88,1,56)),addMat('#ff7a3a',.7));mk.rotation.x=-Math.PI/2;mk.position.set(x,.09,z);mk.scale.setScalar(2.2);mfx(mk,d+.45,k=>{mk.material.opacity=.7*(1-k)});
+        const ball=new THREE.Mesh(SPH(),glow('#ff7a3a',5));ball.scale.setScalar(.9);ball.position.set(x,14,z);scene.add(ball);
+        MAGIC.proj.push({meteor:true,x,z,y:14,t:0,d,m:ball,dmg:30*p,life:d+.3,hit:new Set()})}
+      SFX.ok()}},
+  blades:{n:'Phantom Blades',el:'echo',t:2,cost:26,cd:12,g:'✧',d:'Three spectral blades orbit you for 6 s and cut anything they touch.',
+    cast(p){clearBlades();const g=new THREE.Group();for(let i=0;i<3;i++){const b=box(glow('#7ad0ff',4),0,0,0,.16,.16,1.1,false);b.userData.a=i/3*Math.PI*2;g.add(b)}scene.add(g);
+      MAGIC.blades={g,t:6*p,p,cd:new Map()};ringFx(ch.x,ch.z,2.2,'#7ad0ff',.5);SFX.ok()}},
+  drain:{n:'Entropy Touch',el:'void',t:2,cost:20,cd:4,g:'☾',d:'A cone of decay in front of you. Hurts foes and heals you for 40% of the damage.',
+    cast(p){aim(5);const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.8,ch.z+ch.fz*.8,ang,'#b44aff',3.4);let tot=0;
+      for(const n of WD.npcs){if(!isFoe(n))continue;const dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>4.4||(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.2))continue;tot+=Math.round(20*p);hitFoe(n,20*p,ch.x,ch.z)}
+      if(tot){const h=Math.round(tot*.4);ch.hp=Math.min(ch.maxHp,ch.hp+h);floatText(ch.x,2.6,ch.z,'+'+h,'#86e09a')}SFX.swing()}},
+  veil:{n:'Veil of Ages',el:'echo',t:2,cost:26,cd:15,g:'☁',d:'History forgets your crimes. Lowers heat by 40.',
+    cast(p){G.heat=Math.max(0,G.heat-40*p);ringFx(ch.x,ch.z,3.5,'#7ad0ff',.8);burst(ch.x,1.5,ch.z,'#7ad0ff',30,2.5,.4);toast('The timeline loses track of you. Heat lowered.');SFX.ok()}},
+  wrath:{n:"Time Lord's Wrath",el:'storm',t:3,cost:60,cd:20,g:'☀',d:'The Time Lord\'s own power. Everything hostile nearby takes 60 damage.',
+    cast(p){ringFx(ch.x,ch.z,15,'#ffe45a',.9);ringFx(ch.x,ch.z,10,'#ffffff',.7);GU.uFlash.value=.4;shk=Math.max(shk,1);burst(ch.x,1.5,ch.z,'#ffe45a',60,8,.5);
+      for(const n of foesIn(ch.x,ch.z,15)){boltFx(ch.x,ch.z,n.x,n.z,'#ffe45a');hitFoe(n,60*p,ch.x,ch.z)}SFX.hit()}}
+};
+/* ---- casting ---- */
+function castSpell(i){
+  if(!G||busy()||ch.hp<=0)return;const id=G.slots[i];
+  if(!id){hint('empty'+i,`The ${i?'E':'Q'} slot is empty. Open the bag (I) to equip a spell.`);return}
+  const S=SPELLS[id];if(MAGIC.cd[i]>0)return;
+  if(ch.mana<S.cost){if(T>MAGIC.warnT){MAGIC.warnT=T+1.2;toast('Not enough mana. Refill at the fountain in the Nexus.',true);SFX.bad()}return}
+  ch.mana-=S.cost;MAGIC.cd[i]=MAGIC.cdMax[i]=S.cd*(MAGIC.haste>0?.7:1);ch.swing=.18;S.cast(pw(id));
+}
+function clearBlades(){if(MAGIC.blades){scene.remove(MAGIC.blades.g);MAGIC.blades=null}}
+function clearMagic(){
+  for(const p of MAGIC.proj)scene.remove(p.m);for(const f of MAGIC.fx){scene.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}
+  for(const w of MAGIC.wells)scene.remove(w.m);clearBlades();if(MAGIC.ward&&MAGIC.ward.m)scene.remove(MAGIC.ward.m);
+  MAGIC.proj=[];MAGIC.fx=[];MAGIC.tm=[];MAGIC.wells=[];MAGIC.ward=null;MAGIC.haste=0;MAGIC.cd=[0,0];
+}
+function updateMagic(dt){
+  if(!G||!WD)return;
+  for(let i=0;i<2;i++)if(MAGIC.cd[i]>0)MAGIC.cd[i]-=dt;
+  if(MAGIC.haste>0){MAGIC.haste-=dt;if(ch.moving&&Math.random()<.5)burst(ch.x,.8,ch.z,'#ffe45a',1,.5,.3,0,0)}
+  // projectiles + meteors
+  for(const p of MAGIC.proj){
+    if(p.meteor){p.t+=dt;const k=Math.min(1,p.t/p.d);p.m.position.y=14-13*k*k;p.life-=dt;if(!p.done)burst(p.x,p.m.position.y,p.z,'#ff7a3a',1,.5,.4,0,0);
+      if(!p.done&&p.t>=p.d){p.done=true;scene.remove(p.m);burst(p.x,1,p.z,'#ff7a3a',50,7,.5);burst(p.x,1,p.z,'#ffe0a0',20,4,.35);ringFx(p.x,p.z,2.6,'#ff7a3a',.4);shk=Math.max(shk,.5);SFX.hit();for(const n of foesIn(p.x,p.z,2.5))hitFoe(n,p.dmg,p.x,p.z)}continue}
+    p.life-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.m.position.set(p.x,p.y,p.z);if(Math.random()<.8)burst(p.x,p.y,p.z,p.c,1,.4,.22,0,0);
+    for(const n of WD.npcs){if(!isFoe(n)||p.hit.has(n))continue;if(Math.hypot(n.x-p.x,n.z-p.z)<.85+(n.kind==='lord'?.8:0)){p.hit.add(n);hitFoe(n,p.dmg,p.x-p.vx,p.z-p.vz);burst(p.x,p.y,p.z,p.c,16,4,.3);if(!p.pierce){p.life=0;break}}}
+    if(p.life<=0)scene.remove(p.m)}
+  MAGIC.proj=MAGIC.proj.filter(p=>p.life>0);
+  // effects
+  for(const f of MAGIC.fx){f.life-=dt;const k=1-Math.max(0,f.life/f.max);f.upd(k);if(f.life<=0){scene.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}}
+  MAGIC.fx=MAGIC.fx.filter(f=>f.life>0);
+  for(const t of MAGIC.tm)t.t-=dt;for(const t of MAGIC.tm)if(t.t<=0)t.fn();MAGIC.tm=MAGIC.tm.filter(t=>t.t>0);
+  // gravity wells
+  for(const w of MAGIC.wells){w.t-=dt;w.tick-=dt;w.m.scale.setScalar(.7+Math.sin(T*10)*.12);w.m.rotation.y+=dt*4;if(Math.random()<.6)burst(w.x+(Math.random()-.5)*5,.5+Math.random()*2,w.z+(Math.random()-.5)*5,'#b44aff',1,-1,.25,0,0);
+    for(const n of foesIn(w.x,w.z,6)){if(n.kind==='lord')continue;const dx=w.x-n.x,dz=w.z-n.z,d=Math.hypot(dx,dz)||1;if(d>.5){n.x+=dx/d*4.5*dt;n.z=clamp(n.z+dz/d*4.5*dt,ZMIN,ZMAX)}}
+    if(w.tick<=0){w.tick=.5;for(const n of foesIn(w.x,w.z,2.6))hitFoe(n,9*w.p,w.x,w.z)}
+    if(w.t<=0){scene.remove(w.m);burst(w.x,1.2,w.z,'#b44aff',40,5,.4);ringFx(w.x,w.z,3,'#b44aff',.4)}}
+  MAGIC.wells=MAGIC.wells.filter(w=>w.t>0);
+  // phantom blades
+  const B=MAGIC.blades;if(B){B.t-=dt;B.g.position.set(ch.x,1.2,ch.z);
+    B.g.children.forEach(b=>{b.userData.a+=dt*6;const a=b.userData.a;b.position.set(Math.cos(a)*1.9,0,Math.sin(a)*1.9);b.rotation.y=-a;
+      const bx=ch.x+Math.cos(a)*1.9,bz=ch.z+Math.sin(a)*1.9;for(const n of foesIn(bx,bz,.8)){if((B.cd.get(n)||0)>T)continue;B.cd.set(n,T+.45);hitFoe(n,12*B.p,ch.x,ch.z)}});
+    if(B.t<=0){burst(ch.x,1.2,ch.z,'#7ad0ff',24,3,.3);clearBlades()}}
+  // ward bubble
+  const W_=MAGIC.ward;if(W_){W_.t-=dt;if(!W_.m){W_.m=new THREE.Mesh(SPH(),new THREE.MeshBasicMaterial({color:'#7ad0ff',transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));W_.m.scale.setScalar(2.6);scene.add(W_.m)}
+    W_.m.position.set(ch.x,1.1,ch.z);W_.m.material.opacity=.14+Math.sin(T*14)*.06;if(W_.t<=0){scene.remove(W_.m);W_.m.material.dispose();MAGIC.ward=null}}
+  // frozen foes and seed sparkles
+  MAGIC.sparkT-=dt;if(MAGIC.sparkT<=0){MAGIC.sparkT=.3;
+    for(const n of WD.npcs)if(n.frozen>0)burst(n.x,1.4,n.z,'#bff8ff',3,1.5,.25,1,2);
+    for(const it of WD.items)if(it.kind==='mseed'&&Math.abs(it.x-ch.x)<18)burst(it.x,1.2,it.z,ELEM[it.el].c,2,1.2,.26,1.5,2);
+    if(WD.fountain)burst(WD.fountain.x+(Math.random()-.5)*.8,2.2,ZMIN+.2,'#5ff5d6',3,1.6,.3,3,5)}
+}
+/* ---- hidden seeds ---- */
+function dropSeed(el,x,z,key){
+  const c=ELEM[el].c,g=new THREE.Group();g.position.set(x,0,z);const m=new THREE.Group();
+  m.add(mesh(SPH(),glow(c,3.5),0,0,0,.34,.34,.34,false));m.add(new THREE.Mesh(TOR(.3,.025),glow(c,2.5)));m.position.y=1;g.add(m);
+  const ring=new THREE.Mesh(geo('iring',()=>new THREE.RingGeometry(.5,.62,32)),addMat(c,.35));ring.rotation.x=-Math.PI/2;ring.position.y=.03;g.add(ring);
+  WD.group.add(g);WD.items.push({kind:'mseed',el,key,x,z,g,m,t:Math.random()*6});
+}
+function placeSeeds(){
+  if(!G||WD.year===NX||WD.year===TH)return;
+  const rr=rng(G.seed*7+WD.year*13+5);
+  for(let i=0;i<2;i++){const side=rr()<.5?-1:1,x=WD.mx+side*(55+rr()*75),z=rr()<.5?ZMIN+.2:ZMAX-.6,el=ELKEYS[rr()*ELKEYS.length|0],key=WD.year+'_'+i;if(G.seedGot[key])continue;dropSeed(el,x,z,key)}
+}
+function pickSeed(it){G.seeds[it.el]++;G.seedGot[it.key]=true;removeItem(it);SFX.ok();burst(ch.x,1.5,ch.z,ELEM[it.el].c,40,5,.4);ringFx(ch.x,ch.z,2.4,ELEM[it.el].c,.6);
+  toast(`${ELEM[it.el].n} seed found! Mix seeds at the Spell Forge in the Nexus bazaar.`)}
+/* ---- fountain (Nexus) ---- */
+function buildFountain(g,x){
+  const fg=new THREE.Group();fg.position.set(x,0,ZMIN+.2);const st=mat('#8a8fa8',{metalness:.5,roughness:.4});
+  fg.add(cyl(st,0,.3,0,1.7,.6));fg.add(cyl(glow('#5ff5d6',1.2),0,.62,0,1.45,.06,false));fg.add(cyl(st,0,1.25,0,.28,1.4));
+  const orb=mesh(SPH(),glow('#5ff5d6',3.2),0,2.2,0,.55,.55,.55,false);fg.add(orb);
+  const rg=new THREE.Mesh(TOR(1.7,.07),glow('#c9a24a',1.4));rg.rotation.x=Math.PI/2;rg.position.y=.62;fg.add(rg);
+  fg.traverse(o=>{if(o.isMesh)o.castShadow=true});g.add(fg);WD.anim.push(t=>{orb.scale.setScalar(.55+Math.sin(t*3)*.07);orb.position.y=2.2+Math.sin(t*2)*.08});
+  return{x,g:fg};
+}
+function drinkFountain(){
+  if(ch.mana>=ch.maxMana-.5){toast('Your mana is already full.');return}
+  ch.mana=ch.maxMana;SFX.ok();ringFx(ch.x,ch.z,3,'#5ff5d6',.7);burst(ch.x,1.5,ch.z,'#5ff5d6',40,4,.4);toast('The fountain restores your mana.');
+}
+/* ---- HUD ---- */
+function updateMagicHUD(){
+  $('mpBar').style.width=(100*clamp(ch.mana/ch.maxMana,0,1))+'%';$('mpTxt').textContent=Math.floor(ch.mana)+' / '+ch.maxMana;
+  for(let i=0;i<2;i++){const id=G.slots[i],b=$('sp'+i),S=id&&SPELLS[id];
+    b.classList.toggle('empty',!S);b.style.setProperty('--sc',S?ELEM[S.el].c:'#6e5320');
+    const g=b.querySelector('.sg');if(g.dataset.id!==(id||'')){g.dataset.id=id||'';g.textContent=S?S.g:'·';b.querySelector('.sc').textContent=S?S.cost:'';b.title=S?`${S.n} · ${S.cost} mana`:'Empty slot'}
+    b.classList.toggle('nomp',!!S&&ch.mana<S.cost);
+    b.querySelector('.cdo').style.transform=`scaleY(${MAGIC.cd[i]>0?clamp(MAGIC.cd[i]/MAGIC.cdMax[i],0,1):0})`}
+}
+/* ---- spellbook (inside the inventory) ---- */
+let spSel=null;
+const lvPips=id=>'●'.repeat(G.spells[id])+'○'.repeat(3-G.spells[id]);
+function spCell(id,attr){const S=SPELLS[id],c=ELEM[S.el].c;return`<button class="gs" ${attr} style="--rc:${c}"><span class="gg">${S.g}</span><small>${S.n}</small><small class="lv">${lvPips(id)}</small></button>`}
+function renderSpells(){
+  const el=$('spBook');if(!el||!G)return;
+  $('spSeeds').innerHTML=ELKEYS.filter(k=>G.seeds[k]>0).map(k=>`<span style="color:${ELEM[k].c}">${ELEM[k].n} ×${G.seeds[k]}</span>`).join(' · ')||'no seeds yet';
+  $('spSlots').innerHTML=[0,1].map(i=>{const id=G.slots[i];return id?`<div class="slotwrap"><span class="kb">${i?'E':'Q'}</span>${spCell(id,`data-slot="${i}"`)}</div>`
+    :`<div class="slotwrap"><span class="kb">${i?'E':'Q'}</span><button class="gs empty" data-slot="${i}" disabled><span class="gg">·</span><small>empty</small></button></div>`}).join('');
+  const known=Object.keys(G.spells);
+  $('spList').innerHTML=known.map(id=>spCell(id,`data-sp="${id}"`)).join('');
+  $('spList').querySelectorAll('.gs').forEach(b=>b.classList.toggle('sel',b.dataset.sp===spSel));
+  const d=$('spDetail');
+  if(!spSel||!G.spells[spSel]){d.innerHTML='<p class="hint">Pick a spell to equip it on Q or E. Click an equipped spell to unequip it. Hidden seeds are scattered across the eras; mix them at the Nexus.</p>'}
+  else{const S=SPELLS[spSel],p=pw(spSel);d.innerHTML=`<h3 style="color:${ELEM[S.el].c}">${S.n}</h3><div class="sub">${ELEM[S.el].n} · level ${G.spells[spSel]}/3 · ${S.cost} mana · ${S.cd}s cooldown${p>1?` · +${Math.round((p-1)*100)}% power`:''}</div><p style="margin:4px 0 0;font-size:13.5px">${S.d}</p>
+    <div class="acts"><button class="btn sm" id="eqQ">EQUIP ON Q</button><button class="btn sm" id="eqE">EQUIP ON E</button></div>`;
+    $('eqQ').onclick=()=>eqSpell(0);$('eqE').onclick=()=>eqSpell(1)}
+}
+function eqSpell(i){const id=spSel;if(!id)return;const o=1-i;if(G.slots[o]===id)G.slots[o]=G.slots[i];G.slots[i]=id;SFX.click();renderSpells()}
+function initMagicUI(){
+  $('spBook').addEventListener('click',e=>{const b=e.target.closest('.gs');if(!b||b.disabled)return;
+    if(b.dataset.slot!=null){G.slots[+b.dataset.slot]=null;SFX.click()}else if(b.dataset.sp){spSel=b.dataset.sp;SFX.click()}renderSpells()});
+  $('forge').addEventListener('click',e=>{const s=e.target.closest('.seed');if(s){const k=s.dataset.el;const used=MAGIC.forge.filter(x=>x===k).length;if(MAGIC.forge.length<2&&G.seeds[k]-used>0){MAGIC.forge.push(k);MAGIC.forgeMsg='';SFX.click()}renderForge();return}
+    const sl=e.target.closest('.fslot');if(sl&&sl.dataset.i!=null){MAGIC.forge.splice(+sl.dataset.i,1);renderForge();return}
+    if(e.target.closest('#mix'))fuse()});
+}
+/* ---- spell forge (Nexus bazaar) ---- */
+const forgeCost=()=>40+10*Math.min(8,G.fusions);
+function renderForge(){
+  const f=$('forge');if(!f||!G)return;const cost=forgeCost(),n=MAGIC.forge.length;
+  f.innerHTML=`<p class="hint" style="margin:0 0 8px">Put two seeds in the forge for ${cost} coins and get a random spell. Seeds of the same element make that element's spells likelier. A spell you already know levels up instead.</p>
+  <div class="seedrow">${ELKEYS.map(k=>{const left=G.seeds[k]-MAGIC.forge.filter(x=>x===k).length;return`<button class="seed" data-el="${k}" style="--c:${ELEM[k].c}" ${left>0&&n<2?'':'disabled'}><i></i>${ELEM[k].n} <b>×${left}</b></button>`}).join('')}</div>
+  <div class="forgeline"><div class="fslots">${[0,1].map(i=>MAGIC.forge[i]?`<button class="fslot" data-i="${i}" style="--c:${ELEM[MAGIC.forge[i]].c}">${ELEM[MAGIC.forge[i]].n}</button>`:`<span class="fslot empty">seed</span>`).join('<em>+</em>')}</div>
+  <button class="buy" id="mix" ${n===2&&G.coins>=cost?'':'disabled'}><span class="coin"></span>${cost} MIX</button></div>
+  <div class="forgeres" id="fgRes">${MAGIC.forgeMsg}</div>`;
+}
+function fuse(){
+  if(MAGIC.forge.length<2)return;const cost=forgeCost();if(G.coins<cost)return;const[a,b]=MAGIC.forge;
+  const pool=Object.keys(SPELLS).map(id=>{const S=SPELLS[id];if((G.spells[id]||0)>=3)return[id,0];let w=S.t===1?10:S.t===2?6:.7;w*=1+2*((S.el===a)+(S.el===b));return[id,w]});
+  const tot=pool.reduce((s,p)=>s+p[1],0);if(tot<=0){MAGIC.forgeMsg='Every spell is at its maximum level.';renderForge();return}
+  G.coins-=cost;G.seeds[a]--;G.seeds[b]--;G.fusions++;MAGIC.forge=[];
+  let x=Math.random()*tot,id=pool[0][0];for(const[i,w]of pool){x-=w;if(x<0){id=i;break}}
+  const was=G.spells[id]||0;G.spells[id]=was+1;const S=SPELLS[id],c=ELEM[S.el].c;
+  if(!was&&!G.slots[0])G.slots[0]=id;
+  MAGIC.forgeMsg=was?`<b style="color:${c}">${S.n}</b> grew stronger: level ${was+1}!`:`New spell: <b style="color:${c}">${S.n}</b>. ${S.d}`;
+  SFX.ok();$('sCoins').textContent=G.coins;renderForge();
+}
 
 /* ================= state ================= */
 let G=null,mode='title',T=0,camX=0,camZoom=1,trav=null;
@@ -1473,13 +1703,13 @@ function stats(){
   ch.maxHp=100+25*u.hp+(R(1969)?20:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
   ch.spd=1+.08*u.spd+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
   ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
 }
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
-  bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.inv=0;ch.carry=0;setCarry(false);
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+  bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
   arrive(2026,true);
@@ -1615,7 +1845,7 @@ function objectiveTarget(){
 }
 function nearest(a){let b=null,bd=1e9;for(const i of a){const d=Math.abs(i.x-ch.x);if(d<bd){bd=d;b=i}}return b}
 function updateHUD(){
-  const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
+  const show=mode==='play'&&G&&!G.over;$('status').hidden=!show;$('actions').hidden=!show;$('spells').hidden=!show;$('hud').hidden=!(mode==='play'||mode==='over');
   if(!G)return;
   let html='';const rp=activeRepair();
   if(G.boss)html=G.boss.on?'<span>Defeat the Time Lord</span>':'<span>Something is coming...</span>';
@@ -1626,7 +1856,7 @@ function updateHUD(){
   if(html!==objCache){$('obj').innerHTML=html;objCache=html}
   $('score').textContent=G.score;
   $('hpBar').style.width=(100*clamp(ch.hp/ch.maxHp,0,1))+'%';$('hpTxt').textContent=Math.ceil(Math.max(0,ch.hp));$('coins').textContent=G.coins;$('heatBar').style.width=Math.round(G.heat)+'%';
-  $('relN').textContent=relicCount();$('atkN').textContent=ch.dmg;
+  updateMagicHUD();$('relN').textContent=relicCount();$('atkN').textContent=ch.dmg;
   if(G.boss&&G.boss.n)$('bossHp').style.width=(100*clamp(G.boss.n.hp/G.boss.n.maxHp,0,1))+'%';
   const it=interactable();$('bUse').hidden=!it;if(it){$('bUse').textContent=it.label;hint('use_'+it.k,(TOUCH?'Tap '+it.label+' to use ':'Press E to use ')+USE_H[it.k]+'.')}
 }
@@ -1644,7 +1874,7 @@ function showRepairBrief(rp){
 }
 let introHint=false;
 function hint(k,msg,delay=0){if(!G||G.hints[k])return;G.hints[k]=1;setTimeout(()=>G&&!G.over&&toast(msg),delay)}
-const USE_H={machine:'the time machine',shop:'the Bazaar',land:'the task'};
+const USE_H={fountain:'the mana fountain',machine:'the time machine',shop:'the Bazaar',land:'the task'};
 function showIntro(){
   $('briefCard').classList.remove('paradox');$('bDate').textContent='BASE OF OPERATIONS';$('bYear').textContent='2026';$('bEra').textContent='Present Day';
   $('bMustL').textContent='YOUR JOB';$('bMust').textContent='Keep the causal line intact.';
@@ -1652,22 +1882,24 @@ function showIntro(){
   introHint=true;openBrief();
 }
 function openBrief(){briefOpen=true;$('brief').hidden=false;keys.clear();setTimeout(()=>$('bGo').focus(),50)}
-$('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(introHint){introHint=false;hint('move',TOUCH?'Tap the ground to walk to the time machine.':'Walk with WASD or the arrow keys.',500)}};
+$('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(introHint){introHint=false;hint('move',TOUCH?'Tap the ground to walk to the time machine.':'Walk with WASD or the arrow keys.',500);hint('spell',TOUCH?'Tap the spell button to cast Chrono Bolt. Mana is limited: refill it at the Nexus fountain.':'Press E to cast Chrono Bolt. Mana is limited: refill it at the Nexus fountain.',7500)}};
 
 /* ================= interactions ================= */
 function interactable(){
   if(!G||busy()||!WD)return null;
   if(Math.abs(ch.x-WD.mx)<2.2&&ch.z<ZMIN+2)return{k:'machine',label:'MACHINE'};
   if(G.cur===NX&&Math.abs(ch.x-WD.land.x)<2.6&&ch.z<ZMIN+2.2)return{k:'shop',label:'BAZAAR'};
+  if(G.cur===NX&&WD.fountain&&Math.abs(ch.x-WD.fountain.x)<2.8&&ch.z<ZMIN+2.6)return{k:'fountain',label:'FOUNTAIN'};
   if(missionOpen(G.cur)&&!activeRepair()&&ch.carry&&Math.abs(ch.x-WD.land.x)<2.4&&ch.z<ZMIN+2.2)return{k:'land',label:'USE'};
   return null;
 }
-function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='land')openMini(G.cur)}
+function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='fountain')drinkFountain();else if(it.k==='land')openMini(G.cur)}
 function checkPickups(){
-  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'?1.2:.9))continue;
+  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'||it.kind==='mseed'?1.2:.9))continue;
     if(it.kind==='item'&&missionOpen(G.cur)&&!ch.carry&&!activeRepair()){removeItem(it);setCarry(true);SFX.pick();burst(ch.x,1.5,ch.z,'#ffb35c',24,3,.35);toast(`You have ${artItem()}! Bring it to the ${ERA[G.cur].mission.label}.`)}
     else if(it.kind==='relic'){removeItem(it);G.relics[G.cur]=true;stats();G.score+=40;SFX.ok();burst(ch.x,1.5,ch.z,'#b44aff',50,5,.45);const[n,d]=RELIC[G.cur];toast(`Relic: ${n} · ${d}`)}
     else if(it.kind==='gear'){pickGear(it)}
+    else if(it.kind==='mseed'){pickSeed(it)}
     else if(it.kind==='cell'&&activeRepair()){removeItem(it);ch.cells++;SFX.pick();burst(ch.x,1.5,ch.z,'#5ff5d6',24,3,.35);toast(`Chronon cell ${WD.delivered+ch.cells}/3`)}}
   if(WD.stab&&ch.cells>0&&Math.hypot(WD.stab.x-ch.x,WD.stab.z-ch.z)<1.6){for(let i=0;i<ch.cells;i++){const s=WD.stab.slots[WD.delivered+i];if(s)s.material.emissiveIntensity=4}WD.delivered+=ch.cells;ch.cells=0;SFX.pick();burst(WD.stab.x,1.2,WD.stab.z,'#5ff5d6',30,4,.4);if(WD.delivered>=3)succeedRepair()}
   if(ch.openOnArrive&&!ch.target){const k=ch.openOnArrive;ch.openOnArrive=null;const it=interactable();if(it&&it.k===k)interact()}
@@ -1724,11 +1956,12 @@ function renderShop(){
     return`<div class="ware"><div><h3>${w.n}${w.use?'':`<span class="pips">${Array.from({length:w.max},(_,k)=>`<i class="${k<lvl?'on':''}"></i>`).join('')}</span>`}</h3><p>${w.d}</p></div>
     <button class="buy" data-i="${i}" ${maxed||G.coins<c?'disabled':''}>${maxed?'MAX':`<span class="coin"></span>${c}`}</button></div>`}).join('');
   $('wares').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(WARES[+b.dataset.i]));
+  renderForge();
   $('sRelN').textContent=`${relicCount()}/14`;
   $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${y} · ???</span>`).join('');
 }
 function buy(w){const c=wareCost(w);if(G.coins<c)return;G.coins-=c;SFX.coin();
-  if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp}renderShop()}
+  if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp;if(w.k==='mana')ch.mana=ch.maxMana}renderShop()}
 $('sLeave').onclick=()=>{shopOpen=false;$('shop').hidden=true;cv.focus()};
 
 /* ================= minigames ================= */
@@ -1940,7 +2173,7 @@ addEventListener('keydown',e=>{
   if(busy())return;
   if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
   if(e.repeat)return;keys.add(k);
-  if(k==='j')playerAttack();else if(k==='k'||k===' '||k==='shift')playerDash();else if(k==='e'||k==='enter')interact();
+  if(k==='j')playerAttack();else if(k==='k'||k===' '||k==='shift')playerDash();else if(k==='q')castSpell(0);else if(k==='e'){if(interactable())interact();else castSpell(1)}else if(k==='enter')interact();
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){ch.target=null;ch.openOnArrive=null}
 });
 addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys.delete(k);if(miniOpen)miniKey(k,false)});
@@ -1953,13 +2186,14 @@ cv.addEventListener('pointerdown',e=>{
   ndc.set(e.clientX/W*2-1,-(e.clientY/H)*2+1);ray.setFromCamera(ndc,camera);
   const hitObj=(o)=>{if(!o)return false;_box.setFromObject(o);return ray.ray.intersectsBox(_box)};
   if(WD.machine&&hitObj(WD.machine)){ch.target={x:WD.mx,z:ZMIN+.4};ch.openOnArrive='machine';return}
+  if(WD.fountain&&hitObj(WD.fountain.g)){ch.target={x:WD.fountain.x,z:ZMIN+.4};ch.openOnArrive='fountain';return}
   if(WD.landGroup&&(G.cur===NX||(missionOpen(G.cur)&&ch.carry))&&hitObj(WD.landGroup)){ch.target={x:WD.land.x,z:ZMIN+.4};ch.openOnArrive=G.cur===NX?'shop':'land';return}
   if(ray.ray.intersectPlane(plane,hitP)){ch.target={x:hitP.x,z:clamp(hitP.z,ZMIN,ZMAX)};ch.openOnArrive=null;
     if(hitP.z<ZMIN+.5&&Math.abs(hitP.x-WD.mx)<2.5){ch.target.x=WD.mx;ch.openOnArrive='machine'}
     burst(ch.target.x,.1,ch.target.z,'#ffd27a',6,1,.25,0,0)}
 });
 const hold=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();audio();fn()});
-hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);
+hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);hold('sp0',()=>castSpell(0));hold('sp1',()=>castSpell(1));
 $('mute').onclick=()=>{setMuted(!muted);if(!muted&&G)setAmbient(G.cur)};
 $('start').onclick=()=>{audio();newGame()};
 
@@ -1969,14 +2203,14 @@ function updatePlayer(dt){
   if(keys.has('arrowleft')||keys.has('a'))vx--;if(keys.has('arrowright')||keys.has('d'))vx++;if(keys.has('arrowup')||keys.has('w'))vz--;if(keys.has('arrowdown')||keys.has('s'))vz++;
   if(!vx&&!vz&&ch.target){const dx=ch.target.x-ch.x,dz=ch.target.z-ch.z,d=Math.hypot(dx,dz);if(d<.15)ch.target=null;else{vx=dx/d;vz=dz/d;if(d<.4){vx*=d/.4;vz*=d/.4}}}
   const l=Math.hypot(vx,vz);ch.moving=l>.01;
-  const sp=5.2*ch.spd;
+  const sp=5.2*ch.spd*(MAGIC.haste>0?1.6:1);
   if(ch.dashT>0){ch.dashT-=dt;ch.x+=ch.dashX*18*dt;ch.z+=ch.dashZ*18*dt;if(Math.random()<.8)burst(ch.x,1,ch.z,'#6ad8e8',2,.5,.35,0,0)}
   else if(ch.moving){const k=l>1?1/l:1;ch.x+=vx*k*sp*dt;ch.z+=vz*k*sp*dt;ch.fx=vx/l;ch.fz=vz/l;ch.stepT-=dt;if(ch.stepT<=0){ch.stepT=.32;noise(.05,.02,500,300)}}
   if(ch.kbx||ch.kbz){ch.x+=ch.kbx*dt;ch.z+=ch.kbz*dt;const f=Math.pow(.01,dt);ch.kbx*=f;ch.kbz*=f;if(Math.hypot(ch.kbx,ch.kbz)<.2)ch.kbx=ch.kbz=0}
   ch.x=ch.x;ch.z=clamp(ch.z,ZMIN,ZMAX);
 }
 function updateGame(dt){
-  updatePlayer(dt);checkPickups();updateCombat(dt);
+  updatePlayer(dt);checkPickups();updateCombat(dt);updateMagic(dt);
   const rp=activeRepair();
   if(G.boss&&!G.over){if(!G.boss.on){G.boss.t-=dt;if(G.boss.t<=0)spawnLord()}}
   else if(rp){rp.time-=dt;if(rp.time<=0)failRepair()}
@@ -2023,7 +2257,7 @@ function frame(now){
 }
 
 /* ================= boot ================= */
-function boot(){initInv();
+function boot(){initInv();initMagicUI();
   resize();
   const pool=[1985,2150,1927,1610,2400,2600,2088];const y=pool[(Math.random()*pool.length)|0];
   genWorld(y);camX=0;streamChunks(99);updateWorldStream(0);

@@ -244,7 +244,7 @@ function shoot(x,y,z,vx,vz,dmg,gold){const m=new THREE.Mesh(SPH(),glow(gold?'#ff
 function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.kind==='merchant')continue;if(n.kind==='citizen'&&!n.hostile)continue;const d=Math.hypot(n.x-ch.x,n.z-ch.z);if(d<bd){bd=d;best=n}}
   if(best){const dx=best.x-ch.x,dz=best.z-ch.z,l=Math.hypot(dx,dz)||1;ch.fx=dx/l;ch.fz=dz/l}}
 function playerAttack(){
-  if(ch.atkCd>0||busy())return;ch.atkCd=.36;ch.swing=.18;SFX.swing();aimAssist();
+  if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
   WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
@@ -274,6 +274,7 @@ function updateCombat(dt){
   for(const n of WD.npcs){
     if(n.dying)continue;n.hitT-=dt;n.atkCd-=dt;n.strikeT=(n.strikeT||0)-dt;
     if(n.kbx||n.kbz){n.x=n.x+n.kbx*dt;n.z=clamp(n.z+n.kbz*dt,ZMIN,ZMAX);const f=Math.pow(.02,dt);n.kbx*=f;n.kbz*=f;if(Math.hypot(n.kbx,n.kbz)<.2)n.kbx=n.kbz=0}
+    if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
     if(n.hostile){
       const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=1.5,H_=n.kind==='hunter';
@@ -283,11 +284,11 @@ function updateCombat(dt){
       if(H_){n.shootCd-=dt;n.lungeCd-=dt;n.dodgeCd-=dt;
         if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,14+2*dTier());SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
         if(n.retreat>0){n.retreat-=dt;n.x=n.x-dx/d*5*dt;n.z=clamp(n.z-dz/d*5*dt,ZMIN,ZMAX);n.moving=true;continue}
-        if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt;n.z=clamp(n.z+n.lz*14*dt,ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
+        if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt*(n.slow>0?.5:1);n.z=clamp(n.z+n.lz*14*dt*(n.slow>0?.5:1),ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
         if(d>4&&n.shootCd<=0){n.swind=.4;n.burst=1+(dTier()>=1?1:0);n.shootCd=1.6+Math.random()*.9;continue}
         if(d>reach&&d<6&&n.lungeCd<=0){n.lunge=.24;n.lx=dx/d;n.lz=dz/d;n.lungeCd=1.7+Math.random();continue}}
       if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=H_?.22:.38;continue}
-      const sp=(H_?4.4:2.4)*dt,tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
+      const sp=(H_?4.4:2.4)*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
       n.x=n.x+ex/el*sp;n.z=clamp(n.z+ez/el*sp,ZMIN,ZMAX);n.moving=true;
     }else if(n.flee>0){n.flee-=dt;const dir=n.x<ch.x?-1:1;n.x=n.x+dir*4*dt;n.ang=dir*Math.PI/2;n.moving=true;n.tx=n.x;n.tz=n.z}
   }

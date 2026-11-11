@@ -76,6 +76,7 @@ function slotCell(g,attr,label){
   return g?`<button class="gc" ${attr} style="--rc:${RAR[g.rar].c}"><span class="gg">${SLOT_G[g.slot]}</span><small>${g.name}</small></button>`
     :`<button class="gc empty" ${attr} disabled><span class="gg">${SLOT_G[label]||''}</span><small>${label?SLOT_N[label]:''}</small></button>`}
 function renderInv(){
+  if(typeof renderSpells==='function')renderSpells();
   const sel=invSel&&(invSel.from==='bag'?G.bag[invSel.i]:G.eq[invSel.slot]);if(!sel)invSel=null;
   $('invEq').innerHTML=SLOTS.map(s=>slotCell(G.eq[s],G.eq[s]?`data-eq="${s}"`:'',s)).join('');
   $('invBag').innerHTML=Array.from({length:BAG_MAX},(_,i)=>G.bag[i]?slotCell(G.bag[i],`data-bag="${i}"`):`<button class="gc empty" disabled></button>`).join('');
