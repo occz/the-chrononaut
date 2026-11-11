@@ -264,7 +264,7 @@ function updateCombat(dt){
   const hl=G.heat>=10?1+heatLvl():0,cap=(G.cur===NX||G.boss||G.free)?0:hl;
   WD.huntT-=dt;
   if(WD.portal){WD.portal.t-=dt;const P=WD.portal;P.r1.rotation.z+=dt*6;P.g.scale.setScalar(Math.min(1,(1-P.t/.9)*2.2));if(Math.random()<.5)burst(P.x,1.4,P.z,'#b44aff',2,2,.3,0,0);if(P.t<=0){const pp={x:P.x,z:P.z};closePortal();spawnHunter(pp)}}
-  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&Math.random()<.05)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(10,24-G.heat*.12):50}
+  else if(WD.huntT<=0){const alive=WD.npcs.filter(n=>n.kind==='hunter'&&!n.dying).length;let go=alive<cap;if(!go&&cap===0&&alive===0&&G.cur!==NX&&!G.boss&&!G.free&&Math.random()<.015)go=true;/* rare stray hunter while incognito */if(go){openPortal(riftPos());toast('A rift is opening. Time Hunter incoming!',true)}WD.huntT=cap?Math.max(20,38-G.heat*.15):90}
   for(const b of WD.shots){b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.m.position.set(b.x,b.y,b.z);if(Math.random()<.6)burst(b.x,b.y,b.z,b.g?'#ffd24a':'#b44aff',1,.4,.25,0,0);
     if(Math.hypot(b.x-ch.x,b.z-ch.z)<.55){b.life=0;hurtPlayer(b.dmg,{x:b.x,z:b.z,kind:b.g?'lord':'hunter'})}if(b.life<=0)scene.remove(b.m)}
   WD.shots=WD.shots.filter(b=>b.life>0);

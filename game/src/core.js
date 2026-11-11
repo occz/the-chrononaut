@@ -158,15 +158,24 @@ const SFX={
   click(){beep(1800,.025,'square',.025)},
   tick(){beep(2400,.02,'square',.02)}
 };
+function stopAmb(){if(!amb)return;const old=amb,a=AC;amb=null;clearInterval(old.iv);try{old.g.gain.setTargetAtTime(0,a.currentTime,.5)}catch(e){}setTimeout(()=>{old.o.forEach(o=>{try{o.stop()}catch(e){}});try{old.g.disconnect()}catch(e){}},2500)}
 function setAmbient(year){
-  const a=audio();if(!a)return;
-  if(amb){const old=amb;old.g.gain.setTargetAtTime(0,a.currentTime,.4);setTimeout(()=>old.o.forEach(o=>{try{o.stop()}catch(e){}}),2000);amb=null}
-  if(muted)return;
-  const roots={1610:110,1869:98,1903:123,1927:87,1957:131,1969:117,1985:73,1999:104,2026:98,2088:139,2150:82,2240:147,2400:65,2600:110,0:92,[-1]:55};
-  const f=roots[year]||98,g=a.createGain(),fl=a.createBiquadFilter();fl.type='lowpass';fl.frequency.value=year===-1?500:900;g.gain.value=0;
-  const o=[f,f*1.5,f*2.003].map((fr,i)=>{const x=a.createOscillator();x.type=i?'triangle':'sine';x.frequency.value=fr;const lg=a.createGain();lg.gain.value=i?.25:.5;x.connect(lg);lg.connect(fl);x.start();return x});
-  const lfo=a.createOscillator(),lg=a.createGain();lfo.frequency.value=.07;lg.gain.value=300;lfo.connect(lg);lg.connect(fl.frequency);lfo.start();o.push(lfo);
-  fl.connect(g);g.connect(master);g.gain.setTargetAtTime(.05,a.currentTime,1.5);amb={o,g};
+  const a=audio();if(!a)return;stopAmb();if(muted)return;
+  const roots={1610:55,1869:49,1903:61.7,1927:43.7,1957:65.4,1969:58.3,1985:49,1999:52,2026:49,2088:69.3,2150:41.2,2240:73.4,2400:46.2,2600:55,0:46.2,[-1]:41.2};
+  const f=roots[year]||49,minor=year>=2088||year===-1||year===0||year===1927;
+  const sc=minor?[0,3,5,7,10,12,15,17]:[0,2,4,7,9,12,14,16];
+  const prog=minor?[0,-4,-2,-5]:[0,-3,-5,-7];/* chord roots in semitones */
+  const out=a.createGain();out.gain.value=0;
+  const dl=a.createDelay(1);dl.delayTime.value=.42;const fb=a.createGain();fb.gain.value=.38;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;
+  out.connect(master);out.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(master);
+  const o=[];let step=0,bar=0;const hz=n=>f*4*Math.pow(2,n/12);
+  const note=(fr,t,d,v,type='triangle')=>{const x=a.createOscillator(),g=a.createGain();x.type=type;x.frequency.value=fr;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);x.connect(g);g.connect(out);x.start(t);x.stop(t+d+.05)};
+  const tick=()=>{if(!AC||muted)return;const t=a.currentTime+.05,r=prog[bar%4];
+    if(step%8===0){/* soft pad chord + bass */
+      [0,minor?3:4,7].forEach(i=>note(hz(r+i-12),t,3.6,.05,'sine'));note(hz(r-24),t,3.6,.07,'sine')}
+    if(Math.random()<.78){const deg=sc[(Math.random()*sc.length)|0];note(hz(r+deg),t,1.4,.075)}
+    step++;if(step%8===0)bar++};
+  const iv=setInterval(tick,520);out.gain.setTargetAtTime(.55,a.currentTime,1.5);amb={o,g:out,iv};tick()
 }
 function setMuted(m){muted=m;try{localStorage.setItem('tl-muted',m?'1':'0')}catch(e){}if(master)master.gain.value=m?0:.55;$('mute').textContent=m?'✕':'♪';$('mute').setAttribute('aria-label',m?'Activar sonido':'Silenciar')}
 
