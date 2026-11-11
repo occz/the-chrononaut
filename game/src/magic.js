@@ -2,7 +2,7 @@
 const ELEM={past:{n:'Past',c:'#e8b865'},future:{n:'Future',c:'#5ff5d6'},void:{n:'Void',c:'#b44aff'},ember:{n:'Ember',c:'#ff7a3a'},storm:{n:'Storm',c:'#ffe45a'},echo:{n:'Echo',c:'#7ad0ff'}};
 const ELKEYS=Object.keys(ELEM);
 const MAGIC={cd:[0,0],cdMax:[1,1],haste:0,proj:[],fx:[],tm:[],wells:[],blades:null,ward:null,sparkT:0,warnT:0,forge:[],forgeMsg:''};
-const isFoe=n=>!n.dying&&(n.kind==='hunter'||n.kind==='lord'||(n.kind==='citizen'&&n.hostile));
+const isFoe=n=>!n.dying&&(n.kind==='hunter'||n.kind==='lord'||n.kind==='citizen');
 const foesIn=(x,z,r)=>WD.npcs.filter(n=>isFoe(n)&&Math.hypot(n.x-x,n.z-z)<=r+(n.kind==='lord'?1:0));
 const pw=id=>1+.3*((G.spells[id]||1)-1);
 function hitFoe(n,dmg,fx,fz){if(n.dying)return;hurtNpc(n,Math.max(1,Math.round(dmg)),n.x-fx,n.z-fz)}
@@ -21,48 +21,48 @@ function projectile(x,y,z,vx,vz,dmg,c,pierce){const m=new THREE.Mesh(SPH(),glow(
 const later=(t,fn)=>MAGIC.tm.push({t,fn});
 /* ---- spells ---- */
 const SPELLS={
-  bolt:{n:'Chrono Bolt',el:'past',t:1,cost:6,cd:.5,g:'✦',d:'A bolt of frozen time that homes in on nearby foes. Weak, but cheap.',
+  bolt:{n:'Chrono Bolt',el:'past',t:1,cost:6,cd:.5,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 5 14h6l-2 8 10-13h-6z"/></svg>',d:'A bolt of frozen time that homes in on nearby foes. Weak, but cheap.',
     cast(p){aim(11);projectile(ch.x+ch.fx*.6,1.3,ch.z+ch.fz*.6,ch.fx*15,ch.fz*15,16*p,'#e8b865',false);SFX.shot()}},
-  ward:{n:'Echo Ward',el:'echo',t:1,cost:18,cd:7,g:'◉',d:'An echo of a second ago shields you. Nothing can hurt you for 2.4 s.',
+  ward:{n:'Echo Ward',el:'echo',t:1,cost:18,cd:7,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="11" r="3"/></svg>',d:'An echo of a second ago shields you. Nothing can hurt you for 2.4 s.',
     cast(p){ch.inv=Math.max(ch.inv,2.4*p);MAGIC.ward={t:2.4*p,m:null};ringFx(ch.x,ch.z,2.4,'#7ad0ff',.6);burst(ch.x,1.2,ch.z,'#7ad0ff',24,3,.3);SFX.ok()}},
-  blink:{n:'Blink Step',el:'void',t:1,cost:12,cd:3,g:'➤',d:'Skip 7 steps ahead through the void. Foes at the landing are hurt.',
+  blink:{n:'Blink Step',el:'void',t:1,cost:12,cd:3,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 12h10M9 6l6 6-6 6M18 6v12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',d:'Skip 7 steps ahead through the void. Foes at the landing are hurt.',
     cast(p){burst(ch.x,1,ch.z,'#b44aff',22,3,.35);const nx=ch.x+ch.fx*7,nz=clamp(ch.z+ch.fz*7,ZMIN,ZMAX);ch.x=nx;ch.z=nz;ch.inv=Math.max(ch.inv,.4);
       burst(nx,1,nz,'#b44aff',26,4,.4);ringFx(nx,nz,2.4,'#b44aff',.4);for(const n of foesIn(nx,nz,2.4))hitFoe(n,16*p,nx,nz);SFX.dash()}},
-  mend:{n:'Rewind Mend',el:'past',t:1,cost:24,cd:8,g:'✚',d:'Rewinds your wounds. Restores 40 health.',
+  mend:{n:'Rewind Mend',el:'past',t:1,cost:24,cd:8,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>',d:'Rewinds your wounds. Restores 40 health.',
     cast(p){const h=Math.round(40*p);ch.hp=Math.min(ch.maxHp,ch.hp+h);floatText(ch.x,2.6,ch.z,'+'+h,'#86e09a',true);ringFx(ch.x,ch.z,2,'#86e09a',.6);burst(ch.x,1.4,ch.z,'#86e09a',26,2.5,.3);SFX.ok()}},
-  slow:{n:'Molasses Time',el:'future',t:1,cost:16,cd:7,g:'≋',d:'Time turns to syrup ahead of you. Foes inside move at 40% for 5 s.',
+  slow:{n:'Molasses Time',el:'future',t:1,cost:16,cd:7,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12M6 21h12M7 3c0 6 5 6 5 9s-5 3-5 9M17 3c0 6-5 6-5 9s5 3 5 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',d:'Time turns to syrup ahead of you. Foes inside move at 40% for 5 s.',
     cast(p){aim(8);const x=ch.x+ch.fx*3.2,z=clamp(ch.z+ch.fz*3.2,ZMIN,ZMAX);ringFx(x,z,5.5,'#5ff5d6',.8);for(const n of foesIn(x,z,5.5)){if(n.kind==='lord')continue;n.slow=5*p;burst(n.x,1.2,n.z,'#5ff5d6',10,2,.28)}SFX.ok()}},
-  nova:{n:'Chrono Nova',el:'ember',t:1,cost:22,cd:6,g:'✹',d:'A burst of time in every direction. Damages and shoves away nearby foes.',
+  nova:{n:'Chrono Nova',el:'ember',t:1,cost:22,cd:6,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 1 2.5 7.5L22 6l-4.5 6.5L22 18l-7.5-2.5L12 23l-2.5-7.5L2 18l4.5-5.5L2 6l7.5 2.5z"/></svg>',d:'A burst of time in every direction. Damages and shoves away nearby foes.',
     cast(p){ringFx(ch.x,ch.z,4.8,'#ff7a3a',.45);burst(ch.x,1.2,ch.z,'#ff7a3a',40,6,.4);shk=Math.max(shk,.45);for(const n of foesIn(ch.x,ch.z,4.8))hitFoe(n,26*p,ch.x,ch.z);SFX.hit()}},
-  haste:{n:'Fast Forward',el:'storm',t:1,cost:18,cd:14,g:'»',d:'You skip ahead of the clock: +60% speed and 40% faster attacks for 6 s.',
+  haste:{n:'Fast Forward',el:'storm',t:1,cost:18,cd:14,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5l8 7-8 7zM12 5l8 7-8 7z"/></svg>',d:'You skip ahead of the clock: +60% speed and 40% faster attacks for 6 s.',
     cast(p){MAGIC.haste=6*p;ringFx(ch.x,ch.z,2,'#ffe45a',.5);burst(ch.x,1.2,ch.z,'#ffe45a',24,4,.3);SFX.ok()}},
-  arc:{n:'Paradox Arc',el:'storm',t:2,cost:22,cd:3,g:'ϟ',d:'Lightning leaps between up to four foes. Hits for 22 each.',
+  arc:{n:'Paradox Arc',el:'storm',t:2,cost:22,cd:3,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3l9 8-5 1 9 9M14 3h6v6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',d:'Lightning leaps between up to four foes. Hits for 22 each.',
     cast(p){aim(11);let px=ch.x,pz=ch.z;const used=new Set();
       for(let i=0;i<4;i++){let best=null,bd=11;for(const n of WD.npcs){if(!isFoe(n)||used.has(n))continue;const d=Math.hypot(n.x-px,n.z-pz);if(d<bd){bd=d;best=n}}
         if(!best)break;used.add(best);boltFx(px,pz,best.x,best.z,'#ffe45a');hitFoe(best,22*p,px,pz);px=best.x;pz=best.z}
       if(!used.size)boltFx(ch.x,ch.z,ch.x+ch.fx*7,ch.z+ch.fz*7,'#ffe45a');SFX.shot()}},
-  stasis:{n:'Stasis Field',el:'future',t:2,cost:30,cd:12,g:'❄',d:'Time stops around you. Every foe nearby is frozen for 3 s (the Time Lord is immune).',
+  stasis:{n:'Stasis Field',el:'future',t:2,cost:30,cd:12,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M8 3l4 3 4-3M8 21l4-3 4 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',d:'Time stops around you. Every foe nearby is frozen for 3 s (the Time Lord is immune).',
     cast(p){ringFx(ch.x,ch.z,7.5,'#5ff5d6',.7);for(const n of foesIn(ch.x,ch.z,7.5)){if(n.kind==='lord'){floatText(n.x,3,n.z,'IMMUNE','#5ff5d6');continue}n.frozen=3*p;n.wind=0;n.swind=0;n.lunge=0;n.retreat=0;burst(n.x,1.3,n.z,'#5ff5d6',14,3,.3)}shk=Math.max(shk,.3);SFX.ok()}},
-  well:{n:'Gravity Well',el:'void',t:2,cost:28,cd:10,g:'◍',d:'A pocket of collapsed time drags foes in and crushes them for 2.6 s.',
+  well:{n:'Gravity Well',el:'void',t:2,cost:28,cd:10,g:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3.5"/><path d="M12 2a10 10 0 1 0 10 10M12 6a6 6 0 1 0 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',d:'A pocket of collapsed time drags foes in and crushes them for 2.6 s.',
     cast(p){aim(9);const x=ch.x+ch.fx*6,z=clamp(ch.z+ch.fz*6,ZMIN,ZMAX);const m=new THREE.Mesh(SPH(),glow('#b44aff',3));m.scale.setScalar(.8);m.position.set(x,1.2,z);scene.add(m);
       MAGIC.wells.push({x,z,t:2.6*p,tick:0,m,p});ringFx(x,z,6,'#b44aff',.6);SFX.ok()}},
-  meteor:{n:'Chrono Meteors',el:'ember',t:2,cost:32,cd:9,g:'☄',d:'Three burning minutes fall from the sky onto your target. 30 damage each.',
+  meteor:{n:'Chrono Meteors',el:'ember',t:2,cost:32,cd:9,g:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="16" cy="16" r="5"/><path d="M12 12 2 2M11 17 3 13M17 11 13 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',d:'Three burning minutes fall from the sky onto your target. 30 damage each.',
     cast(p){const t=aim(12),bx=t?t.x:ch.x+ch.fx*7,bz=t?t.z:ch.z+ch.fz*7;
       for(let i=0;i<3;i++){const x=bx+(i?(Math.random()-.5)*4:0),z=clamp(bz+(i?(Math.random()-.5)*3:0),ZMIN,ZMAX),d=.25+i*.4;
         const mk=new THREE.Mesh(geo('mring',()=>new THREE.RingGeometry(.88,1,56)),addMat('#ff7a3a',.7));mk.rotation.x=-Math.PI/2;mk.position.set(x,.09,z);mk.scale.setScalar(2.2);mfx(mk,d+.45,k=>{mk.material.opacity=.7*(1-k)});
         const ball=new THREE.Mesh(SPH(),glow('#ff7a3a',5));ball.scale.setScalar(.9);ball.position.set(x,14,z);scene.add(ball);
         MAGIC.proj.push({meteor:true,x,z,y:14,t:0,d,m:ball,dmg:30*p,life:d+.3,hit:new Set()})}
       SFX.ok()}},
-  blades:{n:'Phantom Blades',el:'echo',t:2,cost:26,cd:12,g:'✧',d:'Three spectral blades orbit you for 6 s and cut anything they touch.',
+  blades:{n:'Phantom Blades',el:'echo',t:2,cost:26,cd:12,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20 18 4l1 3-9 14zM19 20 6 4 5 7l9 14z"/></svg>',d:'Three spectral blades orbit you for 6 s and cut anything they touch.',
     cast(p){clearBlades();const g=new THREE.Group();for(let i=0;i<3;i++){const b=box(glow('#7ad0ff',4),0,0,0,.16,.16,1.1,false);b.userData.a=i/3*Math.PI*2;g.add(b)}scene.add(g);
       MAGIC.blades={g,t:6*p,p,cd:new Map()};ringFx(ch.x,ch.z,2.2,'#7ad0ff',.5);SFX.ok()}},
-  drain:{n:'Entropy Touch',el:'void',t:2,cost:20,cd:4,g:'☾',d:'A cone of decay in front of you. Hurts foes and heals you for 40% of the damage.',
+  drain:{n:'Entropy Touch',el:'void',t:2,cost:20,cd:4,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 4a9 9 0 1 0 0 16 7 7 0 0 1 0-16z"/></svg>',d:'A cone of decay in front of you. Hurts foes and heals you for 40% of the damage.',
     cast(p){aim(5);const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.8,ch.z+ch.fz*.8,ang,'#b44aff',3.4);let tot=0;
       for(const n of WD.npcs){if(!isFoe(n))continue;const dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>4.4||(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.2))continue;tot+=Math.round(20*p);hitFoe(n,20*p,ch.x,ch.z)}
       if(tot){const h=Math.round(tot*.4);ch.hp=Math.min(ch.maxHp,ch.hp+h);floatText(ch.x,2.6,ch.z,'+'+h,'#86e09a')}SFX.swing()}},
-  veil:{n:'Veil of Ages',el:'echo',t:2,cost:26,cd:15,g:'☁',d:'History forgets your crimes. Lowers heat by 40.',
+  veil:{n:'Veil of Ages',el:'echo',t:2,cost:26,cd:15,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 10-1 4.5 4.5 0 0 1 0 9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 21h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',d:'History forgets your crimes. Lowers heat by 40.',
     cast(p){G.heat=Math.max(0,G.heat-40*p);ringFx(ch.x,ch.z,3.5,'#7ad0ff',.8);burst(ch.x,1.5,ch.z,'#7ad0ff',30,2.5,.4);toast('The timeline loses track of you. Heat lowered.');SFX.ok()}},
-  wrath:{n:"Time Lord's Wrath",el:'storm',t:3,cost:60,cd:20,g:'☀',d:'The Time Lord\'s own power. Everything hostile nearby takes 60 damage.',
+  wrath:{n:"Time Lord's Wrath",el:'storm',t:3,cost:60,cd:20,g:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.5 4.5l3 3M16.5 16.5l3 3M4.5 19.5l3-3M16.5 7.5l3-3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',d:'The Time Lord\'s own power. Everything hostile nearby takes 60 damage.',
     cast(p){ringFx(ch.x,ch.z,15,'#ffe45a',.9);ringFx(ch.x,ch.z,10,'#ffffff',.7);GU.uFlash.value=.4;shk=Math.max(shk,1);burst(ch.x,1.5,ch.z,'#ffe45a',60,8,.5);
       for(const n of foesIn(ch.x,ch.z,15)){boltFx(ch.x,ch.z,n.x,n.z,'#ffe45a');hitFoe(n,60*p,ch.x,ch.z)}SFX.hit()}}
 };
@@ -148,7 +148,7 @@ function updateMagicHUD(){
   $('mpBar').style.width=(100*clamp(ch.mana/ch.maxMana,0,1))+'%';$('mpTxt').textContent=Math.floor(ch.mana)+' / '+ch.maxMana;
   for(let i=0;i<2;i++){const id=G.slots[i],b=$('sp'+i),S=id&&SPELLS[id];
     b.classList.toggle('empty',!S);b.style.setProperty('--sc',S?ELEM[S.el].c:'#6e5320');
-    const g=b.querySelector('.sg');if(g.dataset.id!==(id||'')){g.dataset.id=id||'';g.textContent=S?S.g:'·';b.querySelector('.sc').textContent=S?S.cost:'';b.title=S?`${S.n} · ${S.cost} mana`:'Empty slot'}
+    const g=b.querySelector('.sg');if(g.dataset.id!==(id||'')){g.dataset.id=id||'';g.innerHTML=S?S.g:'·';b.querySelector('.sc').textContent=S?S.cost:'';b.title=S?`${S.n} · ${S.cost} mana`:'Empty slot'}
     b.classList.toggle('nomp',!!S&&ch.mana<S.cost);
     b.querySelector('.cdo').style.transform=`scaleY(${MAGIC.cd[i]>0?clamp(MAGIC.cd[i]/MAGIC.cdMax[i],0,1):0})`}
 }
