@@ -210,11 +210,12 @@ function interactable(){
 }
 function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='fountain')drinkFountain();else if(it.k==='land')openMini(G.cur)}
 function checkPickups(){
-  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'||it.kind==='mseed'?1.2:.9))continue;
+  for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'||it.kind==='mseed'||it.kind==='scroll'?1.2:.9))continue;
     if(it.kind==='item'&&missionOpen(G.cur)&&!ch.carry&&!activeRepair()){removeItem(it);setCarry(true);SFX.pick();burst(ch.x,1.5,ch.z,'#ffb35c',24,3,.35);toast(`You have ${artItem()}! Bring it to the ${ERA[G.cur].mission.label}.`)}
     else if(it.kind==='relic'){removeItem(it);G.relics[G.cur]=true;stats();G.score+=40;SFX.ok();burst(ch.x,1.5,ch.z,'#b44aff',50,5,.45);const[n,d]=RELIC[G.cur];toast(`Relic: ${n} · ${d}`)}
     else if(it.kind==='gear'){pickGear(it)}
     else if(it.kind==='mseed'){pickSeed(it)}
+    else if(it.kind==='scroll'){pickScroll(it)}
     else if(it.kind==='cell'&&activeRepair()){removeItem(it);ch.cells++;SFX.pick();burst(ch.x,1.5,ch.z,'#5ff5d6',24,3,.35);toast(`Chronon cell ${WD.delivered+ch.cells}/3`)}}
   if(WD.stab&&ch.cells>0&&Math.hypot(WD.stab.x-ch.x,WD.stab.z-ch.z)<1.6){for(let i=0;i<ch.cells;i++){const s=WD.stab.slots[WD.delivered+i];if(s)s.material.emissiveIntensity=4}WD.delivered+=ch.cells;ch.cells=0;SFX.pick();burst(WD.stab.x,1.2,WD.stab.z,'#5ff5d6',30,4,.4);if(WD.delivered>=3)succeedRepair()}
   if(ch.openOnArrive&&!ch.target){const k=ch.openOnArrive;ch.openOnArrive=null;const it=interactable();if(it&&it.k===k)interact()}
@@ -271,7 +272,7 @@ function renderShop(){
     return`<div class="ware"><div><h3>${w.n}${w.use?'':`<span class="pips">${Array.from({length:w.max},(_,k)=>`<i class="${k<lvl?'on':''}"></i>`).join('')}</span>`}</h3><p>${w.d}</p></div>
     <button class="buy" data-i="${i}" ${maxed||G.coins<c?'disabled':''}>${maxed?'MAX':`<span class="coin"></span>${c}`}</button></div>`}).join('');
   $('wares').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(WARES[+b.dataset.i]));
-  renderForge();
+  renderForge();renderForges();
   $('sRelN').textContent=`${relicCount()}/14`;
   $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${fy(y)} · ???</span>`).join('');
 }
@@ -570,7 +571,7 @@ function frame(now){
     WD.anim.forEach(f=>f(T));WD.chunks.forEach(c=>c.anim.forEach(f=>f(T)));WD.clouds.forEach(c=>{c.position.x+=c.userData.drift*dt;if(c.position.x>200)c.position.x=-200});
     updateWeather(dt,T,camX);
     if(WD.cdSign&&G&&missionOpen(1999)&&G.cur===1999){const t=Math.max(0,G.timers[1999]|0);if(t!==WD.cdT){WD.cdT=t;const m=WD.cdSign.material;m.emissiveMap.dispose();m.emissiveMap=textTex(`23:${String(59-Math.min(59,Math.floor(t/60))).padStart(2,'0')}:${String(59-t%60).padStart(2,'0')}`,{color:'#ff3a3a',glowC:'#ff3a3a'});m.needsUpdate=true}}
-    updateCamera(dt);updateWorldStream(dt);if(G&&mode==='play'){maybeWildGear(dt);cullGear()}
+    updateCamera(dt);updateWorldStream(dt);if(G&&mode==='play'){maybeWildGear(dt);maybeWildMagic(dt);cullGear()}
   }
   if(miniOpen&&MG)updateMini(dt);
   updateFx(dt);updateTrans(dt);
@@ -582,7 +583,7 @@ function frame(now){
 }
 
 /* ================= boot ================= */
-function boot(){initInv();initMagicUI();
+function boot(){initInv();initMagicUI();initForges();
   resize();
   const pool=[1985,2150,1927,1610,2400,2600,2088];const y=pool[(Math.random()*pool.length)|0];
   genWorld(y);camX=0;streamChunks(99);updateWorldStream(0);

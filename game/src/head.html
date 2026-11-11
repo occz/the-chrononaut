@@ -227,6 +227,7 @@ h1,h2,h3{font-weight:400;margin:0}
 .seedrow{display:flex;flex-wrap:wrap;gap:6px}.seed{--c:#fff;display:flex;gap:6px;align-items:center;background:#0c0a0e;border:1px solid var(--c);color:var(--cream);border-radius:20px;padding:5px 12px;font:600 13px var(--f-ui);cursor:pointer}.seed i{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}.seed:disabled{opacity:.35;cursor:default}
 .forgeline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}.fslots{display:flex;align-items:center;gap:8px}.fslots em{color:var(--muted);font-style:normal}
 .fslot{--c:#6e5320;min-width:84px;text-align:center;padding:8px 10px;border:1.5px solid var(--c);border-radius:8px;background:#0c0a0e;color:var(--cream);font:600 13px var(--f-ui);cursor:pointer}.fslot.empty{border-style:dashed;opacity:.4;cursor:default}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:6px}.forgeres .bad,.warn{color:#ff8a7a}.warn{font-size:12px}#forges .hint{margin:4px 0;font-size:13px;color:var(--muted)}#forges .splist{margin-top:6px}
 .forgeres{margin-top:8px;font-size:14px;min-height:20px}
 @media (prefers-reduced-motion:reduce){.card{animation:none}.led,.chip.failed,.objective .t.low,.clock.low{animation:none}}
 
@@ -352,7 +353,7 @@ h1,h2,h3{font-weight:400;margin:0}
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <div class="brassplate"><span id="sTitle">TEMPORAL BAZAAR</span><span class="num"><span class="coin"></span><b id="sCoins">0</b></span></div>
     <div class="wares" id="wares"></div>
-    <div class="label" style="margin-top:14px">SPELL FORGE</div><div id="forge"></div>
+    <div class="label" style="margin-top:14px">SEED FORGE</div><div id="forge"></div><div id="forges"></div>
     <div class="label" style="margin-top:14px">RELICS <span id="sRelN"></span></div>
     <div class="relics" id="sRelics"></div>
     <div class="center" style="margin-top:14px"><button class="btn ghost" id="sLeave">LEAVE</button></div>

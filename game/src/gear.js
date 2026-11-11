@@ -27,7 +27,7 @@ function genGear(slot,rar){
   for(let i=0;i<Math.min(rar,3);i++){if(!pool.length)break;const k=pool.splice(Math.random()*pool.length|0,1)[0];mods[k]=statVal(k,m*.6)}
   return{id:gearUid++,slot,rar,lv:Math.round(gLv()*10)/10,name:pick(Math.random,PREFIX[rar])+' '+pick(Math.random,BASES[slot]),mods};
 }
-const gearValue=g=>Math.round(10*Math.pow(RAR[g.rar].m,1.6)*(1+Object.keys(g.mods).length*.3));
+const gearValue=g=>Math.round(10*Math.pow(RAR[g.rar].m,1.6)*(1+Object.keys(g.mods).length*.3)*(g.imb?1.5:1));
 function gearSum(k){let s=0;for(const sl of SLOTS){const g=G.eq[sl];if(g&&g.mods[k])s+=g.mods[k]}return s}
 function applyGear(){
   if(!G.eq)return;
@@ -49,6 +49,7 @@ function dropGear(g,x,z){
 }
 function huntDrop(n){
   /* every Time Hunter drops gear; elites roll better quality and sometimes a second piece */
+  huntBonus(n);
   const n_=n.elite&&Math.random()<.35?2:1;
   for(let i=0;i<n_;i++){
     const g=genGear(null,n.elite?Math.max(1,rollRar(1.2)):rollRar(.35));
@@ -57,11 +58,11 @@ function huntDrop(n){
 }
 function maybeWildGear(dt){
   if(!G||G.boss||mode!=='play'||WD.year===TH)return;
-  WD.gearT=(WD.gearT??(30+Math.random()*30))-dt;if(WD.gearT>0)return;WD.gearT=55+Math.random()*50;
-  if(Math.random()>.45||WD.items.filter(i=>i.kind==='gear').length>=2)return;
+  WD.gearT=(WD.gearT??(18+Math.random()*20))-dt;if(WD.gearT>0)return;WD.gearT=32+Math.random()*30;
+  if(Math.random()>.65||WD.items.filter(i=>i.kind==='gear').length>=3)return;
   const side=Math.random()<.5?-1:1;dropGear(genGear(),camX+side*(22+Math.random()*22),ZMIN+.6+Math.random()*(ZMAX-ZMIN-1.2));
 }
-function cullGear(){for(const it of [...WD.items])if(it.kind==='gear'&&Math.abs(it.x-camX)>140)removeItem(it)}
+function cullGear(){for(const it of [...WD.items])if((it.kind==='gear'||it.kind==='scroll'||(it.kind==='mseed'&&it.key[0]==='w'))&&Math.abs(it.x-camX)>140)removeItem(it)}
 function pickGear(it){
   if(G.bag.length>=BAG_MAX){fullT-=0;if(T>fullT){fullT=T+3;toast('Your bag is full. Sell or drop something (I).',true)}return false}
   const g=it.gear;G.bag.push(g);removeItem(it);SFX.pick();burst(ch.x,1.5,ch.z,RAR[g.rar].c,24,3,.35);
@@ -85,7 +86,7 @@ function renderInv(){
   const d=$('invDetail');
   if(!sel){d.innerHTML='<p class="hint">Select an item. Gear drops from Time Hunters and turns up now and then in the eras.</p>'}
   else{const cmp=invSel.from==='bag'?G.eq[sel.slot]:null,r=RAR[sel.rar];
-    d.innerHTML=`<h3 style="color:${r.c}">${sel.name}</h3><div class="sub">${r.n} ${SLOT_N[sel.slot]} · lvl ${sel.lv}</div>${modLines(sel,cmp)}
+    d.innerHTML=`<h3 style="color:${r.c}">${sel.name}</h3><div class="sub">${r.n} ${SLOT_N[sel.slot]} · lvl ${sel.lv}</div>${modLines(sel,cmp)}${sel.imb&&SPELLS[sel.imb.id]?`<div class="ml"><span>Imbued</span><b style="color:${ELEM[SPELLS[sel.imb.id].el].c}">${SPELLS[sel.imb.id].n} lv${sel.imb.lv}</b></div>`:''}
     ${cmp?`<div class="sub" style="margin-top:6px">Compared with equipped: ${cmp.name}</div>`:''}
     <div class="acts">${invSel.from==='bag'?`<button class="btn sm" id="iEq">EQUIP</button><button class="btn ghost sm" id="iSell">SELL <span class="coin"></span>${gearValue(sel)}</button>`:`<button class="btn ghost sm" id="iUn" ${G.bag.length>=BAG_MAX?'disabled':''}>UNEQUIP</button>`}</div>`;
     if($('iEq'))$('iEq').onclick=equipSel;if($('iSell'))$('iSell').onclick=sellSel;if($('iUn'))$('iUn').onclick=unequipSel}

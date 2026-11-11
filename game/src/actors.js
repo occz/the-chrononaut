@@ -268,7 +268,7 @@ function shoot(x,y,z,vx,vz,dmg,gold){const m=new THREE.Mesh(SPH(),glow(gold?'#ff
 function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.kind==='merchant')continue;if(n.kind==='citizen'&&!n.hostile)continue;const d=Math.hypot(n.x-ch.x,n.z-ch.z);if(d<bd){bd=d;best=n}}
   if(best){const dx=best.x-ch.x,dz=best.z-ch.z,l=Math.hypot(dx,dz)||1;ch.fx=dx/l;ch.fz=dz/l}}
 function playerAttack(){
-  if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
+  if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();imbueProc();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
   WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer&&n.kind!=='guardian'&&n.kind!=='cbot')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if((n.kind==='hunter'||n.kind==='cbot')&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);

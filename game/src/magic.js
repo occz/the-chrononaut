@@ -126,10 +126,10 @@ function dropSeed(el,x,z,key){
 function placeSeeds(){
   if(!G||WD.year===NX||WD.year===TH)return;
   const rr=rng(G.seed*7+WD.year*13+5);
-  for(let i=0;i<2;i++){const side=rr()<.5?-1:1,x=WD.mx+side*(55+rr()*75),z=rr()<.5?ZMIN+.2:ZMAX-.6,el=ELKEYS[rr()*ELKEYS.length|0],key=WD.year+'_'+i;if(G.seedGot[key])continue;dropSeed(el,x,z,key)}
+  for(let i=0;i<3;i++){const side=rr()<.5?-1:1,x=WD.mx+side*(55+rr()*75),z=rr()<.5?ZMIN+.2:ZMAX-.6,el=ELKEYS[rr()*ELKEYS.length|0],key=WD.year+'_'+i;if(G.seedGot[key])continue;dropSeed(el,x,z,key)}
 }
 function pickSeed(it){G.seeds[it.el]++;G.seedGot[it.key]=true;removeItem(it);SFX.ok();burst(ch.x,1.5,ch.z,ELEM[it.el].c,40,5,.4);ringFx(ch.x,ch.z,2.4,ELEM[it.el].c,.6);
-  toast(`${ELEM[it.el].n} seed found! Mix seeds at the Spell Forge in the Nexus bazaar.`)}
+  toast(`${ELEM[it.el].n} seed found! Mix seeds at the Seed Forge in the Nexus bazaar.`)}
 /* ---- fountain (Nexus) ---- */
 function buildFountain(g,x){
   const fg=new THREE.Group();fg.position.set(x,0,ZMIN+.2);const st=mat('#8a8fa8',{metalness:.5,roughness:.4});
