@@ -239,6 +239,10 @@ function building(lk,fac,x,z,w,h,d,r,front){
       for(let k=1;k<4;k++){const y=h*k/4;g.add(box(gr,0,y,d/2+.3,w,.3,.6));for(let i=0;i<Math.floor(w/1.4);i++)g.add(mesh(ICO(),mat('#4a9a4a',{roughness:.9,flatShading:true}),-w/2+.7+i*1.4,y+.35,d/2+.35,.6,.5,.6))}break}
     default:if(r()<.4)g.add(box(mat('#3a3a3e'),(r()-.5)*w*.5,h+.4,(r()-.5)*d*.4,1.2,.8,1));
   }
+  if(PK&&front){
+    if(w>=5&&b.roof!=='terrace'&&r()<.55){const e=prPart('entrance',{stone:b.style==='glass'?'#3a4048':shadeHex(b.cols[0],.55),wood:pick(r,['#6a4a2a','#3a2a20','#2a3a4a']),glass:'#a8c8e0',belt:'#c9a24a',iron:'#26221e',awn:pick(r,['#8a2a2a','#2a5a3a','#3a3a6a','#7a5a2a'])});e.position.set((r()-.5)*(w-5),0,d/2);e.scale.setScalar(1.35);g.add(e)}
+    if(b.style!=='glass'&&h>11&&w>=6&&r()<.4){const nb=h>20?2:1;for(let k=0;k<nb;k++){const bl=prPart('balcony',{stone:shadeHex(b.cols[0],.6),iron:'#26221e'});bl.position.set((r()-.5)*(w-4),5.5+k*5,d/2);g.add(bl)}}
+    if((!b.roof||b.roof==='flat'||b.roof==='cornice')&&w>=7&&r()<.15){const wt=prPart('watertank',{wood:'#6a4a2a',iron:'#26221e'});wt.position.set((r()-.5)*(w-4),h,(r()-.5)*(d-4));wt.scale.setScalar(.6);g.add(wt)}}
   if(b.band&&front){const bc=pick(r,b.band),bm=glow(bc,3.2);for(let y=3;y<h-1;y+=r()<.5?4:6)g.add(box(bm,0,y,d/2+.03,w+.06,.14,.06,false));g.add(box(bm,w/2+.03,h/2,d/2,.08,h,.08,false))}
   if(front&&lk.night&&r()<.35&&b.style!=='glass'){const awn=mat(pick(r,['#8a2a2a','#2a5a3a','#3a3a6a','#7a5a2a']));g.add(box(awn,0,2.7,d/2+.55,w*.7,.1,1.1))}
   return g;
@@ -254,13 +258,13 @@ function farRow(g,lk,r,x0,x1){
   if(f.kind==='dunes'||f.kind==='hills'){for(let x=x0+r()*10;x<x1;x+=18+r()*8){const R=14+r()*20,z=-50-r()*50;g.add(mesh(SPH(),mat(pick(r,f.cols),{roughness:1}),x,-R*.55,z,R*2.2,R*(f.kind==='dunes'?.9:1.4),R*1.4,false))}}
 }
 function lamp(g,lk,x,z,withLight){
-  const pm=mat('#26221e',{metalness:.6,roughness:.4});g.add(cyl(pm,x,1.9,z,.07,3.8));g.add(box(pm,x,3.85,z+.25,.08,.08,.6));
+  const pm=mat('#26221e',{metalness:.6,roughness:.4});if(PK){const o=prPart('lamp',{iron:'#26221e'});o.position.set(x,0,z);g.add(o)}else{g.add(cyl(pm,x,1.9,z,.07,3.8));g.add(box(pm,x,3.85,z+.25,.08,.08,.6))}
   g.add(sph(glow(lk.lamps,4),x,3.7,z+.5,.16,false));
   const h=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:lk.lamps,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));h.position.set(x,3.7,z+.5);h.scale.setScalar(1.8);g.add(h);
   if(withLight){const p=new THREE.PointLight(lk.lamps,22,15,1.6);p.position.set(x,3.5,z+.6);g.add(p)}
 }
-function tree(g,x,z,r,k=1){g.add(cyl(mat('#5a4030'),x,1.1*k,z,.14*k,2.2*k));const fm=mat(pick(r,['#3a7a3a','#4a8a3a','#2f6a34']),{roughness:.9,flatShading:true});g.add(mesh(ICO(),fm,x,2.8*k,z,2.4*k,2.2*k,2.4*k));g.add(mesh(ICO(),fm,x+.5*k,3.4*k,z+.2,1.5*k,1.4*k,1.5*k))}
-function car(g,x,z,c,r){const cg=new THREE.Group();cg.position.set(x,0,z);cg.rotation.y=r()<.5?0:Math.PI;const bm=mat(c,{metalness:.5,roughness:.3});
+function tree(g,x,z,r,k=1){if(PK){const o=prPart('tree',{bark:'#5a4030',leaf:pick(r,['#3a7a3a','#4a8a3a','#2f6a34','#4a9a40'])});o.position.set(x,0,z);o.scale.setScalar(k*.95);o.rotation.y=r()*6.28;g.add(o);return}g.add(cyl(mat('#5a4030'),x,1.1*k,z,.14*k,2.2*k));const fm=mat(pick(r,['#3a7a3a','#4a8a3a','#2f6a34']),{roughness:.9,flatShading:true});g.add(mesh(ICO(),fm,x,2.8*k,z,2.4*k,2.2*k,2.4*k));g.add(mesh(ICO(),fm,x+.5*k,3.4*k,z+.2,1.5*k,1.4*k,1.5*k))}
+function car(g,x,z,c,r){if(PK){const o=prPart('car',{paint:c,glass:'#a8c8e0',tire:'#111111',rim:'#b8b8c0',red:'#aa1a1a',lamp:'#fff2c0',trim:'#14100c',belt:'#c9a24a'});o.position.set(x,0,z);o.rotation.y=r()<.5?0:Math.PI;g.add(o);return}const cg=new THREE.Group();cg.position.set(x,0,z);cg.rotation.y=r()<.5?0:Math.PI;const bm=mat(c,{metalness:.5,roughness:.3});
   cg.add(box(bm,0,.55,0,3.6,.6,1.6));cg.add(box(bm,-.2,1.05,0,1.9,.5,1.45));cg.add(box(mat('#a8c8e0',{metalness:.8,roughness:.1}),-.2,1.05,0,1.95,.38,1.47,false));
   for(const sx of[-1.15,1.15])for(const sz of[-.75,.75]){const w=cyl(mat('#111'),sx,.32,sz,.32,.25);w.rotation.x=Math.PI/2;cg.add(w)}
   cg.add(sph(glow('#fff2c0',2),1.8,.6,.55,.1,false));cg.add(sph(glow('#fff2c0',2),1.8,.6,-.55,.1,false));g.add(cg)}
