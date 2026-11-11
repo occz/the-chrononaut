@@ -1,6 +1,8 @@
 import math,random
 exec(open('kit.py').read().split('# ---- LEG')[0])
 c2=open('creatures.py').read();exec(c2[c2.index("for n,c,r in[('skin'"):c2.index("# ===== SAUROPOD")])
+_box=box
+def box(mat,loc,size,bevel=.02,sub=0,rot=(0,0,0)):return _box(mat,loc,(size[0],size[2],size[1]),bevel,sub,rot)
 for n,c,r,m in[('paint','#c0392b',.3,.5),('glass','#a8c8e0',.1,.8),('tire','#111111',.9,0),('rim','#b8b8c0',.3,.9),('red','#aa1a1a',.4,0),('lamp','#fff2c0',.4,0),('bark','#5a4030',.95,0),('leaf','#3a7a3a',.9,0),('iron','#26221e',.45,.6),('stone','#8a8478',.9,0),('wood','#6a4a2a',.8,0),('awn','#8a2a2a',.9,0),('tank','#7a6a50',.9,0)]:M(n,H(c),r,m)
 def tbox(mat,c,size,tx,ty,bevel=.03,sub=0):
     bpy.ops.mesh.primitive_cube_add(location=g(*c));o=bpy.context.object;o.scale=(size[0]/2,size[2]/2,size[1]/2);bpy.ops.object.transform_apply(scale=True)
@@ -15,7 +17,6 @@ c=[tbox('paint',(0,.58,0),(3.7,.62,1.62),.97,.97,.07,1),tbox('glass',(-.15,1.07,
    box('trim',g(1.86,.38,0),(.12,.2,1.5),.04),box('trim',g(-1.86,.38,0),(.12,.2,1.5),.04),tbox('paint',(1.2,.9,0),(1.1,.1,1.5),.9,.9,.03)]
 for s in(-1,1):
     c+=[S('lamp',(1.84,.62,s*.55),(.1,.1,.17)),S('red',(-1.84,.62,s*.55),(.06,.1,.17))]
-    c+=[box('paint',g(-.15+dx,1.07,s*.7),(.07,.5,.06),.01) for dx in(-.88,.88)]
 for x in(-1.15,1.15):
     for z in(-.78,.78):c+=wheel(x,z)
 join(c,'car')
