@@ -185,24 +185,24 @@ function setAmbient(year){
   const P=MUS[year]||MUS[keys[Math.abs(year|0)%keys.length]];
   const sw=P.swing||0,step=60/P.bpm/2;
   const out=a.createGain();out.gain.value=0;
-  const dl=a.createDelay(1);dl.delayTime.value=step*3;const fb=a.createGain();fb.gain.value=.26;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;
+  const dl=a.createDelay(1);dl.delayTime.value=step*3;const fb=a.createGain();fb.gain.value=.26;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=800;
   out.connect(master);out.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(master);
   const hz=n=>P.r*Math.pow(2,n/12);
   const env=(g,t,d,v,at=.01)=>{g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+at);g.gain.exponentialRampToValueAtTime(.0001,t+d)};
   const osc=(type,fr,t,d,v,at,dest)=>{const x=a.createOscillator(),g=a.createGain();x.type=type;x.frequency.value=fr;env(g,t,d,v,at);x.connect(g);g.connect(dest||out);x.start(t);x.stop(t+d+.05)};
   const voice=(fr,t,len)=>{
     if(P.inst==='pluck'){osc('triangle',fr,t,.7,.07,.005);osc('sine',fr*2,t,.3,.02,.005)}
-    else if(P.inst==='bell'){osc('sine',fr,t,2.2,.06,.005);osc('sine',fr*2.76,t,.8,.012,.005)}
-    else if(P.inst==='ep'){osc('sine',fr,t,1.3,.08,.008);osc('sine',fr*2,t,.35,.025,.008);osc('sine',fr*4,t,.12,.008,.008)}
-    else{const f=a.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(1500,t);f.frequency.exponentialRampToValueAtTime(350,t+.35);f.connect(out);osc('sawtooth',fr,t,.4,.045,.005,f)}};
+    else if(P.inst==='bell'){osc('sine',fr,t,2.2,.06,.005);osc('sine',fr*2.76,t,.5,.006,.005)}
+    else if(P.inst==='ep'){osc('sine',fr,t,1.3,.08,.008);osc('sine',fr*2,t,.35,.025,.008);}
+    else{const f=a.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(800,t);f.frequency.exponentialRampToValueAtTime(220,t+.35);f.connect(out);osc('sawtooth',fr,t,.4,.045,.005,f)}};
   const padNote=(fr,t,d)=>{osc('sine',fr,t,d,.034,d*.35);osc('sine',fr*1.004,t,d,.026,d*.35)};
   let i=0;
   const tick=()=>{if(!AC||muted)return;const bar=Math.floor(i/P.n),k=i%P.n,ch=P.prog[bar%4],tones=Q[ch[1]],base=ch[0]+24;
     const t=a.currentTime+.06+((k%2&&sw)?step*sw:0);
-    if(k===0){const d=step*P.n*.98;if(P.pad){tones.forEach(x=>padNote(hz(base+x-12),t,d))}if(P.bass||P.pad===1)osc('sine',hz(base-24+0),t,d*.7,.1,.02)}
+    if(k===0){const d=step*P.n*.98;if(P.pad){tones.forEach(x=>padNote(hz(base+x-24),t,d))}if(P.bass||P.pad===1)osc('sine',hz(base-24+0),t,d*.7,.1,.02)}
     if(P.bass&&k%4===0)osc('sine',hz(base-24),t,step*3,.09,.01);
     const fig=P.fig[Math.floor(bar/2)%2][k];
-    if(fig>=0){const oct=Math.floor(fig/tones.length),nt=tones[fig%tones.length];voice(hz(base+nt+12*oct+12),t)}
+    if(fig>=0){const oct=Math.floor(fig/tones.length),nt=tones[fig%tones.length];voice(hz(base+nt+12*oct-12),t)}
     i++};
   const iv=setInterval(tick,step*1000);
   out.gain.setTargetAtTime(.4,a.currentTime,1.2);amb={o:[],g:out,iv};tick()
