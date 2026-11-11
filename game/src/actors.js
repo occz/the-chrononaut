@@ -36,6 +36,24 @@ function makeRig(fit,k=1){
   g.traverse(o=>{if(o.isMesh){o.castShadow=true}});
   return{g,body,legs,arms,torso,head,cape,k,ph:Math.random()*6};
 }
+
+function makeDinoRig(fit){
+  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+  const cm=mat(fit.coat,{roughness:.85,flatShading:true}),bl=mat('#d8cfa0',{roughness:.9,flatShading:true}),eye=mat('#140e0a'),horn=mat('#efe6cc');
+  const torso=new THREE.Group();torso.position.y=.9;body.add(torso);const head=new THREE.Group();torso.add(head);
+  const legs=[new THREE.Group(),new THREE.Group()];const tri=Math.random()<.4;
+  if(tri){legs[0].position.set(0,.7,0);legs[1].position.set(0,.7,0);body.add(legs[0]);body.add(legs[1]);
+    torso.add(box(cm,0,.1,0,.95,.8,1.7));torso.add(box(bl,0,-.2,0,.8,.3,1.5));const tl=mesh(CONE(),cm,0,.05,-1.2,.45,1.2,.45);tl.rotation.x=-Math.PI/2;torso.add(tl);
+    head.position.set(0,.1,1.05);head.add(box(cm,0,0,.2,.55,.5,.7));head.add(box(mat('#8a5a3a',{flatShading:true}),0,.35,-.05,1.1,.95,.12));
+    for(const sx of[-1,1]){const h=mesh(CONE(),horn,sx*.18,.3,.6,.1,.5,.1);h.rotation.x=1.2;head.add(h);head.add(sph(eye,sx*.28,.1,.3,.05,false))}head.add(mesh(CONE(),horn,0,.05,.65,.1,.3,.1));
+    for(const[x,z,i]of[[.35,.55,0],[-.35,.55,1],[.35,-.55,1],[-.35,-.55,0]])legs[i].add(box(cm,x,-.35,z,.28,.7,.3))}
+  else{for(const[i,s2]of[[0,-1],[1,1]]){legs[i].position.set(s2*.18,.75,-.05);legs[i].add(box(cm,0,-.37,0,.16,.75,.2));legs[i].add(box(bl,0,-.76,.1,.18,.1,.3));body.add(legs[i])}
+    torso.add(box(cm,0,.05,0,.55,.6,1.2));torso.add(box(bl,0,-.2,.05,.45,.2,1));const tl=mesh(CONE(),cm,0,.1,-1.15,.4,1.7,.4);tl.rotation.x=-Math.PI/2;torso.add(tl);
+    torso.add(box(cm,0,.45,.55,.25,.5,.3));head.position.set(0,.8,.7);head.add(box(cm,0,0,.15,.3,.28,.6));head.add(box(bl,0,-.12,.2,.26,.08,.5));for(const sx of[-1,1])head.add(sph(eye,sx*.16,.06,.1,.04,false))}
+  const arms=[new THREE.Group(),new THREE.Group()];torso.add(arms[0]);torso.add(arms[1]);
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});
+  return{g,body,legs,arms,torso,head,cape:null,k:1,ph:Math.random()*6};
+}
 function animRig(R,dt,{moving=false,speed=1,swing=0,wind=0,hurt=0,dead=0,dash=0}={}){
   R.ph+=dt*(moving?9*speed:2);const s=moving?Math.sin(R.ph):0,a=moving?.75:0;
   R.legs[0].rotation.x=s*a;R.legs[1].rotation.x=-s*a;
@@ -180,7 +198,7 @@ function streamCitizens(dt){
   for(const c of WD.npcs){if(c.kind!=='citizen'||c.dying)continue;if(!c.hostile&&!(c.flee>0)&&Math.abs(c.x-camX)>75){c.dying=.01;continue}n++}
   if(n<target){const side=Math.random()<.5?-1:1;spawnCitizen(Math.random,camX+side*(22+Math.random()*12))}
 }
-function addNpc(o){const k=o.k||1;const rig=makeRig(o.fit,k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
+function addNpc(o){const k=o.k||1;const rig=(WD.year===-66000000&&o.kind==='citizen')?makeDinoRig(o.fit):makeRig(o.fit,k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
   const n={tx:o.x,tz:o.z,wait:Math.random()*3,moving:false,hostile:false,atkCd:.8,wind:0,swind:0,kbx:0,kbz:0,hitT:0,dying:0,calmT:0,flee:0,bt:0,bubble:'',talkCd:3+Math.random()*6,maxHp:o.hp,...o,rig,k,ang:0};
   WD.npcs.push(n);return n}
 function spawnMerchant(){const n=addNpc({kind:'merchant',fit:MERCHANT_FIT,x:WD.land.x,z:ZMIN-.4,hp:999,sp:0});n.rig.g.rotation.y=0;n.bubble='Coins for power, traveler.';n.bt=4;WD.merchant=n}
