@@ -525,6 +525,11 @@ function stopAmb(){if(!amb)return;const old=amb,a=AC;amb=null;clearInterval(old.
 /* era music: each era has its own key, tempo, chords, instrument and a fixed arpeggio figure (no random notes) */
 const Q={M:[0,4,7],m:[0,3,7],M7:[0,4,7,11],m7:[0,3,7,10],s:[0,5,7],d:[0,3,6]};
 const MUS={
+ [-66000000]:{r:41,bpm:62,n:8,inst:'bell',pad:2,prog:[[0,'m'],[-2,'M'],[-5,'m'],[-7,'M']],fig:[[0,-1,-1,-1,2,-1,-1,-1],[2,-1,-1,0,-1,-1,1,-1]]},/* primeval */
+ [-15000]:{r:46,bpm:68,n:8,inst:'bell',pad:1,prog:[[0,'s'],[-2,'s'],[3,'M'],[-2,'s']],fig:[[0,-1,1,-1,2,-1,1,-1],[2,-1,1,-1,0,-1,1,-1]]},/* tribal calm */
+ [-2560]:{r:49,bpm:84,n:8,inst:'pluck',pad:1,prog:[[0,'m'],[1,'M'],[0,'m'],[-2,'M']],fig:[[0,1,2,1,0,-1,1,-1],[2,1,0,1,2,3,2,-1]]},/* desert lute */
+ 80:{r:52,bpm:88,n:8,inst:'pluck',pad:1,prog:[[0,'M'],[5,'M'],[7,'M'],[0,'M']],fig:[[0,1,2,1,2,-1,1,-1],[2,1,0,1,2,3,2,-1]]},/* lyre */
+ 1000:{r:44,bpm:72,n:8,inst:'pluck',pad:2,prog:[[0,'m'],[-2,'M'],[-4,'M'],[-5,'m']],fig:[[0,-1,2,-1,1,-1,0,-1],[2,-1,3,-1,2,-1,1,-1]]},/* northern sea */
  1610:{r:50,bpm:84,n:8,inst:'pluck',pad:1,prog:[[0,'m'],[-2,'M'],[-4,'M'],[-5,'m']],fig:[[0,1,2,3,2,1,2,-1],[0,2,1,3,2,4,3,-1]]},/* baroque harpsichord */
  1869:{r:55,bpm:96,n:8,inst:'pluck',pad:0,prog:[[0,'M'],[0,'M'],[5,'M'],[7,'M']],fig:[[0,-1,1,2,-1,1,2,-1],[0,-1,2,1,-1,2,3,-1]]},/* frontier guitar */
  1903:{r:58,bpm:132,n:6,inst:'bell',pad:1,prog:[[0,'M'],[5,'M'],[7,'M'],[0,'M']],fig:[[2,1,0,1,2,3],[3,2,1,2,3,4]]},/* music-box waltz */
@@ -591,7 +596,47 @@ function disposeTree(o,skip){o.traverse(n=>{if(n.geometry&&!KEEP.has(n.geometry)
 
 /* ================= eras: story + look ================= */
 const NX=0,TH=-1;
+const fy=y=>y===NX?'∞':y===TH?'END':y<=-1e6?Math.round(-y/1e6)+' MYA':y<0?(-y)+' BC':y<1000?y+' AD':String(y);
+const fyS=y=>y<=-1e6?Math.round(-y/1e6)+'MYA':y<0?(-y)+'BC':y<1000?y+'AD':String(y);
 const ERA={
+ [-66000000]:{name:"Age of Dinosaurs",film:'none',land:'burrow',
+  mission:{date:"66 million years ago",must:"An asteroid ends the age of the dinosaurs, and a tiny shrew-like mammal survives in its burrow. Every mammal alive today descends from it.",task:"The burrow is blocked. Bring the <em>digging claw</em> to the <em>burrow</em> and dig before the sky burns.",item:"digging claw",label:"burrow",time:85,
+   mini:{type:'timing',skin:'dig',act:'DIG',title:"DIG THE BURROW",hint:"Tap DIG when the marker is inside the gold zone. Three clean digs reach safety."}},
+  npc:{coats:['#7a5a3a','#5a6a3a','#8a6a48','#4a5a3a','#a07a50'],pants:['#4a3a28','#3a3a28'],hats:['none','none','cap'],hatCs:['#5a4a2a','#6a5a3a']},
+  talk:["Another traveler? Mind the big ones!", "Did that tree just move?", "The sky looks wrong today.", "Please don't feed the raptors."],
+  look:{sky:['#3a6a4a','#9ab870','#f0d890'],fog:'#a8c080',fogD:.012,sun:['#fff0c0',2.6],sunPos:[20,40,20],hemi:['#d0e8b0','#4a5a2a',1],exp:1,bloom:[.3,.8],
+   ground:['dirt','#6a6a3a',.95,0],bld:null,far:{kind:'hills',cols:['#3a6a3a','#4a7a3a']},lamps:null,wx:['motes','#ffb060',120],clouds:'#e8e0c0',disc:'sun',extra:['ferns','dinos','volcano']}},
+ [-15000]:{name:"The Ice Age",film:'none',land:'cave',
+  mission:{date:"About 15,000 years ago",must:"Painters in a cave at Lascaux record a great hunt on the wall. It becomes some of the oldest art ever found.",task:"The painters' <em>ochre</em> was lost in the snow. Bring it to the <em>painted cave</em> and repeat the ritual pattern.",item:"ochre pigment",label:"painted cave",time:80,
+   mini:{type:'simon',skin:'ochre',title:"PAINT THE WALL",hint:"Watch the four handprints glow, then repeat the pattern. Keys 1–4 work too."}},
+  npc:{coats:['#6a4a30','#8a6a48','#5a4030','#a08060'],pants:['#4a3a2a','#3a2a1e'],hats:['none','none','cap'],hatCs:['#5a4030','#7a5a3a']},
+  talk:["Fire is the best thing ever.", "Have you seen the mammoths?", "Cold today. Cold yesterday too.", "That paint is red. Wow."],
+  look:{sky:['#7a9ac0','#c8dcec','#f4f8ff'],fog:'#d8e8f4',fogD:.013,sun:['#fff8f0',2.2],sunPos:[-20,35,25],hemi:['#d8ecff','#8a9aa8',1.05],exp:1,bloom:[.3,.85],
+   ground:['snow','#eef4fa',.7,0],bld:null,far:{kind:'hills',cols:['#c8d8e8','#b8cade']},lamps:null,wx:['snow','#ffffff',500],clouds:'#ffffff',disc:'sun',extra:['pines','mammoths']}},
+ [-2560]:{name:"The Pyramid Builders",film:'sepia',land:'pyrsite',
+  mission:{date:"About 2560 BC",must:"The last casing stone is set on the Great Pyramid of Giza. It stays the tallest structure on Earth for nearly four thousand years.",task:"The master builder's <em>copper chisel</em> is missing. Bring it to the <em>building site</em> and lower the capstone into place.",item:"copper chisel",label:"building site",time:80,
+   mini:{type:'timing',skin:'stone',act:'LOWER',title:"LOWER THE CAPSTONE",hint:"Tap LOWER when the marker is inside the gold zone. Three clean drops set the stone."}},
+  npc:{coats:['#f0e8d0','#e8dcc0','#d8c8a0','#ffffff'],pants:['#e8dcc0','#d8c8a0'],hats:['none','none','none'],hatCs:['#c9a24a']},
+  talk:["The Pharaoh wants it finished.", "Mind the sledges!", "Water, please. So much sand.", "Our pyramid will stand forever."],
+  look:{sky:['#5a9ad0','#b8d8e8','#fff0cc'],fog:'#f0e0b8',fogD:.011,sun:['#fff4d0',3],sunPos:[30,50,20],hemi:['#fff0d0','#b09060',1],exp:1,bloom:[.25,.85],
+   ground:['sand','#e8d098',1,0],bld:{style:'flat',cols:['#d8b880','#c8a870','#e0c890'],win:'#3a2a18',litC:'#ffd890',lit:.04,h:[3,5],w:[5,8],d:[5,6],roof:'flat',sparse:1},
+   far:{kind:'dunes',cols:['#e8d098','#d8c088']},lamps:null,wx:['dust','#f0e0b0',240],clouds:'#fff8e8',disc:'sun',extra:['pyramids','palms']}},
+ 80:{name:"Imperial Rome",film:'kodak',land:'colosseum',
+  mission:{date:"AD 80",must:"The Colosseum opens with a hundred days of games. It is the largest arena ever built.",task:"The arena's <em>bronze key</em> is lost in the forum. Bring it to the <em>Colosseum</em> and open the gates in the right order.",item:"bronze key",label:"Colosseum",time:80,
+   mini:{type:'simon',skin:'mosaic',title:"OPEN THE GATES",hint:"Watch the four gates light up, then repeat the order. Keys 1–4 work too."}},
+  npc:{coats:['#f4f0e8','#c8383a','#e8dcc0','#6a4a8a','#d8c8a8'],pants:['#e8dcc0','#c8b898'],hats:['none','none','none'],hatCs:['#4a8a4a']},
+  talk:["Bread and circuses!", "All roads lead here.", "Have you seen the new arena?", "Mind the chariots!"],
+  look:{sky:['#4a8ad0','#9ac8e8','#f8ecd0'],fog:'#e8dcc0',fogD:.01,sun:['#fff4dc',3],sunPos:[25,50,25],hemi:['#fff0d8','#a08868',1],exp:1,bloom:[.3,.85],
+   ground:['cobbles','#b8a890',.8,0],bld:{style:'flat',cols:['#e8dcc0','#d8c8a8','#e0b890','#f0e8d0'],win:'#3a2a1a',litC:'#ffd890',lit:.05,h:[4,8],w:[5,8],d:[5,7],roof:'gable',roofC:'#b8603a'},
+   far:{kind:'hills',cols:['#7a9a6a','#8aa070']},lamps:null,wx:['leaves','#8aa05a',40],clouds:'#ffffff',disc:'sun',extra:['trees','columns']}},
+ 1000:{name:"The Viking Age",film:'oil',land:'longship',
+  mission:{date:"About the year 1000",must:"Leif Erikson's crew lands in North America, almost five hundred years before Columbus.",task:"The navigator's <em>sunstone</em> is gone. Bring it to the <em>longship</em> and find the way across the sea.",item:"sunstone",label:"longship",time:80,
+   mini:{type:'tune',skin:'sunstone',title:"FIND THE SUN",hint:"Drag (or use ← →) until the light is clean, then hold it steady."}},
+  npc:{coats:['#6a4a30','#4a5a6a','#8a3a2a','#5a4a3a'],pants:['#3a2a20','#4a3a2a'],hats:['none','cap','none'],hatCs:['#8a8a90','#5a5a60']},
+  talk:["West! Always west!", "The sea is calm today.", "Odin watches the brave.", "Bring mead for the voyage."],
+  look:{sky:['#5a7a98','#a8bccc','#e0e4e0'],fog:'#b8c8d0',fogD:.013,sun:['#f4f0e8',2],sunPos:[-25,30,25],hemi:['#c8d8e8','#6a6a5a',.95],exp:1,bloom:[.3,.85],
+   ground:['dirt','#6a7a4a',.95,0],bld:{style:'wood',cols:['#6a4a30','#5a3e28','#7a5a3a'],win:'#2a1a0e',litC:'#ffc070',lit:.2,h:[3,5],w:[6,9],d:[5,7],roof:'gable',roofC:'#5a6a3a'},
+   far:{kind:'hills',cols:['#5a7a6a','#4a6a5a']},lamps:null,wx:['dust','#c8d4d8',100],clouds:'#e8eef0',disc:'sun',extra:['pines']}},
  1610:{name:"The Renaissance",film:'oil',land:'observatory',
   mission:{date:"January 7, 1610",must:"An astronomer in Padua spots the moons of Jupiter through a telescope.",task:"The telescope's <em>lens</em> was dropped in the market. Bring it to the <em>observatory</em>, then find the moons.",item:"lens",label:"observatory",time:85,
    mini:{type:'targets',skin:'moons',title:"FIND THE MOONS",hint:"Tap the 4 moons lined up beside Jupiter. The other dots are stars."}},
@@ -712,13 +757,13 @@ const ERA={
   look:{sky:['#040002','#2a0610','#8a1a24'],fog:'#2a0610',fogD:.016,sun:['#ff7a6a',1],sunPos:[0,30,-40],night:1,hemi:['#8a2a3a','#100204',.5],exp:1.1,bloom:[1.05,.45],
    ground:['grid','#14040a',.18,.5],neon:'#ff3a4a',bld:null,far:{kind:'none'},lamps:'#ff3a4a',wx:['motes','#ff6a5a',200],stars:600,extra:['clockrings','pillars','shards']}}
 };
-const YEARS=[1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,2600];
-const RELIC={1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
+const YEARS=[-66000000,-15000,-2560,80,1000,1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,2600];
+const RELIC={[-66000000]:['Amber Fossil','+25 max mana'],[-15000]:['Ochre Handprint','+15 max health'],[-2560]:['Scarab Amulet','+20% coins'],80:['Gladiator Helm','-8% damage taken'],1000:['Runestone','+6% speed'],1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
  1985:['Walkman','dash recharges 15% faster'],1999:['Y2K Survival Kit','-10% damage taken'],2026:['Lucky Coin','+25% coins'],2088:['Seed of Life','health regenerates twice as fast'],2150:['Mag Boots','+6% speed'],2240:['Memory Shard','+6 s on missions'],2400:['Alien Alloy','-12% damage taken'],2600:['Chronon Spark','+8 damage']};
 const WARES=[{k:'hp',n:'Reinforced Suit',d:'+25 max health',max:5,base:40},{k:'dmg',n:'Chrono Gauntlet',d:'+6 damage per hit',max:5,base:50},{k:'spd',n:'Flux Boots',d:'+8% walking speed',max:4,base:45},
  {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'mana',n:'Mana Vessel',d:'+25 max mana',max:4,base:45},
  {k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
-const TIERS=[[1969,1985,1999,2026,2088],[1927,1957,2150],[1903,2240],[1869,2400],[1610,2600]];
+const TIERS=[[-66000000,80,1969,1985,1999,2026,2088],[1000,1927,1957,2150],[-15000,-2560,1903,2240],[1869,2400],[1610,2600]];
 const hasM=y=>!!(ERA[y]&&ERA[y].mission);
 
 /* ================= world constants ================= */
@@ -846,11 +891,70 @@ const EXTRA={
       const h1=new THREE.Mesh(BOX(),glow(c,2.4));h1.scale.set(.02,.6,.02);const hand=new THREE.Group();h1.position.y=.3;hand.add(h1);rg.add(hand);const h2=h1.clone();h2.scale.set(.02,.4,.02);h2.position.y=.2;const hand2=new THREE.Group();hand2.add(h2);rg.add(hand2);
       rg.rotation.set((r()-.5)*.6,(r()-.5)*.8,0);g.add(rg);const sp=(r()<.5?-1:1)*(.3+r());WD.anim.push(t=>{hand.rotation.z=-t*sp;hand2.rotation.z=-t*sp/12})}},
   pillars(g,lk,r,x0,x1){const c=lk===ERA[TH].look?'#22080e':'#1c2848',gc=lk===ERA[TH].look?'#ff3a4a':'#c9a24a';for(let x=Math.ceil(x0/9)*9;x<x1;x+=9){if(Math.abs(x-WD.land.x)<8)continue;const h=8+r()*6;g.add(box(mat(c,{roughness:.4,metalness:.3}),x,h/2,-9,1.6,h,1.6));g.add(box(glow(gc,2),x,h+.15,-9,2,.3,2));g.add(box(glow(gc,2),x,.15,-9,2,.3,2))}},
-  shards(g,lk,r,x0,x1){for(let i=0;i<9;i++){const o=new THREE.Mesh(geo('tet',()=>new THREE.TetrahedronGeometry(.5)),glow('#ff3a4a',1.8+r()*2));o.scale.setScalar(.5+r()*1.8);o.position.set(x0+r()*CW,3+r()*20,-10-r()*30);g.add(o);const ph=r()*6,y0=o.position.y;WD.anim.push(t=>{o.rotation.set(t*.5+ph,t*.3,0);o.position.y=y0+Math.sin(t+ph)*.6})}}
+  shards(g,lk,r,x0,x1){for(let i=0;i<9;i++){const o=new THREE.Mesh(geo('tet',()=>new THREE.TetrahedronGeometry(.5)),glow('#ff3a4a',1.8+r()*2));o.scale.setScalar(.5+r()*1.8);o.position.set(x0+r()*CW,3+r()*20,-10-r()*30);g.add(o);const ph=r()*6,y0=o.position.y;WD.anim.push(t=>{o.rotation.set(t*.5+ph,t*.3,0);o.position.y=y0+Math.sin(t+ph)*.6})}},
+
+  ferns(g,lk,r,x0,x1){for(let x=x0+1+r()*3;x<x1;x+=4+r()*6){if(nearFix(x,7))continue;const z=-5.4+r()*.6,k=.8+r()*.7;
+      if(r()<.45){g.add(cyl(mat('#6a5030'),x,1.6*k,z,.16*k,3.2*k));for(let a=0;a<6;a++){const l=box(mat('#3f8a3a',{flatShading:true}),x+Math.cos(a)*.9*k,3.3*k,z+Math.sin(a)*.9*k,1.8*k,.06,.35,true);l.rotation.y=-a;l.rotation.z=.4;g.add(l)}}
+      else for(let a=0;a<7;a++){const l=box(mat(pick(r,['#3f8a3a','#4a9a3a','#2f7a34'])),x+Math.cos(a)*.5*k,.7*k,z+Math.sin(a)*.5*k,1.3*k,.05,.3,true);l.rotation.y=-a;l.rotation.z=.8;g.add(l)}}},
+  dinos(g,lk,r,x0,x1){const n=r()<.6?1:2;for(let i=0;i<n;i++){const big=r()<.55,d=makeDino(big?'#6a8a5a':'#8a7a4a',big),x=x0+6+r()*(CW-12),z=-20-r()*20,dir=r()<.5?-1:1;d.position.set(x,0,z);d.scale.setScalar(big?1.5+r()*.8:1);d.rotation.y=dir>0?0:Math.PI;g.add(d);
+      const ph=r()*6,sp=.5+r()*.4;WD.anim.push(t=>{d.position.x=x+Math.sin(t*.05*sp+ph)*10*dir;d.userData.legs.forEach((l,k)=>l.rotation.z=Math.sin(t*sp*2.4+k*Math.PI)*.35);d.userData.neck&&(d.userData.neck.rotation.z=Math.sin(t*.6+ph)*.08)})}},
+  volcano(g,lk,r,x0,x1){if(Math.abs(Math.floor(x0/CW))%3!==0)return;const x=x0+CW/2,vm=mat('#3a2a24',{roughness:1,flatShading:true});g.add(mesh(CONE(),vm,x,14,-95,70,28,50));g.add(mesh(CONE(),glow('#ff6a1a',2.6),x,27,-95,10,3,10));
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:'#ff7a2a',transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));gl.position.set(x,32,-92);gl.scale.set(60,34,1);g.add(gl);WD.anim.push(t=>gl.material.opacity=.45+Math.sin(t*1.7+x)*.12)},
+  pines(g,lk,r,x0,x1){for(let x=x0+1+r()*4;x<x1;x+=6+r()*8){if(nearFix(x,8))continue;const k=.9+r()*.6,z=-5.6+r()*.5;g.add(cyl(mat('#4a3424'),x,.8*k,z,.12*k,1.6*k));const gm=mat('#2f5a3a',{flatShading:true}),sm=mat('#f4f8ff',{flatShading:true});
+      for(let j=0;j<3;j++){g.add(mesh(CONE(),gm,x,(2+j*1.1)*k,z,(2.6-j*.7)*k,1.7*k,(2.6-j*.7)*k));g.add(mesh(CONE(),sm,x,(2.35+j*1.1)*k,z,(1.9-j*.55)*k,.9*k,(1.9-j*.55)*k))}}},
+  mammoths(g,lk,r,x0,x1){if(r()<.55)return;const m=makeMammoth(),x=x0+6+r()*(CW-12),z=-22-r()*16;m.position.set(x,0,z);m.scale.setScalar(1.6);m.rotation.y=r()<.5?0:Math.PI;g.add(m);const ph=r()*6;WD.anim.push(t=>{m.position.x=x+Math.sin(t*.04+ph)*6;m.userData.legs.forEach((l,k)=>l.rotation.z=Math.sin(t*1.2+k*Math.PI)*.18)})},
+  pyramids(g,lk,r,x0,x1){const pm=mat('#e0c080',{roughness:1,flatShading:true}),sm=mat('#c8a668',{roughness:1,flatShading:true});
+    for(let x=Math.ceil(x0/90)*90;x<x1;x+=90){const k=1+((x/90|0)%3+3)%3*.3;g.add(mesh(PYR(),pm,x,22*k,-110,60*k,44*k,60*k));g.add(mesh(PYR(),sm,x+52,13*k,-125,36*k,26*k,36*k))}},
+  palms(g,lk,r,x0,x1){for(let x=x0+2+r()*4;x<x1;x+=9+r()*10){if(nearFix(x,8))continue;const k=.9+r()*.4,z=-5.6+r()*.4,tm=mat('#7a5a3a');g.add(cyl(tm,x,2.2*k,z,.14*k,4.4*k));for(let a=0;a<7;a++){const l=box(mat('#4a8a3a'),x+Math.cos(a*.9)*1.1*k,4.5*k,z+Math.sin(a*.9)*1.1*k,2.4*k,.06,.4,true);l.rotation.y=-a*.9;l.rotation.z=.35;g.add(l)}}},
+  columns(g,lk,r,x0,x1){const cm=mat('#f0e8d8',{roughness:.7});for(let x=Math.ceil(x0/18)*18;x<x1;x+=18){if(nearFix(x,9))continue;const h=5+r()*3;for(let i=0;i<(r()<.5?2:3);i++){g.add(cyl(cm,x+i*2.2,h/2,-9,.45,h));g.add(box(cm,x+i*2.2,h+.15,-9,1.2,.3,1.2));g.add(box(cm,x+i*2.2,.15,-9,1.2,.3,1.2))}if(r()<.5)g.add(box(cm,x+1.1,h+.6,-9,4.8,.6,1.4))}}
 };
+
+
+const PYR=()=>geo('pyr',()=>{const g=new THREE.ConeGeometry(.5*Math.SQRT2,1,4);g.rotateY(Math.PI/4);return g});
+function makeDino(col,big){const g=new THREE.Group(),m=mat(col,{roughness:.9,flatShading:true}),dk=mat('#46583a',{roughness:1,flatShading:true});g.userData.legs=[];
+  if(big){g.add(box(m,0,3.3,0,5,2.2,2.2));const tail=mesh(CONE(),m,-4.4,3.1,0,1.6,4.6,1.6);tail.rotation.z=Math.PI/2;g.add(tail);
+    const nk=new THREE.Group();nk.position.set(2.3,4.1,0);const nb=box(m,1.2,1.5,0,.8,3.6,.8);nb.rotation.z=-.5;nk.add(nb);nk.add(box(m,3.1,3.1,0,1.1,.7,.8));nk.add(box(mat('#111'),3.4,3.3,.42,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
+    for(const[x,z]of[[1.7,.85],[1.7,-.85],[-1.7,.85],[-1.7,-.85]]){const lg=new THREE.Group();lg.position.set(x,2.2,z);lg.add(box(dk,0,-1,0,.8,2.2,.8));g.add(lg);g.userData.legs.push(lg)}}
+  else{const b=box(m,0,1.9,0,2.6,1.2,1);b.rotation.z=.12;g.add(b);const tail=mesh(CONE(),m,-2.6,1.9,0,.8,3,.8);tail.rotation.z=Math.PI/2;g.add(tail);
+    const nk=new THREE.Group();nk.position.set(1.2,2.4,0);nk.add(box(m,.3,.6,0,.5,1.2,.5));nk.add(box(m,.8,1.3,0,1.2,.6,.6));nk.add(box(mat('#d8c860'),1,1.4,.31,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
+    for(const z of[.4,-.4]){const lg=new THREE.Group();lg.position.set(0,1.4,z);lg.add(box(dk,0,-.7,0,.4,1.5,.4));g.add(lg);g.userData.legs.push(lg)}}
+  return g}
+function makeMammoth(){const g=new THREE.Group(),f=mat('#5a3e2a',{roughness:1,flatShading:true}),dk=mat('#3a281c',{roughness:1});g.userData.legs=[];
+  g.add(mesh(ICO(),f,0,2.4,0,4,3,2.6));g.add(mesh(ICO(),f,2.1,2.8,0,2.2,2.4,2));g.add(mesh(ICO(),f,.2,3.9,0,1.8,1.2,1.8));
+  const tr=cyl(f,3.2,1.7,0,.28,2.6);tr.rotation.z=.25;g.add(tr);for(const z of[.55,-.55]){const t=mesh(CONE(),mat('#efe6cc'),3,1.9,z,.2,2.4,.2);t.rotation.z=-1.1;g.add(t)}
+  for(const[x,z]of[[1.2,.8],[1.2,-.8],[-1.2,.8],[-1.2,-.8]]){const lg=new THREE.Group();lg.position.set(x,1.3,z);lg.add(box(dk,0,-.6,0,.7,1.4,.7));g.add(lg);g.userData.legs.push(lg)}
+  return g}
 
 /* ================= landmarks (front face at z=0, built backward) ================= */
 const LANDM={
+  burrow(g,lk){const dm=mat('#5a4430',{roughness:1,flatShading:true});g.add(mesh(SPH(),dm,0,.2,-3.4,10,5.6,7.4));g.add(mesh(SPH(),mat('#050302'),0,1.4,-.2,3.4,2.6,1.2));
+    for(const[x,s2]of[[-3.6,1.6],[3.4,1.3],[-2.2,.9],[4.4,.8]])g.add(mesh(ICO(),mat('#7a7468',{roughness:1,flatShading:true}),x,.5,-.4,s2,s2*.8,s2));
+    const sh=new THREE.Group();sh.position.set(-.6,.2,.9);sh.add(mesh(SPH(),mat('#8a7a68'),0,.18,0,.5,.32,.3));sh.add(sph(mat('#8a7a68'),.28,.22,0,.12,false));sh.add(sph(glow('#ffffff',1),.36,.26,.05,.025,false));g.add(sh);
+    for(let i=0;i<5;i++)g.add(mesh(CONE(),mat('#3f8a3a'),-4.8+i*.3,.5,-.2,.18,1+i%2*.4,.18));
+    {const s1=sign('BURROW',3.6,.8,'#ffd890',{bg:'#2a1e12',i:1.4});s1.position.set(0,4.4,-.4);g.add(s1)}},
+  cave(g,lk){const rm=mat('#6a625a',{roughness:1,flatShading:true});g.add(mesh(ICO(),rm,0,3.6,-4,12,9,8));g.add(mesh(ICO(),rm,-5,2.4,-2.6,5,5,5));g.add(mesh(ICO(),rm,5.2,2,-2.4,4.4,4.2,4.4));g.add(mesh(SPH(),mat('#040302'),0,1.7,-.2,4.2,3.4,1.6));
+    const wall=mat('#d8b078',{roughness:1});g.add(box(wall,0,1.8,-.8,3.4,2.8,.1));
+    const pm=glow('#c8421a',1.6);for(const[x,y]of[[-1.1,2.4],[-.4,2.8],[.4,2.6],[1.1,2.2],[-.2,1.6]]){g.add(box(pm,x,y,-.72,.2,.5,.03,false));g.add(box(pm,x-.18,y+.18,-.72,.1,.2,.03,false))}
+    g.add(mesh(CONE(),glow('#ff7a1a',3.2),-3.4,.7,.9,.9,1.5,.9));const fl=mesh(CONE(),glow('#ffd24a',4),-3.4,.6,.9,.55,1,.55);g.add(fl);WD.anim.push(t=>{fl.scale.set(.55,1+Math.sin(t*14)*.18,.55)});
+    for(let a=0;a<6;a++)g.add(mesh(ICO(),mat('#5a5650',{flatShading:true}),-3.4+Math.cos(a)*.8,.2,.9+Math.sin(a)*.8,.35,.3,.35));
+    {const s1=sign('PAINTED CAVE',5,.8,'#ffd890',{bg:'#2a1e12',i:1.4});s1.position.set(0,5.2,.1);g.add(s1)}},
+  pyrsite(g,lk){const st=mat('#e0c080',{roughness:1,flatShading:true});g.add(mesh(PYR(),st,0,3.6,-5,15,7.2,13));g.add(box(mat('#d0b070',{flatShading:true}),0,7.15,-5,2.6,.3,2.4));
+    const cap=mesh(PYR(),mat('#d8a830',{metalness:.9,roughness:.25,emissive:'#c8921a',emissiveIntensity:.5}),0,9.3,-5,2.4,1.9,2.2);g.add(cap);WD.anim.push(t=>cap.position.y=9.1+Math.sin(t*1.4)*.25);
+    const wm=mat('#8a6a42');for(let i=0;i<6;i++)g.add(box(wm,-8.6+i*.15,.6+i*1.1,-.5-i*.4,.2,.3,1,false));const rp=box(wm,-9,3,-3,.2,.25,5,false);rp.rotation.z=.5;g.add(rp);
+    for(const[x,z]of[[5,-.6],[6.4,-.4],[7.6,-.8]])g.add(box(mat('#d0b070',{flatShading:true}),x,.45,z,1.3,.9,1.1));
+    {const s1=sign('BUILDING SITE',5.4,.8,'#ffd890',{bg:'#3a2a14',i:1.4});s1.position.set(0,1.9,1);g.add(s1)}},
+  colosseum(g,lk){const cm=mat('#e8dcc0',{roughness:.9}),dm=mat('#2a2018'),am=mat('#d8c8a4');g.add(box(cm,0,4.4,-3,14,8.8,5.4));
+    for(let row=0;row<3;row++)for(let i=0;i<7;i++){const x=-5.4+i*1.8,y=1.2+row*2.7;g.add(box(dm,x,y,-.28,1.1,1.7,.1,false));g.add(mesh(HALFCYL(),dm,x,y+.85,-.28,1.1,1.1,.1));g.add(box(am,x+.9,y+.2,-.2,.3,2.6,.3))}
+    g.add(box(am,0,8.95,-3,14.4,.4,5.8));for(let i=0;i<14;i++)g.add(box(am,-6.6+i,9.4,-.2,.55,.6,.3));
+    for(const x of[-2,2]){g.add(mesh(CONE(),glow('#ff9a2a',3),x,9.7,-.1,.4,.9,.4))}
+    {const s1=sign('COLOSSEUM',5,.8,'#ffd890',{bg:'#3a1a10',i:1.4});s1.position.set(0,.5,.5);g.add(s1)}},
+  longship(g,lk){const wm=mat('#6a4428',{roughness:.9}),dk=mat('#3a2414',{roughness:1});
+    g.add(box(wm,0,1.2,-3,11,1.2,3.2));g.add(box(dk,0,.55,-3,9.6,.6,2.4));for(const sx of[-1,1]){const pr=box(wm,sx*5.7,2.4,-3,.5,3,.5);pr.rotation.z=-sx*.35;g.add(pr);g.add(sph(mat('#c89a4a'),sx*6.2,3.9,-3,.4))}
+    g.add(cyl(dk,0,5,-3,.14,9));const sail=box(mat('#f0e8d8'),0,6.4,-3,4.8,4,.08);g.add(sail);for(let i=0;i<4;i++)g.add(box(mat(i%2?'#c83a2a':'#f0e8d8'),-1.8+i*1.2,6.4,-2.95,.6,4,.02,false));
+    for(let i=0;i<7;i++){const sh=cyl(mat(['#c83a2a','#e8c84a','#3a5a8a','#f0e8d8'][i%4]),-4.2+i*1.4,1.5,-1.38,.5,.1);sh.rotation.x=Math.PI/2;g.add(sh)}
+    for(const x of[-3,0,3]){const o=box(wm,x,.9,.4,.1,.1,3.4,false);o.rotation.x=.5;g.add(o)}
+    for(let i=0;i<5;i++)g.add(mesh(ICO(),mat('#8a8478',{flatShading:true}),-6+i*3,.2,.2+(i%2)*.6,.9,.5,.9));
+    {const s1=sign('LONGSHIP',3.6,.7,'#ffd890',{bg:'#2a1a0e',i:1.4});s1.position.set(0,.45,.3);g.add(s1)}},
   observatory(g,lk){const st=mat('#8a7a68',{roughness:.95});g.add(cyl(st,0,5,-3.5,2.6,10));g.add(cyl(mat('#6a5a4a'),0,10.2,-3.5,2.8,.4));
     g.add(mesh(DOME(),mat('#5a8a7a',{metalness:.6,roughness:.4}),0,10.4,-3.5,5,4.4,5));
     const tel=cyl(mat('#c9a24a',{metalness:.9,roughness:.25}),.8,12.4,-2.3,.28,4.2);tel.rotation.x=-.9;tel.rotation.z=-.3;g.add(tel);
@@ -916,7 +1020,7 @@ const LANDM={
 };
 
 /* ================= the Crono·Cabina (time machine) ================= */
-function nixieTex(txt){return textTex(txt,{w:256,h:96,font:'400 78px "Nixie One",monospace',color:'#ffc27a',glowC:'#ff6a00',bg:'#1a0c06'})}
+function nixieTex(txt){return textTex(txt,{w:256,h:96,font:`400 ${txt.length>4?58:78}px "Nixie One",monospace`,color:'#ffc27a',glowC:'#ff6a00',bg:'#1a0c06'})}
 function buildMachine(g,x){
   const m=new THREE.Group();m.position.set(x,0,-4.2);
   const brass=mat('#c9a24a',{metalness:.95,roughness:.22}),bak=mat('#1d1712',{roughness:.45,metalness:.15}),dark=mat('#0e0a08',{roughness:.6});
@@ -939,7 +1043,7 @@ function buildMachine(g,x){
   WD.anim.push(t=>{rings[0].rotation.set(Math.PI/2+Math.sin(t*.7)*.25,t*.8,0);rings[1].rotation.set(Math.PI/2+Math.cos(t*.5)*.3,-t*.6,.4);bulb.material.emissiveIntensity=4+Math.sin(t*3)*1.2;pad.material.opacity=.3+Math.sin(t*2)*.15});
   g.add(m);return m;
 }
-function setMachineYear(y){if(!WD||!WD.machine)return;const d=WD.machine.userData.disp;if(d.emissiveMap)d.emissiveMap.dispose();d.emissiveMap=nixieTex(y===NX?'∞':y===TH?'END':String(y));d.needsUpdate=true}
+function setMachineYear(y){if(!WD||!WD.machine)return;const d=WD.machine.userData.disp;if(d.emissiveMap)d.emissiveMap.dispose();d.emissiveMap=nixieTex(y===NX?'∞':y===TH?'END':fyS(y));d.needsUpdate=true}
 
 /* ================= weather ================= */
 function buildWeather(g,lk){
@@ -1740,10 +1844,10 @@ const relicCount=()=>G?Object.keys(G.relics).length:0;
 
 function stats(){
   const u=G.up,R=y=>!!G.relics[y];
-  ch.maxHp=100+25*u.hp+(R(1969)?20:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
-  ch.spd=1+.08*u.spd+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
-  ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.maxHp=100+25*u.hp+(R(1969)?20:0)+(R(-15000)?15:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
+  ch.spd=1+.08*u.spd+(R(1000)?.06:0)+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
+  ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1)*(R(80)?.92:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0)+(R(-2560)?.2:0);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
 }
 
 function newGame(){
@@ -1758,7 +1862,7 @@ function initTimer(y){if(G.timers[y]==null){G.timers[y]=ERA[y].mission.time+ch.t
 function arrive(year,first){
   G.cur=year;setCarry(false);ch.cells=0;ch.inv=1;ch.kbx=ch.kbz=0;clearLabels();if(WD){clearShots();closePortal()}genWorld(year);
   ch.x=WD.mx;ch.z=ZMIN+.6;ch.fx=0;ch.fz=1;ch.target=null;camX=ch.x;streamChunks(99);
-  $('hudY').textContent=year===NX?'∞':year===TH?'END':year;$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
+  $('hudY').textContent=fy(year);$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
   if(year===TH){G.boss={mode:'invade',t:2.2,on:false,n:null};toast('The Throne of Time. He is waiting.',true);return}
   if(year===NX){toast('The Nexus. No clocks, no Hunters. Walk to the bazaar to trade.');return}
   G.prev=year;
@@ -1766,11 +1870,11 @@ function arrive(year,first){
   if(rp){if(rp.time==null)rp.time=70+ch.timeB;showRepairBrief(rp);if(missionOpen(year))initTimer(year);return}
   if(hasM(year)){const st=G.status[year];
     if(st==='open'){initTimer(year);showBrief(year)}
-    else if(st==='done')toast(`${year}: the event happened. History holds.`);
-    else toast(`${year} is broken. Repair it from ${repairEra()||'the future'}.`,true)}
+    else if(st==='done')toast(`${fy(year)}: the event happened. History holds.`);
+    else toast(`${fy(year)} is broken. Repair it from ${repairEra()||'the future'}.`,true)}
   else if(first)showIntro();
   else if(G.repairs.length)toast(`Paradox pending: repair it in ${repairEra()}.`,true);
-  else toast(`${year}: ${ERA[year].name}. Your base. Nothing to fix here.`);
+  else toast(`${fy(year)}: ${ERA[year].name}. Your base. Nothing to fix here.`);
 }
 function openMissions(){return G.timeline.filter(y=>missionOpen(y))}
 function eraseEra(v){G.timeline=G.timeline.filter(y=>y!==v);G.erased.push(v);G.repairs=G.repairs.filter(rp=>rp.forYear!==v);renderTimeline()}
@@ -1781,7 +1885,7 @@ function failMission(y){
     const cands=G.timeline.filter(v=>v!==G.cur);const victim=cands[cands.length-1];
     if(victim==null)return endGame();
     eraseEra(victim);G.repairs.push({forYear:y,restore:victim,time:null});
-    toast(`PARADOX! ${y} failed and ${victim} vanished from the timeline.`,true);
+    toast(`PARADOX! ${fy(y)} failed and ${fy(victim)} vanished from the timeline.`,true);
     WD.items.filter(i=>i.kind==='item').forEach(removeItem);
     if(checkCollapse())return;
     setTimeout(()=>G&&!G.over&&toast(`Travel to ${repairEra()} to repair the damage.`,true),3200);
@@ -1789,7 +1893,7 @@ function failMission(y){
     const cands=G.timeline.filter(v=>v!==G.cur);const victim=cands[0];
     if(victim==null)return endGame();
     eraseEra(victim);G.timers[y]=ERA[y].mission.time;
-    toast(`The future slipped and ${victim} was erased. The future isn't written yet: try ${y} again.`,true);
+    toast(`The future slipped and ${fy(victim)} was erased. The future isn't written yet: try ${fy(y)} again.`,true);
     if(checkCollapse())return;
     WD.items.filter(i=>i.kind==='item').forEach(removeItem);placeItem(Math.random);
   }
@@ -1808,7 +1912,7 @@ function failRepair(){
 function ripple(y){
   const next=G.timeline.find(v=>v>y&&missionOpen(v));if(!next)return;
   if(G.timers[next]!=null)G.timers[next]+=15;else G.bonus[next]=(G.bonus[next]||0)+15;
-  setTimeout(()=>G&&!G.over&&toast(`Ripple effect: ${y} secured, ${next} gets +15 seconds.`),2400);
+  setTimeout(()=>G&&!G.over&&toast(`Ripple effect: ${fy(y)} secured, ${fy(next)} gets +15 seconds.`),2400);
 }
 function succeedMission(y){
   if(!G||G.over)return;
@@ -1844,7 +1948,7 @@ function checkRound(){
   const add=TIERS[G.tier].filter(y=>!G.timeline.includes(y)&&!G.erased.includes(y));
   add.forEach(y=>{G.timeline.push(y);if(hasM(y))G.status[y]='open'});G.timeline.sort((a,b)=>a-b);
   renderTimeline();
-  setTimeout(()=>toast(`Timeline stable! +250. The line grows: ${add.join(' and ')}.`),1000);
+  setTimeout(()=>toast(`Timeline stable! +250. The line grows: ${add.map(fy).join(' and ')}.`),1000);
 }
 function endGame(win){if(G.over||G.boss||G.free)return;if(win)sealLine();else trapped()}
 function trapped(){
@@ -1852,11 +1956,11 @@ function trapped(){
   G.boss={mode:'trapped',t:3,on:false,n:null};G.repairs=[];G.timers={};
   if(WD.stab){WD.group.remove(WD.stab.g);WD.stab=null}WD.items.filter(i=>i.kind==='item'||i.kind==='cell').forEach(removeItem);setCarry(false);ch.cells=0;closePortal();
   WD.npcs.forEach(n=>{if(n.kind==='citizen'){n.hostile=false;n.wind=0;n.flee=7}else if(n.kind==='hunter')n.dying=.01});
-  redT=1;renderTimeline();toast(`The line has collapsed. You are trapped in ${G.cur}. Something is coming...`,true);SFX.bad();
+  redT=1;renderTimeline();toast(`The line has collapsed. You are trapped in ${fy(G.cur)}. Something is coming...`,true);SFX.bad();
 }
 function sealLine(){
   G.sealed=true;renderTimeline();
-  $('briefCard').classList.remove('paradox');$('bDate').textContent='ALL ERAS SECURE';$('bYear').textContent='1610–2600';$('bEra').textContent='The whole causal line';$('bMustL').textContent='TIMELINE SEALED';$('bMust').textContent='History holds from end to end. +500';
+  $('briefCard').classList.remove('paradox');$('bDate').textContent='ALL ERAS SECURE';$('bYear').textContent=fy(YEARS[0])+' – '+fy(YEARS[YEARS.length-1]);$('bEra').textContent='The whole causal line';$('bMustL').textContent='TIMELINE SEALED';$('bMust').textContent='History holds from end to end. +500';
   $('bTask').innerHTML='One thing remains: the <em>Time Lord</em>. Keep hunting relics, coins and upgrades for as long as you like. When you are ready, open the machine and choose <em>INVADE</em>. There is no way back from the Throne.';
   openBrief();
 }
@@ -1872,7 +1976,7 @@ function toast(msg,warn){const t=$('toast');t.textContent=msg;t.className='toast
 function chipState(y){if(G.erased.includes(y))return'erased';if(G.repairs.length&&repairEra()===y)return'repair';return hasM(y)?(G.status[y]||'open'):''}
 function renderTimeline(){
   if(!G)return;const ys=[...new Set([...G.timeline,...G.erased])].sort((a,b)=>a-b);
-  $('tl').innerHTML=ys.map(y=>`<span class="chip ${chipState(y)} ${y===G.cur?'cur':''}">${y}</span>`).join('');
+  $('tl').innerHTML=ys.map(y=>`<span class="chip ${chipState(y)} ${y===G.cur?'cur':''}">${fy(y)}</span>`).join('');
   const c=$('tl').querySelector('.cur');if(c)c.scrollIntoView({inline:'center',block:'nearest'});
 }
 let objCache='';
@@ -1903,11 +2007,11 @@ function updateHUD(){
 
 /* briefings */
 function showBrief(y){
-  const m=ERA[y].mission;$('briefCard').classList.remove('paradox');$('bDate').textContent=m.date.toUpperCase();$('bYear').textContent=y;$('bEra').textContent=ERA[y].name;
+  const m=ERA[y].mission;$('briefCard').classList.remove('paradox');$('bDate').textContent=m.date.toUpperCase();$('bYear').textContent=fy(y);$('bEra').textContent=ERA[y].name;
   $('bMustL').textContent='MUST HAPPEN';$('bMust').textContent=m.must;$('bTask').innerHTML=m.task+` You have <em>${fmt(G.timers[y])}</em>.`;openBrief();
 }
 function showRepairBrief(rp){
-  $('briefCard').classList.add('paradox');$('bDate').textContent='TEMPORAL ALERT';$('bYear').textContent=G.cur;$('bEra').textContent=ERA[G.cur].name;
+  $('briefCard').classList.add('paradox');$('bDate').textContent='TEMPORAL ALERT';$('bYear').textContent=fy(G.cur);$('bEra').textContent=ERA[G.cur].name;
   $('bMustL').textContent='PARADOX';$('bMust').textContent=`The failure in ${rp.forYear} erased ${rp.restore}.`;
   $('bTask').innerHTML='Collect the 3 <em>chronon cells</em> and feed them to the <em>stabilizer</em> before the clock runs out. Succeed and the lost era returns; fail and the earliest past is erased.';
   openBrief();
@@ -1951,7 +2055,7 @@ function openPanel(){if(G.boss){toast('The machine does not respond. There is no
 function closePanel(){panelOpen=false;$('panel').hidden=true}
 function renderPanel(){
   const ys=[...new Set([...G.timeline,...G.erased])].sort((a,b)=>a-b);
-  $('keys').innerHTML=ys.map(y=>{const s=chipState(y);return`<button data-y="${y}" aria-pressed="${y===selYear}" ${G.erased.includes(y)?'disabled':''}>${y}<i class="${s}"></i></button>`}).join('');
+  $('keys').innerHTML=ys.map(y=>{const s=chipState(y);return`<button data-y="${y}" aria-pressed="${y===selYear}" ${G.erased.includes(y)?'disabled':''}>${fy(y)}<i class="${s}"></i></button>`}).join('');
   $('keys').querySelectorAll('button').forEach(b=>b.onclick=()=>{selYear=+b.dataset.y;SFX.click();renderPanel()});
   const d=String(selYear).padStart(4,'0');$('tubes').innerHTML=[...d].map(c=>`<div class="tube"><span>${c}</span></div>`).join('');
   const s=chipState(selYear),e=ERA[selYear];let txt=`<em>${e.name}</em> · `;
@@ -1998,7 +2102,7 @@ function renderShop(){
   $('wares').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(WARES[+b.dataset.i]));
   renderForge();
   $('sRelN').textContent=`${relicCount()}/14`;
-  $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${y} · ???</span>`).join('');
+  $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${fy(y)} · ???</span>`).join('');
 }
 function buy(w){const c=wareCost(w);if(G.coins<c)return;G.coins-=c;SFX.coin();
   if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp;if(w.k==='mana')ch.mana=ch.maxMana}renderShop()}
@@ -2012,7 +2116,7 @@ function openMini(y){
   $('mTitle').textContent=m.title;$('mHint').textContent=m.hint;
   MG={type:m.type,skin:m.skin,y,t:0,done:false,flash:0,flashC:'#ff4f45',msg:'',msgT:0};
   const r=Math.random,act=$('mAct');act.hidden=!(m.type==='timing'||m.type==='hold');
-  act.textContent=m.type==='hold'?'HOLD':m.skin==='hammer'?'STRIKE':m.skin==='reel'?'SYNC':'BURN';
+  act.textContent=m.act||(m.type==='hold'?'HOLD':m.skin==='hammer'?'STRIKE':m.skin==='reel'?'SYNC':'BURN');
   if(m.type==='targets'){MG.tg=[];MG.dec=[];if(m.skin==='moons'){const side=[-1,1,1,-1],dist=[95,130,175,240];for(let i=0;i<4;i++)MG.tg.push({x:400+side[i]*dist[i]+(r()-.5)*14,y:250+(r()-.5)*10,r:6,got:false});
       for(let i=0;i<16;i++){let x,y;do{x=200+r()*400;y=60+r()*380}while(Math.abs(y-250)<30||Math.hypot(x-400,y-250)<80);MG.dec.push({x,y,r:2+r()*3})}}
     else{for(let i=0;i<4;i++)MG.tg.push({x:120+r()*560,y:90+r()*320,r:16,got:false,ph:r()*6,ax:40+r()*60,ay:20+r()*40,cx:0,cy:0});MG.tg.forEach(t=>{t.cx=t.x;t.cy=t.y});for(let i=0;i<24;i++)MG.dec.push({x:r()*800,y:r()*500,r:10+r()*16,a:r()*6,s:.3+r()})}}
@@ -2052,7 +2156,7 @@ function miniKey(k,down){
   if(MG.type==='sequence'&&/^[a-z0-9]$/.test(k)){seqType(k.toUpperCase());return true}
   return false;
 }
-const SIMC={board:['#ff3ac8','#3ae8ff','#ffe83a','#8a3aff'],archive:['#ffd27a','#ffb050','#ffe8b0','#ff9a40']};
+const SIMC={board:['#ff3ac8','#3ae8ff','#ffe83a','#8a3aff'],archive:['#ffd27a','#ffb050','#ffe8b0','#ff9a40'],ochre:['#c8421a','#e8a038','#8a3a1a','#f0d8a0'],mosaic:['#c83a3a','#3a6ab8','#e8c84a','#4a9a5a']};
 function simonPad(x,y){for(let i=0;i<4;i++){const px=130+i*150;if(x>px-60&&x<px+60&&y>150&&y<390)return i}return-1}
 function simonPress(i){MG.lit=i;MG.litT=.25;beep([392,494,587,698][i],.22,'triangle',.08);
   if(MG.seq[MG.i]===i){MG.i++;if(MG.i>=MG.len){if(MG.len>=5)miniWin();else{MG.len++;MG.phase='show';MG.i=0;MG.st=.9}}}
@@ -2104,6 +2208,14 @@ function dTiming(o,m){
   else if(sk==='reel'){o.fillStyle='#0a0a0a';o.fillRect(0,0,MW,MH);for(let i=0;i<5;i++){const x=((i*190-m.t*160)%950+950)%950-150;o.fillStyle='#1a1a1a';o.fillRect(x,40,170,230);o.fillStyle='#d8d8d8';o.fillRect(x+15,60,140,190);
       o.fillStyle='#555';o.beginPath();o.arc(x+85,140,30,0,7);o.fill();o.fillStyle='#222';o.fillRect(x+70,170+Math.abs(Math.sin(m.t*8+i))*14,30,6);for(let k=0;k<9;k++){o.fillStyle='#0a0a0a';o.fillRect(x+4,46+k*25,8,12);o.fillRect(x+158,46+k*25,8,12)}}
     o.strokeStyle='#c8c8c8';o.lineWidth=2;o.beginPath();for(let x=0;x<MW;x+=4)o.lineTo(x,330+Math.sin(x*.08+m.t*14)*(10+20*Math.abs(Math.sin(x*.01+m.t))));o.stroke()}
+  else if(sk==='dig'){const g=o.createLinearGradient(0,0,0,MH);g.addColorStop(0,'#c8482a');g.addColorStop(.55,'#f0b060');g.addColorStop(1,'#f8dca0');o.fillStyle=g;o.fillRect(0,0,MW,MH);
+    o.fillStyle='#fff0a0';o.shadowColor='#ff6a1a';o.shadowBlur=40;o.beginPath();o.arc(610,70+Math.sin(m.t*2)*6,26,0,7);o.fill();o.shadowBlur=0;o.strokeStyle='#ffd080';o.lineWidth=10;o.beginPath();o.moveTo(610,70);o.lineTo(780,0);o.stroke();
+    o.fillStyle='#4a3a22';o.fillRect(0,300,MW,200);o.fillStyle='#3a2c1a';for(let x=0;x<MW;x+=60)o.fillRect(x+(x/60%2)*20,320+(x/60%3)*30,26,8);
+    const dep=m.hits/3;o.fillStyle='#120a04';o.beginPath();o.ellipse(400,305,34+dep*60,10+dep*18,0,0,7);o.fill();
+    o.save();o.translate(470,220);o.rotate(.2+(m.anim>0?m.anim*3:0));o.fillStyle='#e8dcc0';o.beginPath();o.moveTo(0,0);o.lineTo(-14,60);o.lineTo(0,50);o.lineTo(14,60);o.closePath();o.fill();o.restore()}
+  else if(sk==='stone'){const g=o.createLinearGradient(0,0,0,MH);g.addColorStop(0,'#78b8e8');g.addColorStop(1,'#fff0cc');o.fillStyle=g;o.fillRect(0,0,MW,MH);o.fillStyle='#e8d098';o.fillRect(0,360,MW,140);
+    o.fillStyle='#d8b878';o.beginPath();o.moveTo(150,360);o.lineTo(400,205);o.lineTo(650,360);o.closePath();o.fill();o.strokeStyle='#b89858';o.lineWidth=2;for(let i=1;i<6;i++){o.beginPath();o.moveTo(150+i*20,360-i*25);o.lineTo(650-i*20,360-i*25);o.stroke()}
+    const cy=160-(1-m.hits/3)*130;o.strokeStyle='#6a4a2a';o.lineWidth=3;o.beginPath();o.moveTo(400,0);o.lineTo(400,cy);o.stroke();o.fillStyle='#e8b830';o.shadowColor='#ffd24a';o.shadowBlur=18;o.beginPath();o.moveTo(400,cy+10);o.lineTo(430,cy+46);o.lineTo(370,cy+46);o.closePath();o.fill();o.shadowBlur=0}
   else{o.fillStyle='#030312';o.fillRect(0,0,MW,MH);for(let i=0;i<70;i++){o.fillStyle='#fff8';o.fillRect((i*137)%MW,(i*89)%MH,2,2)}const dist=1-m.hits/3;
     o.strokeStyle='#9a9ab8';o.lineWidth=16;o.beginPath();o.ellipse(400,170,260+(1-dist)*40,60,0,Math.PI,0);o.stroke();o.fillStyle='#ff9ad8';o.fillRect(392,150,16,30);
     const sx=400,sy=200+dist*100,sc=.5+(1-dist)*.5;o.save();o.translate(sx,sy);o.scale(sc,sc);o.fillStyle='#f0f0f8';o.beginPath();o.moveTo(0,-60);o.lineTo(30,30);o.lineTo(-30,30);o.fill();o.fillStyle='#9ae8ff';o.shadowColor='#9ae8ff';o.shadowBlur=20;o.fillRect(-10,30,20,m.anim>0?50:14);o.restore();o.shadowBlur=0}
@@ -2168,7 +2280,7 @@ mc.addEventListener('pointerup',e=>miniPoint(e.clientX,e.clientY,'up'));
 function showEnd(){
   $('end').hidden=false;const o=G.over;
   $('eTitle').textContent=o.lord?'TIME IS YOURS':o.sealed?'YOU FELL AT THE THRONE':'TRAPPED IN TIME';$('eTitle').className='result'+(o.win?' win':'');
-  $('eCurio').textContent=(o.lord?`The throne is yours, and your name now waits for the next challenger. Save your score, then roam time as you please. Final year: ${o.year}.`:o.sealed?`You sealed the whole timeline, then fell at the Throne. Final year: ${o.year} · ${ERA[o.year].name}.`:`You were trapped in ${o.year} · ${ERA[o.year].name}, and he found you there.`)
+  $('eCurio').textContent=(o.lord?`The throne is yours, and your name now waits for the next challenger. Save your score, then roam time as you please. Final year: ${fy(o.year)}.`:o.sealed?`You sealed the whole timeline, then fell at the Throne. Final year: ${fy(o.year)} · ${ERA[o.year].name}.`:`You were trapped in ${fy(o.year)} · ${ERA[o.year].name}, and he found you there.`)
     +` Hunters defeated: ${G.hunters}. Citizens erased: ${G.kills}. Relics: ${relicCount()}/14.`;
   $('eScore').textContent=G.score;$('eMiss').textContent=G.missions;$('eRep').textContent=G.repairsDone;
   $('saveBtn').disabled=false;$('pname').disabled=false;$('saveBtn').textContent='SAVE';try{$('pname').value=localStorage.getItem('tl-name')||''}catch(e){}
@@ -2180,7 +2292,7 @@ let db=null,boardRows=[],boardShared=false,myId=null;
 function localScores(){try{return JSON.parse(localStorage.getItem('tl-scores')||'[]')}catch(e){return[]}}
 function renderBoard(){
   const rows=boardShared?boardRows:localScores().sort((a,b)=>b.score-a.score).slice(0,15);
-  const html=rows.length?`<thead><tr><th>#</th><th>NAME</th><th>SCORE</th><th>ENDED IN</th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r._id&&r._id===myId?'me':''}${r.lord?' lord':''}"><td>${i+1}</td><td></td><td>${Number(r.score)|0}</td><td>${Number(r.year)|0}</td></tr>`).join('')+'</tbody>'
+  const html=rows.length?`<thead><tr><th>#</th><th>NAME</th><th>SCORE</th><th>ENDED IN</th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r._id&&r._id===myId?'me':''}${r.lord?' lord':''}"><td>${i+1}</td><td></td><td>${Number(r.score)|0}</td><td>${fy(Number(r.year)||0)}</td></tr>`).join('')+'</tbody>'
     :'<tbody><tr><td style="color:#c9a24a">No scores yet. Be the first chrononaut.</td></tr></tbody>';
   ['board2'].forEach(id=>{const t=$(id);t.innerHTML=html;if(rows.length)t.querySelectorAll('tbody tr').forEach((tr,i)=>tr.children[1].textContent=(rows[i].lord?'♛ ':'')+String(rows[i].name||'Anonymous').slice(0,16))});
   const note=boardShared?'Shared ranking · everyone who opens this game sees it.':'Scores saved on this device only.';$('note2').textContent=note;

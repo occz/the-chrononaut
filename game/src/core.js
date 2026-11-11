@@ -162,6 +162,11 @@ function stopAmb(){if(!amb)return;const old=amb,a=AC;amb=null;clearInterval(old.
 /* era music: each era has its own key, tempo, chords, instrument and a fixed arpeggio figure (no random notes) */
 const Q={M:[0,4,7],m:[0,3,7],M7:[0,4,7,11],m7:[0,3,7,10],s:[0,5,7],d:[0,3,6]};
 const MUS={
+ [-66000000]:{r:41,bpm:62,n:8,inst:'bell',pad:2,prog:[[0,'m'],[-2,'M'],[-5,'m'],[-7,'M']],fig:[[0,-1,-1,-1,2,-1,-1,-1],[2,-1,-1,0,-1,-1,1,-1]]},/* primeval */
+ [-15000]:{r:46,bpm:68,n:8,inst:'bell',pad:1,prog:[[0,'s'],[-2,'s'],[3,'M'],[-2,'s']],fig:[[0,-1,1,-1,2,-1,1,-1],[2,-1,1,-1,0,-1,1,-1]]},/* tribal calm */
+ [-2560]:{r:49,bpm:84,n:8,inst:'pluck',pad:1,prog:[[0,'m'],[1,'M'],[0,'m'],[-2,'M']],fig:[[0,1,2,1,0,-1,1,-1],[2,1,0,1,2,3,2,-1]]},/* desert lute */
+ 80:{r:52,bpm:88,n:8,inst:'pluck',pad:1,prog:[[0,'M'],[5,'M'],[7,'M'],[0,'M']],fig:[[0,1,2,1,2,-1,1,-1],[2,1,0,1,2,3,2,-1]]},/* lyre */
+ 1000:{r:44,bpm:72,n:8,inst:'pluck',pad:2,prog:[[0,'m'],[-2,'M'],[-4,'M'],[-5,'m']],fig:[[0,-1,2,-1,1,-1,0,-1],[2,-1,3,-1,2,-1,1,-1]]},/* northern sea */
  1610:{r:50,bpm:84,n:8,inst:'pluck',pad:1,prog:[[0,'m'],[-2,'M'],[-4,'M'],[-5,'m']],fig:[[0,1,2,3,2,1,2,-1],[0,2,1,3,2,4,3,-1]]},/* baroque harpsichord */
  1869:{r:55,bpm:96,n:8,inst:'pluck',pad:0,prog:[[0,'M'],[0,'M'],[5,'M'],[7,'M']],fig:[[0,-1,1,2,-1,1,2,-1],[0,-1,2,1,-1,2,3,-1]]},/* frontier guitar */
  1903:{r:58,bpm:132,n:6,inst:'bell',pad:1,prog:[[0,'M'],[5,'M'],[7,'M'],[0,'M']],fig:[[2,1,0,1,2,3],[3,2,1,2,3,4]]},/* music-box waltz */

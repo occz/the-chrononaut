@@ -1,7 +1,47 @@
 
 /* ================= eras: story + look ================= */
 const NX=0,TH=-1;
+const fy=y=>y===NX?'∞':y===TH?'END':y<=-1e6?Math.round(-y/1e6)+' MYA':y<0?(-y)+' BC':y<1000?y+' AD':String(y);
+const fyS=y=>y<=-1e6?Math.round(-y/1e6)+'MYA':y<0?(-y)+'BC':y<1000?y+'AD':String(y);
 const ERA={
+ [-66000000]:{name:"Age of Dinosaurs",film:'none',land:'burrow',
+  mission:{date:"66 million years ago",must:"An asteroid ends the age of the dinosaurs, and a tiny shrew-like mammal survives in its burrow. Every mammal alive today descends from it.",task:"The burrow is blocked. Bring the <em>digging claw</em> to the <em>burrow</em> and dig before the sky burns.",item:"digging claw",label:"burrow",time:85,
+   mini:{type:'timing',skin:'dig',act:'DIG',title:"DIG THE BURROW",hint:"Tap DIG when the marker is inside the gold zone. Three clean digs reach safety."}},
+  npc:{coats:['#7a5a3a','#5a6a3a','#8a6a48','#4a5a3a','#a07a50'],pants:['#4a3a28','#3a3a28'],hats:['none','none','cap'],hatCs:['#5a4a2a','#6a5a3a']},
+  talk:["Another traveler? Mind the big ones!", "Did that tree just move?", "The sky looks wrong today.", "Please don't feed the raptors."],
+  look:{sky:['#3a6a4a','#9ab870','#f0d890'],fog:'#a8c080',fogD:.012,sun:['#fff0c0',2.6],sunPos:[20,40,20],hemi:['#d0e8b0','#4a5a2a',1],exp:1,bloom:[.3,.8],
+   ground:['dirt','#6a6a3a',.95,0],bld:null,far:{kind:'hills',cols:['#3a6a3a','#4a7a3a']},lamps:null,wx:['motes','#ffb060',120],clouds:'#e8e0c0',disc:'sun',extra:['ferns','dinos','volcano']}},
+ [-15000]:{name:"The Ice Age",film:'none',land:'cave',
+  mission:{date:"About 15,000 years ago",must:"Painters in a cave at Lascaux record a great hunt on the wall. It becomes some of the oldest art ever found.",task:"The painters' <em>ochre</em> was lost in the snow. Bring it to the <em>painted cave</em> and repeat the ritual pattern.",item:"ochre pigment",label:"painted cave",time:80,
+   mini:{type:'simon',skin:'ochre',title:"PAINT THE WALL",hint:"Watch the four handprints glow, then repeat the pattern. Keys 1–4 work too."}},
+  npc:{coats:['#6a4a30','#8a6a48','#5a4030','#a08060'],pants:['#4a3a2a','#3a2a1e'],hats:['none','none','cap'],hatCs:['#5a4030','#7a5a3a']},
+  talk:["Fire is the best thing ever.", "Have you seen the mammoths?", "Cold today. Cold yesterday too.", "That paint is red. Wow."],
+  look:{sky:['#7a9ac0','#c8dcec','#f4f8ff'],fog:'#d8e8f4',fogD:.013,sun:['#fff8f0',2.2],sunPos:[-20,35,25],hemi:['#d8ecff','#8a9aa8',1.05],exp:1,bloom:[.3,.85],
+   ground:['snow','#eef4fa',.7,0],bld:null,far:{kind:'hills',cols:['#c8d8e8','#b8cade']},lamps:null,wx:['snow','#ffffff',500],clouds:'#ffffff',disc:'sun',extra:['pines','mammoths']}},
+ [-2560]:{name:"The Pyramid Builders",film:'sepia',land:'pyrsite',
+  mission:{date:"About 2560 BC",must:"The last casing stone is set on the Great Pyramid of Giza. It stays the tallest structure on Earth for nearly four thousand years.",task:"The master builder's <em>copper chisel</em> is missing. Bring it to the <em>building site</em> and lower the capstone into place.",item:"copper chisel",label:"building site",time:80,
+   mini:{type:'timing',skin:'stone',act:'LOWER',title:"LOWER THE CAPSTONE",hint:"Tap LOWER when the marker is inside the gold zone. Three clean drops set the stone."}},
+  npc:{coats:['#f0e8d0','#e8dcc0','#d8c8a0','#ffffff'],pants:['#e8dcc0','#d8c8a0'],hats:['none','none','none'],hatCs:['#c9a24a']},
+  talk:["The Pharaoh wants it finished.", "Mind the sledges!", "Water, please. So much sand.", "Our pyramid will stand forever."],
+  look:{sky:['#5a9ad0','#b8d8e8','#fff0cc'],fog:'#f0e0b8',fogD:.011,sun:['#fff4d0',3],sunPos:[30,50,20],hemi:['#fff0d0','#b09060',1],exp:1,bloom:[.25,.85],
+   ground:['sand','#e8d098',1,0],bld:{style:'flat',cols:['#d8b880','#c8a870','#e0c890'],win:'#3a2a18',litC:'#ffd890',lit:.04,h:[3,5],w:[5,8],d:[5,6],roof:'flat',sparse:1},
+   far:{kind:'dunes',cols:['#e8d098','#d8c088']},lamps:null,wx:['dust','#f0e0b0',240],clouds:'#fff8e8',disc:'sun',extra:['pyramids','palms']}},
+ 80:{name:"Imperial Rome",film:'kodak',land:'colosseum',
+  mission:{date:"AD 80",must:"The Colosseum opens with a hundred days of games. It is the largest arena ever built.",task:"The arena's <em>bronze key</em> is lost in the forum. Bring it to the <em>Colosseum</em> and open the gates in the right order.",item:"bronze key",label:"Colosseum",time:80,
+   mini:{type:'simon',skin:'mosaic',title:"OPEN THE GATES",hint:"Watch the four gates light up, then repeat the order. Keys 1–4 work too."}},
+  npc:{coats:['#f4f0e8','#c8383a','#e8dcc0','#6a4a8a','#d8c8a8'],pants:['#e8dcc0','#c8b898'],hats:['none','none','none'],hatCs:['#4a8a4a']},
+  talk:["Bread and circuses!", "All roads lead here.", "Have you seen the new arena?", "Mind the chariots!"],
+  look:{sky:['#4a8ad0','#9ac8e8','#f8ecd0'],fog:'#e8dcc0',fogD:.01,sun:['#fff4dc',3],sunPos:[25,50,25],hemi:['#fff0d8','#a08868',1],exp:1,bloom:[.3,.85],
+   ground:['cobbles','#b8a890',.8,0],bld:{style:'flat',cols:['#e8dcc0','#d8c8a8','#e0b890','#f0e8d0'],win:'#3a2a1a',litC:'#ffd890',lit:.05,h:[4,8],w:[5,8],d:[5,7],roof:'gable',roofC:'#b8603a'},
+   far:{kind:'hills',cols:['#7a9a6a','#8aa070']},lamps:null,wx:['leaves','#8aa05a',40],clouds:'#ffffff',disc:'sun',extra:['trees','columns']}},
+ 1000:{name:"The Viking Age",film:'oil',land:'longship',
+  mission:{date:"About the year 1000",must:"Leif Erikson's crew lands in North America, almost five hundred years before Columbus.",task:"The navigator's <em>sunstone</em> is gone. Bring it to the <em>longship</em> and find the way across the sea.",item:"sunstone",label:"longship",time:80,
+   mini:{type:'tune',skin:'sunstone',title:"FIND THE SUN",hint:"Drag (or use ← →) until the light is clean, then hold it steady."}},
+  npc:{coats:['#6a4a30','#4a5a6a','#8a3a2a','#5a4a3a'],pants:['#3a2a20','#4a3a2a'],hats:['none','cap','none'],hatCs:['#8a8a90','#5a5a60']},
+  talk:["West! Always west!", "The sea is calm today.", "Odin watches the brave.", "Bring mead for the voyage."],
+  look:{sky:['#5a7a98','#a8bccc','#e0e4e0'],fog:'#b8c8d0',fogD:.013,sun:['#f4f0e8',2],sunPos:[-25,30,25],hemi:['#c8d8e8','#6a6a5a',.95],exp:1,bloom:[.3,.85],
+   ground:['dirt','#6a7a4a',.95,0],bld:{style:'wood',cols:['#6a4a30','#5a3e28','#7a5a3a'],win:'#2a1a0e',litC:'#ffc070',lit:.2,h:[3,5],w:[6,9],d:[5,7],roof:'gable',roofC:'#5a6a3a'},
+   far:{kind:'hills',cols:['#5a7a6a','#4a6a5a']},lamps:null,wx:['dust','#c8d4d8',100],clouds:'#e8eef0',disc:'sun',extra:['pines']}},
  1610:{name:"The Renaissance",film:'oil',land:'observatory',
   mission:{date:"January 7, 1610",must:"An astronomer in Padua spots the moons of Jupiter through a telescope.",task:"The telescope's <em>lens</em> was dropped in the market. Bring it to the <em>observatory</em>, then find the moons.",item:"lens",label:"observatory",time:85,
    mini:{type:'targets',skin:'moons',title:"FIND THE MOONS",hint:"Tap the 4 moons lined up beside Jupiter. The other dots are stars."}},
@@ -122,13 +162,13 @@ const ERA={
   look:{sky:['#040002','#2a0610','#8a1a24'],fog:'#2a0610',fogD:.016,sun:['#ff7a6a',1],sunPos:[0,30,-40],night:1,hemi:['#8a2a3a','#100204',.5],exp:1.1,bloom:[1.05,.45],
    ground:['grid','#14040a',.18,.5],neon:'#ff3a4a',bld:null,far:{kind:'none'},lamps:'#ff3a4a',wx:['motes','#ff6a5a',200],stars:600,extra:['clockrings','pillars','shards']}}
 };
-const YEARS=[1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,2600];
-const RELIC={1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
+const YEARS=[-66000000,-15000,-2560,80,1000,1610,1869,1903,1927,1957,1969,1985,1999,2026,2088,2150,2240,2400,2600];
+const RELIC={[-66000000]:['Amber Fossil','+25 max mana'],[-15000]:['Ochre Handprint','+15 max health'],[-2560]:['Scarab Amulet','+20% coins'],80:['Gladiator Helm','-8% damage taken'],1000:['Runestone','+6% speed'],1610:["Astronomer's Lens",'+25% coins'],1869:['Railroad Watch','+6 s on missions'],1903:['Aviator Goggles','+6% speed'],1927:['Jazz Record','heat cools 40% faster'],1957:['Tube Amplifier','+5 damage'],1969:['Moon Rock','+20 max health'],
  1985:['Walkman','dash recharges 15% faster'],1999:['Y2K Survival Kit','-10% damage taken'],2026:['Lucky Coin','+25% coins'],2088:['Seed of Life','health regenerates twice as fast'],2150:['Mag Boots','+6% speed'],2240:['Memory Shard','+6 s on missions'],2400:['Alien Alloy','-12% damage taken'],2600:['Chronon Spark','+8 damage']};
 const WARES=[{k:'hp',n:'Reinforced Suit',d:'+25 max health',max:5,base:40},{k:'dmg',n:'Chrono Gauntlet',d:'+6 damage per hit',max:5,base:50},{k:'spd',n:'Flux Boots',d:'+8% walking speed',max:4,base:45},
  {k:'time',n:'Pocket Watch',d:'+10 seconds on every mission',max:4,base:60},{k:'mana',n:'Mana Vessel',d:'+25 max mana',max:4,base:45},
  {k:'dash',n:'Phase Coil',d:'Dash recharges 15% faster',max:3,base:55},{k:'heal',n:'Med Gel',d:'Restore all health now',base:25,use:1},{k:'cool',n:'Coolant',d:'Drop the heat to zero now',base:30,use:1}];
-const TIERS=[[1969,1985,1999,2026,2088],[1927,1957,2150],[1903,2240],[1869,2400],[1610,2600]];
+const TIERS=[[-66000000,80,1969,1985,1999,2026,2088],[1000,1927,1957,2150],[-15000,-2560,1903,2240],[1869,2400],[1610,2600]];
 const hasM=y=>!!(ERA[y]&&ERA[y].mission);
 
 /* ================= world constants ================= */
@@ -256,11 +296,70 @@ const EXTRA={
       const h1=new THREE.Mesh(BOX(),glow(c,2.4));h1.scale.set(.02,.6,.02);const hand=new THREE.Group();h1.position.y=.3;hand.add(h1);rg.add(hand);const h2=h1.clone();h2.scale.set(.02,.4,.02);h2.position.y=.2;const hand2=new THREE.Group();hand2.add(h2);rg.add(hand2);
       rg.rotation.set((r()-.5)*.6,(r()-.5)*.8,0);g.add(rg);const sp=(r()<.5?-1:1)*(.3+r());WD.anim.push(t=>{hand.rotation.z=-t*sp;hand2.rotation.z=-t*sp/12})}},
   pillars(g,lk,r,x0,x1){const c=lk===ERA[TH].look?'#22080e':'#1c2848',gc=lk===ERA[TH].look?'#ff3a4a':'#c9a24a';for(let x=Math.ceil(x0/9)*9;x<x1;x+=9){if(Math.abs(x-WD.land.x)<8)continue;const h=8+r()*6;g.add(box(mat(c,{roughness:.4,metalness:.3}),x,h/2,-9,1.6,h,1.6));g.add(box(glow(gc,2),x,h+.15,-9,2,.3,2));g.add(box(glow(gc,2),x,.15,-9,2,.3,2))}},
-  shards(g,lk,r,x0,x1){for(let i=0;i<9;i++){const o=new THREE.Mesh(geo('tet',()=>new THREE.TetrahedronGeometry(.5)),glow('#ff3a4a',1.8+r()*2));o.scale.setScalar(.5+r()*1.8);o.position.set(x0+r()*CW,3+r()*20,-10-r()*30);g.add(o);const ph=r()*6,y0=o.position.y;WD.anim.push(t=>{o.rotation.set(t*.5+ph,t*.3,0);o.position.y=y0+Math.sin(t+ph)*.6})}}
+  shards(g,lk,r,x0,x1){for(let i=0;i<9;i++){const o=new THREE.Mesh(geo('tet',()=>new THREE.TetrahedronGeometry(.5)),glow('#ff3a4a',1.8+r()*2));o.scale.setScalar(.5+r()*1.8);o.position.set(x0+r()*CW,3+r()*20,-10-r()*30);g.add(o);const ph=r()*6,y0=o.position.y;WD.anim.push(t=>{o.rotation.set(t*.5+ph,t*.3,0);o.position.y=y0+Math.sin(t+ph)*.6})}},
+
+  ferns(g,lk,r,x0,x1){for(let x=x0+1+r()*3;x<x1;x+=4+r()*6){if(nearFix(x,7))continue;const z=-5.4+r()*.6,k=.8+r()*.7;
+      if(r()<.45){g.add(cyl(mat('#6a5030'),x,1.6*k,z,.16*k,3.2*k));for(let a=0;a<6;a++){const l=box(mat('#3f8a3a',{flatShading:true}),x+Math.cos(a)*.9*k,3.3*k,z+Math.sin(a)*.9*k,1.8*k,.06,.35,true);l.rotation.y=-a;l.rotation.z=.4;g.add(l)}}
+      else for(let a=0;a<7;a++){const l=box(mat(pick(r,['#3f8a3a','#4a9a3a','#2f7a34'])),x+Math.cos(a)*.5*k,.7*k,z+Math.sin(a)*.5*k,1.3*k,.05,.3,true);l.rotation.y=-a;l.rotation.z=.8;g.add(l)}}},
+  dinos(g,lk,r,x0,x1){const n=r()<.6?1:2;for(let i=0;i<n;i++){const big=r()<.55,d=makeDino(big?'#6a8a5a':'#8a7a4a',big),x=x0+6+r()*(CW-12),z=-20-r()*20,dir=r()<.5?-1:1;d.position.set(x,0,z);d.scale.setScalar(big?1.5+r()*.8:1);d.rotation.y=dir>0?0:Math.PI;g.add(d);
+      const ph=r()*6,sp=.5+r()*.4;WD.anim.push(t=>{d.position.x=x+Math.sin(t*.05*sp+ph)*10*dir;d.userData.legs.forEach((l,k)=>l.rotation.z=Math.sin(t*sp*2.4+k*Math.PI)*.35);d.userData.neck&&(d.userData.neck.rotation.z=Math.sin(t*.6+ph)*.08)})}},
+  volcano(g,lk,r,x0,x1){if(Math.abs(Math.floor(x0/CW))%3!==0)return;const x=x0+CW/2,vm=mat('#3a2a24',{roughness:1,flatShading:true});g.add(mesh(CONE(),vm,x,14,-95,70,28,50));g.add(mesh(CONE(),glow('#ff6a1a',2.6),x,27,-95,10,3,10));
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:'#ff7a2a',transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));gl.position.set(x,32,-92);gl.scale.set(60,34,1);g.add(gl);WD.anim.push(t=>gl.material.opacity=.45+Math.sin(t*1.7+x)*.12)},
+  pines(g,lk,r,x0,x1){for(let x=x0+1+r()*4;x<x1;x+=6+r()*8){if(nearFix(x,8))continue;const k=.9+r()*.6,z=-5.6+r()*.5;g.add(cyl(mat('#4a3424'),x,.8*k,z,.12*k,1.6*k));const gm=mat('#2f5a3a',{flatShading:true}),sm=mat('#f4f8ff',{flatShading:true});
+      for(let j=0;j<3;j++){g.add(mesh(CONE(),gm,x,(2+j*1.1)*k,z,(2.6-j*.7)*k,1.7*k,(2.6-j*.7)*k));g.add(mesh(CONE(),sm,x,(2.35+j*1.1)*k,z,(1.9-j*.55)*k,.9*k,(1.9-j*.55)*k))}}},
+  mammoths(g,lk,r,x0,x1){if(r()<.55)return;const m=makeMammoth(),x=x0+6+r()*(CW-12),z=-22-r()*16;m.position.set(x,0,z);m.scale.setScalar(1.6);m.rotation.y=r()<.5?0:Math.PI;g.add(m);const ph=r()*6;WD.anim.push(t=>{m.position.x=x+Math.sin(t*.04+ph)*6;m.userData.legs.forEach((l,k)=>l.rotation.z=Math.sin(t*1.2+k*Math.PI)*.18)})},
+  pyramids(g,lk,r,x0,x1){const pm=mat('#e0c080',{roughness:1,flatShading:true}),sm=mat('#c8a668',{roughness:1,flatShading:true});
+    for(let x=Math.ceil(x0/90)*90;x<x1;x+=90){const k=1+((x/90|0)%3+3)%3*.3;g.add(mesh(PYR(),pm,x,22*k,-110,60*k,44*k,60*k));g.add(mesh(PYR(),sm,x+52,13*k,-125,36*k,26*k,36*k))}},
+  palms(g,lk,r,x0,x1){for(let x=x0+2+r()*4;x<x1;x+=9+r()*10){if(nearFix(x,8))continue;const k=.9+r()*.4,z=-5.6+r()*.4,tm=mat('#7a5a3a');g.add(cyl(tm,x,2.2*k,z,.14*k,4.4*k));for(let a=0;a<7;a++){const l=box(mat('#4a8a3a'),x+Math.cos(a*.9)*1.1*k,4.5*k,z+Math.sin(a*.9)*1.1*k,2.4*k,.06,.4,true);l.rotation.y=-a*.9;l.rotation.z=.35;g.add(l)}}},
+  columns(g,lk,r,x0,x1){const cm=mat('#f0e8d8',{roughness:.7});for(let x=Math.ceil(x0/18)*18;x<x1;x+=18){if(nearFix(x,9))continue;const h=5+r()*3;for(let i=0;i<(r()<.5?2:3);i++){g.add(cyl(cm,x+i*2.2,h/2,-9,.45,h));g.add(box(cm,x+i*2.2,h+.15,-9,1.2,.3,1.2));g.add(box(cm,x+i*2.2,.15,-9,1.2,.3,1.2))}if(r()<.5)g.add(box(cm,x+1.1,h+.6,-9,4.8,.6,1.4))}}
 };
+
+
+const PYR=()=>geo('pyr',()=>{const g=new THREE.ConeGeometry(.5*Math.SQRT2,1,4);g.rotateY(Math.PI/4);return g});
+function makeDino(col,big){const g=new THREE.Group(),m=mat(col,{roughness:.9,flatShading:true}),dk=mat('#46583a',{roughness:1,flatShading:true});g.userData.legs=[];
+  if(big){g.add(box(m,0,3.3,0,5,2.2,2.2));const tail=mesh(CONE(),m,-4.4,3.1,0,1.6,4.6,1.6);tail.rotation.z=Math.PI/2;g.add(tail);
+    const nk=new THREE.Group();nk.position.set(2.3,4.1,0);const nb=box(m,1.2,1.5,0,.8,3.6,.8);nb.rotation.z=-.5;nk.add(nb);nk.add(box(m,3.1,3.1,0,1.1,.7,.8));nk.add(box(mat('#111'),3.4,3.3,.42,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
+    for(const[x,z]of[[1.7,.85],[1.7,-.85],[-1.7,.85],[-1.7,-.85]]){const lg=new THREE.Group();lg.position.set(x,2.2,z);lg.add(box(dk,0,-1,0,.8,2.2,.8));g.add(lg);g.userData.legs.push(lg)}}
+  else{const b=box(m,0,1.9,0,2.6,1.2,1);b.rotation.z=.12;g.add(b);const tail=mesh(CONE(),m,-2.6,1.9,0,.8,3,.8);tail.rotation.z=Math.PI/2;g.add(tail);
+    const nk=new THREE.Group();nk.position.set(1.2,2.4,0);nk.add(box(m,.3,.6,0,.5,1.2,.5));nk.add(box(m,.8,1.3,0,1.2,.6,.6));nk.add(box(mat('#d8c860'),1,1.4,.31,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
+    for(const z of[.4,-.4]){const lg=new THREE.Group();lg.position.set(0,1.4,z);lg.add(box(dk,0,-.7,0,.4,1.5,.4));g.add(lg);g.userData.legs.push(lg)}}
+  return g}
+function makeMammoth(){const g=new THREE.Group(),f=mat('#5a3e2a',{roughness:1,flatShading:true}),dk=mat('#3a281c',{roughness:1});g.userData.legs=[];
+  g.add(mesh(ICO(),f,0,2.4,0,4,3,2.6));g.add(mesh(ICO(),f,2.1,2.8,0,2.2,2.4,2));g.add(mesh(ICO(),f,.2,3.9,0,1.8,1.2,1.8));
+  const tr=cyl(f,3.2,1.7,0,.28,2.6);tr.rotation.z=.25;g.add(tr);for(const z of[.55,-.55]){const t=mesh(CONE(),mat('#efe6cc'),3,1.9,z,.2,2.4,.2);t.rotation.z=-1.1;g.add(t)}
+  for(const[x,z]of[[1.2,.8],[1.2,-.8],[-1.2,.8],[-1.2,-.8]]){const lg=new THREE.Group();lg.position.set(x,1.3,z);lg.add(box(dk,0,-.6,0,.7,1.4,.7));g.add(lg);g.userData.legs.push(lg)}
+  return g}
 
 /* ================= landmarks (front face at z=0, built backward) ================= */
 const LANDM={
+  burrow(g,lk){const dm=mat('#5a4430',{roughness:1,flatShading:true});g.add(mesh(SPH(),dm,0,.2,-3.4,10,5.6,7.4));g.add(mesh(SPH(),mat('#050302'),0,1.4,-.2,3.4,2.6,1.2));
+    for(const[x,s2]of[[-3.6,1.6],[3.4,1.3],[-2.2,.9],[4.4,.8]])g.add(mesh(ICO(),mat('#7a7468',{roughness:1,flatShading:true}),x,.5,-.4,s2,s2*.8,s2));
+    const sh=new THREE.Group();sh.position.set(-.6,.2,.9);sh.add(mesh(SPH(),mat('#8a7a68'),0,.18,0,.5,.32,.3));sh.add(sph(mat('#8a7a68'),.28,.22,0,.12,false));sh.add(sph(glow('#ffffff',1),.36,.26,.05,.025,false));g.add(sh);
+    for(let i=0;i<5;i++)g.add(mesh(CONE(),mat('#3f8a3a'),-4.8+i*.3,.5,-.2,.18,1+i%2*.4,.18));
+    {const s1=sign('BURROW',3.6,.8,'#ffd890',{bg:'#2a1e12',i:1.4});s1.position.set(0,4.4,-.4);g.add(s1)}},
+  cave(g,lk){const rm=mat('#6a625a',{roughness:1,flatShading:true});g.add(mesh(ICO(),rm,0,3.6,-4,12,9,8));g.add(mesh(ICO(),rm,-5,2.4,-2.6,5,5,5));g.add(mesh(ICO(),rm,5.2,2,-2.4,4.4,4.2,4.4));g.add(mesh(SPH(),mat('#040302'),0,1.7,-.2,4.2,3.4,1.6));
+    const wall=mat('#d8b078',{roughness:1});g.add(box(wall,0,1.8,-.8,3.4,2.8,.1));
+    const pm=glow('#c8421a',1.6);for(const[x,y]of[[-1.1,2.4],[-.4,2.8],[.4,2.6],[1.1,2.2],[-.2,1.6]]){g.add(box(pm,x,y,-.72,.2,.5,.03,false));g.add(box(pm,x-.18,y+.18,-.72,.1,.2,.03,false))}
+    g.add(mesh(CONE(),glow('#ff7a1a',3.2),-3.4,.7,.9,.9,1.5,.9));const fl=mesh(CONE(),glow('#ffd24a',4),-3.4,.6,.9,.55,1,.55);g.add(fl);WD.anim.push(t=>{fl.scale.set(.55,1+Math.sin(t*14)*.18,.55)});
+    for(let a=0;a<6;a++)g.add(mesh(ICO(),mat('#5a5650',{flatShading:true}),-3.4+Math.cos(a)*.8,.2,.9+Math.sin(a)*.8,.35,.3,.35));
+    {const s1=sign('PAINTED CAVE',5,.8,'#ffd890',{bg:'#2a1e12',i:1.4});s1.position.set(0,5.2,.1);g.add(s1)}},
+  pyrsite(g,lk){const st=mat('#e0c080',{roughness:1,flatShading:true});g.add(mesh(PYR(),st,0,3.6,-5,15,7.2,13));g.add(box(mat('#d0b070',{flatShading:true}),0,7.15,-5,2.6,.3,2.4));
+    const cap=mesh(PYR(),mat('#d8a830',{metalness:.9,roughness:.25,emissive:'#c8921a',emissiveIntensity:.5}),0,9.3,-5,2.4,1.9,2.2);g.add(cap);WD.anim.push(t=>cap.position.y=9.1+Math.sin(t*1.4)*.25);
+    const wm=mat('#8a6a42');for(let i=0;i<6;i++)g.add(box(wm,-8.6+i*.15,.6+i*1.1,-.5-i*.4,.2,.3,1,false));const rp=box(wm,-9,3,-3,.2,.25,5,false);rp.rotation.z=.5;g.add(rp);
+    for(const[x,z]of[[5,-.6],[6.4,-.4],[7.6,-.8]])g.add(box(mat('#d0b070',{flatShading:true}),x,.45,z,1.3,.9,1.1));
+    {const s1=sign('BUILDING SITE',5.4,.8,'#ffd890',{bg:'#3a2a14',i:1.4});s1.position.set(0,1.9,1);g.add(s1)}},
+  colosseum(g,lk){const cm=mat('#e8dcc0',{roughness:.9}),dm=mat('#2a2018'),am=mat('#d8c8a4');g.add(box(cm,0,4.4,-3,14,8.8,5.4));
+    for(let row=0;row<3;row++)for(let i=0;i<7;i++){const x=-5.4+i*1.8,y=1.2+row*2.7;g.add(box(dm,x,y,-.28,1.1,1.7,.1,false));g.add(mesh(HALFCYL(),dm,x,y+.85,-.28,1.1,1.1,.1));g.add(box(am,x+.9,y+.2,-.2,.3,2.6,.3))}
+    g.add(box(am,0,8.95,-3,14.4,.4,5.8));for(let i=0;i<14;i++)g.add(box(am,-6.6+i,9.4,-.2,.55,.6,.3));
+    for(const x of[-2,2]){g.add(mesh(CONE(),glow('#ff9a2a',3),x,9.7,-.1,.4,.9,.4))}
+    {const s1=sign('COLOSSEUM',5,.8,'#ffd890',{bg:'#3a1a10',i:1.4});s1.position.set(0,.5,.5);g.add(s1)}},
+  longship(g,lk){const wm=mat('#6a4428',{roughness:.9}),dk=mat('#3a2414',{roughness:1});
+    g.add(box(wm,0,1.2,-3,11,1.2,3.2));g.add(box(dk,0,.55,-3,9.6,.6,2.4));for(const sx of[-1,1]){const pr=box(wm,sx*5.7,2.4,-3,.5,3,.5);pr.rotation.z=-sx*.35;g.add(pr);g.add(sph(mat('#c89a4a'),sx*6.2,3.9,-3,.4))}
+    g.add(cyl(dk,0,5,-3,.14,9));const sail=box(mat('#f0e8d8'),0,6.4,-3,4.8,4,.08);g.add(sail);for(let i=0;i<4;i++)g.add(box(mat(i%2?'#c83a2a':'#f0e8d8'),-1.8+i*1.2,6.4,-2.95,.6,4,.02,false));
+    for(let i=0;i<7;i++){const sh=cyl(mat(['#c83a2a','#e8c84a','#3a5a8a','#f0e8d8'][i%4]),-4.2+i*1.4,1.5,-1.38,.5,.1);sh.rotation.x=Math.PI/2;g.add(sh)}
+    for(const x of[-3,0,3]){const o=box(wm,x,.9,.4,.1,.1,3.4,false);o.rotation.x=.5;g.add(o)}
+    for(let i=0;i<5;i++)g.add(mesh(ICO(),mat('#8a8478',{flatShading:true}),-6+i*3,.2,.2+(i%2)*.6,.9,.5,.9));
+    {const s1=sign('LONGSHIP',3.6,.7,'#ffd890',{bg:'#2a1a0e',i:1.4});s1.position.set(0,.45,.3);g.add(s1)}},
   observatory(g,lk){const st=mat('#8a7a68',{roughness:.95});g.add(cyl(st,0,5,-3.5,2.6,10));g.add(cyl(mat('#6a5a4a'),0,10.2,-3.5,2.8,.4));
     g.add(mesh(DOME(),mat('#5a8a7a',{metalness:.6,roughness:.4}),0,10.4,-3.5,5,4.4,5));
     const tel=cyl(mat('#c9a24a',{metalness:.9,roughness:.25}),.8,12.4,-2.3,.28,4.2);tel.rotation.x=-.9;tel.rotation.z=-.3;g.add(tel);
@@ -326,7 +425,7 @@ const LANDM={
 };
 
 /* ================= the Crono·Cabina (time machine) ================= */
-function nixieTex(txt){return textTex(txt,{w:256,h:96,font:'400 78px "Nixie One",monospace',color:'#ffc27a',glowC:'#ff6a00',bg:'#1a0c06'})}
+function nixieTex(txt){return textTex(txt,{w:256,h:96,font:`400 ${txt.length>4?58:78}px "Nixie One",monospace`,color:'#ffc27a',glowC:'#ff6a00',bg:'#1a0c06'})}
 function buildMachine(g,x){
   const m=new THREE.Group();m.position.set(x,0,-4.2);
   const brass=mat('#c9a24a',{metalness:.95,roughness:.22}),bak=mat('#1d1712',{roughness:.45,metalness:.15}),dark=mat('#0e0a08',{roughness:.6});
@@ -349,7 +448,7 @@ function buildMachine(g,x){
   WD.anim.push(t=>{rings[0].rotation.set(Math.PI/2+Math.sin(t*.7)*.25,t*.8,0);rings[1].rotation.set(Math.PI/2+Math.cos(t*.5)*.3,-t*.6,.4);bulb.material.emissiveIntensity=4+Math.sin(t*3)*1.2;pad.material.opacity=.3+Math.sin(t*2)*.15});
   g.add(m);return m;
 }
-function setMachineYear(y){if(!WD||!WD.machine)return;const d=WD.machine.userData.disp;if(d.emissiveMap)d.emissiveMap.dispose();d.emissiveMap=nixieTex(y===NX?'∞':y===TH?'END':String(y));d.needsUpdate=true}
+function setMachineYear(y){if(!WD||!WD.machine)return;const d=WD.machine.userData.disp;if(d.emissiveMap)d.emissiveMap.dispose();d.emissiveMap=nixieTex(y===NX?'∞':y===TH?'END':fyS(y));d.needsUpdate=true}
 
 /* ================= weather ================= */
 function buildWeather(g,lk){

@@ -11,10 +11,10 @@ const relicCount=()=>G?Object.keys(G.relics).length:0;
 
 function stats(){
   const u=G.up,R=y=>!!G.relics[y];
-  ch.maxHp=100+25*u.hp+(R(1969)?20:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
-  ch.spd=1+.08*u.spd+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
-  ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0);
-  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
+  ch.maxHp=100+25*u.hp+(R(1969)?20:0)+(R(-15000)?15:0);ch.dmg=20+6*u.dmg+(R(1957)?5:0)+(R(2600)?8:0);
+  ch.spd=1+.08*u.spd+(R(1000)?.06:0)+(R(1903)?.06:0)+(R(2150)?.06:0);ch.timeB=10*u.time+(R(1869)?6:0)+(R(2240)?6:0);
+  ch.dashK=Math.pow(.85,u.dash)*(R(1985)?.85:1);ch.armor=(R(1999)?.9:1)*(R(2400)?.88:1)*(R(80)?.92:1);ch.coinK=1+(R(1610)?.25:0)+(R(2026)?.25:0)+(R(-2560)?.2:0);
+  ch.coolK=R(1927)?1.4:1;ch.regen=R(2088)?4:2;applyGear();ch.maxMana=100+25*(u.mana||0)+(R(-66000000)?25:0);ch.mana=ch.mana==null?ch.maxMana:Math.min(ch.mana,ch.maxMana);ch.hp=Math.min(ch.hp,ch.maxHp);
 }
 
 function newGame(){
@@ -29,7 +29,7 @@ function initTimer(y){if(G.timers[y]==null){G.timers[y]=ERA[y].mission.time+ch.t
 function arrive(year,first){
   G.cur=year;setCarry(false);ch.cells=0;ch.inv=1;ch.kbx=ch.kbz=0;clearLabels();if(WD){clearShots();closePortal()}genWorld(year);
   ch.x=WD.mx;ch.z=ZMIN+.6;ch.fx=0;ch.fz=1;ch.target=null;camX=ch.x;streamChunks(99);
-  $('hudY').textContent=year===NX?'∞':year===TH?'END':year;$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
+  $('hudY').textContent=fy(year);$('hudE').textContent=ERA[year].name;renderTimeline();setAmbient(year);
   if(year===TH){G.boss={mode:'invade',t:2.2,on:false,n:null};toast('The Throne of Time. He is waiting.',true);return}
   if(year===NX){toast('The Nexus. No clocks, no Hunters. Walk to the bazaar to trade.');return}
   G.prev=year;
@@ -37,11 +37,11 @@ function arrive(year,first){
   if(rp){if(rp.time==null)rp.time=70+ch.timeB;showRepairBrief(rp);if(missionOpen(year))initTimer(year);return}
   if(hasM(year)){const st=G.status[year];
     if(st==='open'){initTimer(year);showBrief(year)}
-    else if(st==='done')toast(`${year}: the event happened. History holds.`);
-    else toast(`${year} is broken. Repair it from ${repairEra()||'the future'}.`,true)}
+    else if(st==='done')toast(`${fy(year)}: the event happened. History holds.`);
+    else toast(`${fy(year)} is broken. Repair it from ${repairEra()||'the future'}.`,true)}
   else if(first)showIntro();
   else if(G.repairs.length)toast(`Paradox pending: repair it in ${repairEra()}.`,true);
-  else toast(`${year}: ${ERA[year].name}. Your base. Nothing to fix here.`);
+  else toast(`${fy(year)}: ${ERA[year].name}. Your base. Nothing to fix here.`);
 }
 function openMissions(){return G.timeline.filter(y=>missionOpen(y))}
 function eraseEra(v){G.timeline=G.timeline.filter(y=>y!==v);G.erased.push(v);G.repairs=G.repairs.filter(rp=>rp.forYear!==v);renderTimeline()}
@@ -52,7 +52,7 @@ function failMission(y){
     const cands=G.timeline.filter(v=>v!==G.cur);const victim=cands[cands.length-1];
     if(victim==null)return endGame();
     eraseEra(victim);G.repairs.push({forYear:y,restore:victim,time:null});
-    toast(`PARADOX! ${y} failed and ${victim} vanished from the timeline.`,true);
+    toast(`PARADOX! ${fy(y)} failed and ${fy(victim)} vanished from the timeline.`,true);
     WD.items.filter(i=>i.kind==='item').forEach(removeItem);
     if(checkCollapse())return;
     setTimeout(()=>G&&!G.over&&toast(`Travel to ${repairEra()} to repair the damage.`,true),3200);
@@ -60,7 +60,7 @@ function failMission(y){
     const cands=G.timeline.filter(v=>v!==G.cur);const victim=cands[0];
     if(victim==null)return endGame();
     eraseEra(victim);G.timers[y]=ERA[y].mission.time;
-    toast(`The future slipped and ${victim} was erased. The future isn't written yet: try ${y} again.`,true);
+    toast(`The future slipped and ${fy(victim)} was erased. The future isn't written yet: try ${fy(y)} again.`,true);
     if(checkCollapse())return;
     WD.items.filter(i=>i.kind==='item').forEach(removeItem);placeItem(Math.random);
   }
@@ -79,7 +79,7 @@ function failRepair(){
 function ripple(y){
   const next=G.timeline.find(v=>v>y&&missionOpen(v));if(!next)return;
   if(G.timers[next]!=null)G.timers[next]+=15;else G.bonus[next]=(G.bonus[next]||0)+15;
-  setTimeout(()=>G&&!G.over&&toast(`Ripple effect: ${y} secured, ${next} gets +15 seconds.`),2400);
+  setTimeout(()=>G&&!G.over&&toast(`Ripple effect: ${fy(y)} secured, ${fy(next)} gets +15 seconds.`),2400);
 }
 function succeedMission(y){
   if(!G||G.over)return;
@@ -115,7 +115,7 @@ function checkRound(){
   const add=TIERS[G.tier].filter(y=>!G.timeline.includes(y)&&!G.erased.includes(y));
   add.forEach(y=>{G.timeline.push(y);if(hasM(y))G.status[y]='open'});G.timeline.sort((a,b)=>a-b);
   renderTimeline();
-  setTimeout(()=>toast(`Timeline stable! +250. The line grows: ${add.join(' and ')}.`),1000);
+  setTimeout(()=>toast(`Timeline stable! +250. The line grows: ${add.map(fy).join(' and ')}.`),1000);
 }
 function endGame(win){if(G.over||G.boss||G.free)return;if(win)sealLine();else trapped()}
 function trapped(){
@@ -123,11 +123,11 @@ function trapped(){
   G.boss={mode:'trapped',t:3,on:false,n:null};G.repairs=[];G.timers={};
   if(WD.stab){WD.group.remove(WD.stab.g);WD.stab=null}WD.items.filter(i=>i.kind==='item'||i.kind==='cell').forEach(removeItem);setCarry(false);ch.cells=0;closePortal();
   WD.npcs.forEach(n=>{if(n.kind==='citizen'){n.hostile=false;n.wind=0;n.flee=7}else if(n.kind==='hunter')n.dying=.01});
-  redT=1;renderTimeline();toast(`The line has collapsed. You are trapped in ${G.cur}. Something is coming...`,true);SFX.bad();
+  redT=1;renderTimeline();toast(`The line has collapsed. You are trapped in ${fy(G.cur)}. Something is coming...`,true);SFX.bad();
 }
 function sealLine(){
   G.sealed=true;renderTimeline();
-  $('briefCard').classList.remove('paradox');$('bDate').textContent='ALL ERAS SECURE';$('bYear').textContent='1610–2600';$('bEra').textContent='The whole causal line';$('bMustL').textContent='TIMELINE SEALED';$('bMust').textContent='History holds from end to end. +500';
+  $('briefCard').classList.remove('paradox');$('bDate').textContent='ALL ERAS SECURE';$('bYear').textContent=fy(YEARS[0])+' – '+fy(YEARS[YEARS.length-1]);$('bEra').textContent='The whole causal line';$('bMustL').textContent='TIMELINE SEALED';$('bMust').textContent='History holds from end to end. +500';
   $('bTask').innerHTML='One thing remains: the <em>Time Lord</em>. Keep hunting relics, coins and upgrades for as long as you like. When you are ready, open the machine and choose <em>INVADE</em>. There is no way back from the Throne.';
   openBrief();
 }
@@ -143,7 +143,7 @@ function toast(msg,warn){const t=$('toast');t.textContent=msg;t.className='toast
 function chipState(y){if(G.erased.includes(y))return'erased';if(G.repairs.length&&repairEra()===y)return'repair';return hasM(y)?(G.status[y]||'open'):''}
 function renderTimeline(){
   if(!G)return;const ys=[...new Set([...G.timeline,...G.erased])].sort((a,b)=>a-b);
-  $('tl').innerHTML=ys.map(y=>`<span class="chip ${chipState(y)} ${y===G.cur?'cur':''}">${y}</span>`).join('');
+  $('tl').innerHTML=ys.map(y=>`<span class="chip ${chipState(y)} ${y===G.cur?'cur':''}">${fy(y)}</span>`).join('');
   const c=$('tl').querySelector('.cur');if(c)c.scrollIntoView({inline:'center',block:'nearest'});
 }
 let objCache='';
@@ -174,11 +174,11 @@ function updateHUD(){
 
 /* briefings */
 function showBrief(y){
-  const m=ERA[y].mission;$('briefCard').classList.remove('paradox');$('bDate').textContent=m.date.toUpperCase();$('bYear').textContent=y;$('bEra').textContent=ERA[y].name;
+  const m=ERA[y].mission;$('briefCard').classList.remove('paradox');$('bDate').textContent=m.date.toUpperCase();$('bYear').textContent=fy(y);$('bEra').textContent=ERA[y].name;
   $('bMustL').textContent='MUST HAPPEN';$('bMust').textContent=m.must;$('bTask').innerHTML=m.task+` You have <em>${fmt(G.timers[y])}</em>.`;openBrief();
 }
 function showRepairBrief(rp){
-  $('briefCard').classList.add('paradox');$('bDate').textContent='TEMPORAL ALERT';$('bYear').textContent=G.cur;$('bEra').textContent=ERA[G.cur].name;
+  $('briefCard').classList.add('paradox');$('bDate').textContent='TEMPORAL ALERT';$('bYear').textContent=fy(G.cur);$('bEra').textContent=ERA[G.cur].name;
   $('bMustL').textContent='PARADOX';$('bMust').textContent=`The failure in ${rp.forYear} erased ${rp.restore}.`;
   $('bTask').innerHTML='Collect the 3 <em>chronon cells</em> and feed them to the <em>stabilizer</em> before the clock runs out. Succeed and the lost era returns; fail and the earliest past is erased.';
   openBrief();
@@ -222,7 +222,7 @@ function openPanel(){if(G.boss){toast('The machine does not respond. There is no
 function closePanel(){panelOpen=false;$('panel').hidden=true}
 function renderPanel(){
   const ys=[...new Set([...G.timeline,...G.erased])].sort((a,b)=>a-b);
-  $('keys').innerHTML=ys.map(y=>{const s=chipState(y);return`<button data-y="${y}" aria-pressed="${y===selYear}" ${G.erased.includes(y)?'disabled':''}>${y}<i class="${s}"></i></button>`}).join('');
+  $('keys').innerHTML=ys.map(y=>{const s=chipState(y);return`<button data-y="${y}" aria-pressed="${y===selYear}" ${G.erased.includes(y)?'disabled':''}>${fy(y)}<i class="${s}"></i></button>`}).join('');
   $('keys').querySelectorAll('button').forEach(b=>b.onclick=()=>{selYear=+b.dataset.y;SFX.click();renderPanel()});
   const d=String(selYear).padStart(4,'0');$('tubes').innerHTML=[...d].map(c=>`<div class="tube"><span>${c}</span></div>`).join('');
   const s=chipState(selYear),e=ERA[selYear];let txt=`<em>${e.name}</em> · `;
@@ -269,7 +269,7 @@ function renderShop(){
   $('wares').querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(WARES[+b.dataset.i]));
   renderForge();
   $('sRelN').textContent=`${relicCount()}/14`;
-  $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${y} · ???</span>`).join('');
+  $('sRelics').innerHTML=YEARS.map(y=>G.relics[y]?`<span title="${RELIC[y][1]}">${RELIC[y][0]} <em>${RELIC[y][1]}</em></span>`:`<span style="opacity:.35">${fy(y)} · ???</span>`).join('');
 }
 function buy(w){const c=wareCost(w);if(G.coins<c)return;G.coins-=c;SFX.coin();
   if(w.k==='heal')ch.hp=ch.maxHp;else if(w.k==='cool')G.heat=0;else{G.up[w.k]++;stats();if(w.k==='hp')ch.hp=ch.maxHp;if(w.k==='mana')ch.mana=ch.maxMana}renderShop()}
@@ -283,7 +283,7 @@ function openMini(y){
   $('mTitle').textContent=m.title;$('mHint').textContent=m.hint;
   MG={type:m.type,skin:m.skin,y,t:0,done:false,flash:0,flashC:'#ff4f45',msg:'',msgT:0};
   const r=Math.random,act=$('mAct');act.hidden=!(m.type==='timing'||m.type==='hold');
-  act.textContent=m.type==='hold'?'HOLD':m.skin==='hammer'?'STRIKE':m.skin==='reel'?'SYNC':'BURN';
+  act.textContent=m.act||(m.type==='hold'?'HOLD':m.skin==='hammer'?'STRIKE':m.skin==='reel'?'SYNC':'BURN');
   if(m.type==='targets'){MG.tg=[];MG.dec=[];if(m.skin==='moons'){const side=[-1,1,1,-1],dist=[95,130,175,240];for(let i=0;i<4;i++)MG.tg.push({x:400+side[i]*dist[i]+(r()-.5)*14,y:250+(r()-.5)*10,r:6,got:false});
       for(let i=0;i<16;i++){let x,y;do{x=200+r()*400;y=60+r()*380}while(Math.abs(y-250)<30||Math.hypot(x-400,y-250)<80);MG.dec.push({x,y,r:2+r()*3})}}
     else{for(let i=0;i<4;i++)MG.tg.push({x:120+r()*560,y:90+r()*320,r:16,got:false,ph:r()*6,ax:40+r()*60,ay:20+r()*40,cx:0,cy:0});MG.tg.forEach(t=>{t.cx=t.x;t.cy=t.y});for(let i=0;i<24;i++)MG.dec.push({x:r()*800,y:r()*500,r:10+r()*16,a:r()*6,s:.3+r()})}}
@@ -323,7 +323,7 @@ function miniKey(k,down){
   if(MG.type==='sequence'&&/^[a-z0-9]$/.test(k)){seqType(k.toUpperCase());return true}
   return false;
 }
-const SIMC={board:['#ff3ac8','#3ae8ff','#ffe83a','#8a3aff'],archive:['#ffd27a','#ffb050','#ffe8b0','#ff9a40']};
+const SIMC={board:['#ff3ac8','#3ae8ff','#ffe83a','#8a3aff'],archive:['#ffd27a','#ffb050','#ffe8b0','#ff9a40'],ochre:['#c8421a','#e8a038','#8a3a1a','#f0d8a0'],mosaic:['#c83a3a','#3a6ab8','#e8c84a','#4a9a5a']};
 function simonPad(x,y){for(let i=0;i<4;i++){const px=130+i*150;if(x>px-60&&x<px+60&&y>150&&y<390)return i}return-1}
 function simonPress(i){MG.lit=i;MG.litT=.25;beep([392,494,587,698][i],.22,'triangle',.08);
   if(MG.seq[MG.i]===i){MG.i++;if(MG.i>=MG.len){if(MG.len>=5)miniWin();else{MG.len++;MG.phase='show';MG.i=0;MG.st=.9}}}
@@ -375,6 +375,14 @@ function dTiming(o,m){
   else if(sk==='reel'){o.fillStyle='#0a0a0a';o.fillRect(0,0,MW,MH);for(let i=0;i<5;i++){const x=((i*190-m.t*160)%950+950)%950-150;o.fillStyle='#1a1a1a';o.fillRect(x,40,170,230);o.fillStyle='#d8d8d8';o.fillRect(x+15,60,140,190);
       o.fillStyle='#555';o.beginPath();o.arc(x+85,140,30,0,7);o.fill();o.fillStyle='#222';o.fillRect(x+70,170+Math.abs(Math.sin(m.t*8+i))*14,30,6);for(let k=0;k<9;k++){o.fillStyle='#0a0a0a';o.fillRect(x+4,46+k*25,8,12);o.fillRect(x+158,46+k*25,8,12)}}
     o.strokeStyle='#c8c8c8';o.lineWidth=2;o.beginPath();for(let x=0;x<MW;x+=4)o.lineTo(x,330+Math.sin(x*.08+m.t*14)*(10+20*Math.abs(Math.sin(x*.01+m.t))));o.stroke()}
+  else if(sk==='dig'){const g=o.createLinearGradient(0,0,0,MH);g.addColorStop(0,'#c8482a');g.addColorStop(.55,'#f0b060');g.addColorStop(1,'#f8dca0');o.fillStyle=g;o.fillRect(0,0,MW,MH);
+    o.fillStyle='#fff0a0';o.shadowColor='#ff6a1a';o.shadowBlur=40;o.beginPath();o.arc(610,70+Math.sin(m.t*2)*6,26,0,7);o.fill();o.shadowBlur=0;o.strokeStyle='#ffd080';o.lineWidth=10;o.beginPath();o.moveTo(610,70);o.lineTo(780,0);o.stroke();
+    o.fillStyle='#4a3a22';o.fillRect(0,300,MW,200);o.fillStyle='#3a2c1a';for(let x=0;x<MW;x+=60)o.fillRect(x+(x/60%2)*20,320+(x/60%3)*30,26,8);
+    const dep=m.hits/3;o.fillStyle='#120a04';o.beginPath();o.ellipse(400,305,34+dep*60,10+dep*18,0,0,7);o.fill();
+    o.save();o.translate(470,220);o.rotate(.2+(m.anim>0?m.anim*3:0));o.fillStyle='#e8dcc0';o.beginPath();o.moveTo(0,0);o.lineTo(-14,60);o.lineTo(0,50);o.lineTo(14,60);o.closePath();o.fill();o.restore()}
+  else if(sk==='stone'){const g=o.createLinearGradient(0,0,0,MH);g.addColorStop(0,'#78b8e8');g.addColorStop(1,'#fff0cc');o.fillStyle=g;o.fillRect(0,0,MW,MH);o.fillStyle='#e8d098';o.fillRect(0,360,MW,140);
+    o.fillStyle='#d8b878';o.beginPath();o.moveTo(150,360);o.lineTo(400,205);o.lineTo(650,360);o.closePath();o.fill();o.strokeStyle='#b89858';o.lineWidth=2;for(let i=1;i<6;i++){o.beginPath();o.moveTo(150+i*20,360-i*25);o.lineTo(650-i*20,360-i*25);o.stroke()}
+    const cy=160-(1-m.hits/3)*130;o.strokeStyle='#6a4a2a';o.lineWidth=3;o.beginPath();o.moveTo(400,0);o.lineTo(400,cy);o.stroke();o.fillStyle='#e8b830';o.shadowColor='#ffd24a';o.shadowBlur=18;o.beginPath();o.moveTo(400,cy+10);o.lineTo(430,cy+46);o.lineTo(370,cy+46);o.closePath();o.fill();o.shadowBlur=0}
   else{o.fillStyle='#030312';o.fillRect(0,0,MW,MH);for(let i=0;i<70;i++){o.fillStyle='#fff8';o.fillRect((i*137)%MW,(i*89)%MH,2,2)}const dist=1-m.hits/3;
     o.strokeStyle='#9a9ab8';o.lineWidth=16;o.beginPath();o.ellipse(400,170,260+(1-dist)*40,60,0,Math.PI,0);o.stroke();o.fillStyle='#ff9ad8';o.fillRect(392,150,16,30);
     const sx=400,sy=200+dist*100,sc=.5+(1-dist)*.5;o.save();o.translate(sx,sy);o.scale(sc,sc);o.fillStyle='#f0f0f8';o.beginPath();o.moveTo(0,-60);o.lineTo(30,30);o.lineTo(-30,30);o.fill();o.fillStyle='#9ae8ff';o.shadowColor='#9ae8ff';o.shadowBlur=20;o.fillRect(-10,30,20,m.anim>0?50:14);o.restore();o.shadowBlur=0}
@@ -439,7 +447,7 @@ mc.addEventListener('pointerup',e=>miniPoint(e.clientX,e.clientY,'up'));
 function showEnd(){
   $('end').hidden=false;const o=G.over;
   $('eTitle').textContent=o.lord?'TIME IS YOURS':o.sealed?'YOU FELL AT THE THRONE':'TRAPPED IN TIME';$('eTitle').className='result'+(o.win?' win':'');
-  $('eCurio').textContent=(o.lord?`The throne is yours, and your name now waits for the next challenger. Save your score, then roam time as you please. Final year: ${o.year}.`:o.sealed?`You sealed the whole timeline, then fell at the Throne. Final year: ${o.year} · ${ERA[o.year].name}.`:`You were trapped in ${o.year} · ${ERA[o.year].name}, and he found you there.`)
+  $('eCurio').textContent=(o.lord?`The throne is yours, and your name now waits for the next challenger. Save your score, then roam time as you please. Final year: ${fy(o.year)}.`:o.sealed?`You sealed the whole timeline, then fell at the Throne. Final year: ${fy(o.year)} · ${ERA[o.year].name}.`:`You were trapped in ${fy(o.year)} · ${ERA[o.year].name}, and he found you there.`)
     +` Hunters defeated: ${G.hunters}. Citizens erased: ${G.kills}. Relics: ${relicCount()}/14.`;
   $('eScore').textContent=G.score;$('eMiss').textContent=G.missions;$('eRep').textContent=G.repairsDone;
   $('saveBtn').disabled=false;$('pname').disabled=false;$('saveBtn').textContent='SAVE';try{$('pname').value=localStorage.getItem('tl-name')||''}catch(e){}
@@ -451,7 +459,7 @@ let db=null,boardRows=[],boardShared=false,myId=null;
 function localScores(){try{return JSON.parse(localStorage.getItem('tl-scores')||'[]')}catch(e){return[]}}
 function renderBoard(){
   const rows=boardShared?boardRows:localScores().sort((a,b)=>b.score-a.score).slice(0,15);
-  const html=rows.length?`<thead><tr><th>#</th><th>NAME</th><th>SCORE</th><th>ENDED IN</th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r._id&&r._id===myId?'me':''}${r.lord?' lord':''}"><td>${i+1}</td><td></td><td>${Number(r.score)|0}</td><td>${Number(r.year)|0}</td></tr>`).join('')+'</tbody>'
+  const html=rows.length?`<thead><tr><th>#</th><th>NAME</th><th>SCORE</th><th>ENDED IN</th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r._id&&r._id===myId?'me':''}${r.lord?' lord':''}"><td>${i+1}</td><td></td><td>${Number(r.score)|0}</td><td>${fy(Number(r.year)||0)}</td></tr>`).join('')+'</tbody>'
     :'<tbody><tr><td style="color:#c9a24a">No scores yet. Be the first chrononaut.</td></tr></tbody>';
   ['board2'].forEach(id=>{const t=$(id);t.innerHTML=html;if(rows.length)t.querySelectorAll('tbody tr').forEach((tr,i)=>tr.children[1].textContent=(rows[i].lord?'♛ ':'')+String(rows[i].name||'Anonymous').slice(0,16))});
   const note=boardShared?'Shared ranking · everyone who opens this game sees it.':'Scores saved on this device only.';$('note2').textContent=note;
