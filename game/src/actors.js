@@ -8,20 +8,28 @@ const LORD_FIT={coat:'#f4ecd8',pants:'#3a2c14',skin:'#d8d0e8',hair:'#ffffff',hat
 const MERCHANT_FIT={coat:'#5a2a7a',pants:'#2a1440',skin:'#c68b5e',hair:'#e8e8f0',hat:'top',hatC:'#2a1440',dress:true,longHair:true,scarf:'#ffd24a'};
 const NPC_SKIN=['#e2b48c','#c68b5e','#8d5a3b','#f0c9a6','#6b4430'],NPC_HAIR=['#2a1a10','#5a3a20','#c9a050','#1a1a1a','#8a8a8a','#7a2a14'];
 
+/* ---- modelled humanoid kit (Blender -> GLB, recoloured per outfit) ---- */
+let KIT=null;
+const KROUGH={coat:.75,pants:.85,skin:.55,hair:.9,boots:.5,belt:.3,trim:.6,shirt:.8};
+function kitColors(f){return{coat:f.coat,pants:f.pants,skin:f.skin,hair:f.hair,boots:f.boots||'#1a1410',belt:f.belt||'#14100c',trim:'#14100c',shirt:f.shirt||f.hood||'#e8e0d0'}}
+function kitPart(n,f){const o=KIT[n].clone(true),c=kitColors(f);o.traverse(m=>{if(m.isMesh){const k=m.material.name;m.material=mat(c[k]||'#888888',{roughness:KROUGH[k]||.7,metalness:k==='belt'&&f.belt?.85:0});m.castShadow=true}});return o}
+function loadKit(){return new Promise(res=>{try{const b=atob(KIT_B64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  new GLTFLoader().parse(u.buffer,'',g=>{try{const k={};for(const n of['leg','arm','torso','head']){const o=g.scene.getObjectByName(n);if(!o)throw 0;k[n]=o}KIT=k}catch(e){KIT=null}res()},()=>res())}catch(e){KIT=null;res()}})}
+
 function makeRig(fit,k=1){
   const g=new THREE.Group(),body=new THREE.Group();g.add(body);body.scale.setScalar(k);
   const cm=mat(fit.coat,{roughness:.7}),pm=mat(fit.pants,{roughness:.8}),sk=mat(fit.skin,{roughness:.55}),hm=mat(fit.hair,{roughness:.9}),bm=mat(fit.boots||'#1a1410',{roughness:.5});
-  const legs=[];for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.15,.95,0);p.add(box(pm,0,-.42,0,.22,.84,.24));p.add(box(bm,0,-.86,.05,.25,.16,.36));body.add(p);legs.push(p)}
+  const legs=[];for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.15,.95,0);if(KIT)p.add(kitPart('leg',fit));else{p.add(box(pm,0,-.42,0,.22,.84,.24));p.add(box(bm,0,-.86,.05,.25,.16,.36))}body.add(p);legs.push(p)}
   const torso=new THREE.Group();torso.position.y=.95;body.add(torso);
-  torso.add(box(cm,0,.44,0,.6,.86,.36));
-  if(fit.dress)torso.add(mesh(geo('skirt',()=>new THREE.CylinderGeometry(.31,.46,.8,14)),cm,0,-.12,0));else torso.add(box(cm,0,-.02,0,.6,.24,.35));
-  if(fit.belt)torso.add(box(mat(fit.belt,{metalness:.85,roughness:.3}),0,.08,0,.63,.08,.38));
-  const arms=[];for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.41,.8,0);p.add(box(cm,0,-.32,0,.18,.7,.2));p.add(sph(sk,0,-.72,0,.09));torso.add(p);arms.push(p)}
+  if(KIT)torso.add(kitPart('torso',fit));else torso.add(box(cm,0,.44,0,.6,.86,.36));
+  if(fit.dress)torso.add(mesh(geo('skirt',()=>new THREE.CylinderGeometry(.31,.46,.8,14)),cm,0,-.12,0));else if(!KIT)torso.add(box(cm,0,-.02,0,.6,.24,.35));
+  if(fit.belt&&!KIT)torso.add(box(mat(fit.belt,{metalness:.85,roughness:.3}),0,.08,0,.63,.08,.38));
+  const arms=[];for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.41,.8,0);if(KIT)p.add(kitPart('arm',fit));else{p.add(box(cm,0,-.32,0,.18,.7,.2));p.add(sph(sk,0,-.72,0,.09))}torso.add(p);arms.push(p)}
   const head=new THREE.Group();head.position.y=1.1;torso.add(head);
-  head.add(mesh(SPH(),sk,0,.06,0,.46,.52,.46));
-  head.add(mesh(DOME(),hm,0,.1,-.02,.5,.42,.5));
+  if(KIT)head.add(kitPart('head',fit));else{head.add(mesh(SPH(),sk,0,.06,0,.46,.52,.46));
+  head.add(mesh(DOME(),hm,0,.1,-.02,.5,.42,.5))}
   if(fit.longHair)head.add(box(hm,0,-.12,-.18,.42,.5,.12));
-  const eye=mat('#140e0a');for(const s of[-1,1])head.add(sph(eye,s*.08,.08,.215,.03,false));
+  const eye=mat('#140e0a');for(const s of[-1,1])head.add(sph(eye,s*.08,.08,KIT?.222:.215,.03,false));
   if(fit.scarf){const sc=new THREE.Mesh(TOR(.17,.06),mat(fit.scarf,{roughness:.9}));sc.rotation.x=Math.PI/2;sc.position.y=.9;torso.add(sc);torso.add(box(mat(fit.scarf),.12,.62,.2,.1,.3,.05))}
   if(fit.goggles){const gm=mat('#c9a24a',{metalness:.9,roughness:.2});for(const s of[-1,1]){const t=new THREE.Mesh(TOR(.07,.022),gm);t.position.set(s*.09,.25,.2);head.add(t);head.add(sph(glow('#ff9a3a',1.2),s*.09,.25,.2,.055,false))}head.add(box(mat('#3a2418'),0,.25,0,.48,.05,.46,false))}
   const hc=fit.hatC||'#222';

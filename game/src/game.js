@@ -591,4 +591,4 @@ function boot(){initInv();initMagicUI();initForges();
   requestAnimationFrame(t=>{last=t;frame(t)});
   document.fonts&&document.fonts.ready.then(()=>{if(WD&&WD.machine)setMachineYear(WD.year)});
 }
-boot();
+loadKit().then(boot);
