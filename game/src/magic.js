@@ -129,7 +129,7 @@ function placeSeeds(){
   for(let i=0;i<3;i++){const side=rr()<.5?-1:1,x=WD.mx+side*(55+rr()*75),z=rr()<.5?ZMIN+.2:ZMAX-.6,el=ELKEYS[rr()*ELKEYS.length|0],key=WD.year+'_'+i;if(G.seedGot[key])continue;dropSeed(el,x,z,key)}
 }
 function pickSeed(it){G.seeds[it.el]++;G.seedGot[it.key]=true;removeItem(it);SFX.ok();burst(ch.x,1.5,ch.z,ELEM[it.el].c,40,5,.4);ringFx(ch.x,ch.z,2.4,ELEM[it.el].c,.6);
-  toast(`${ELEM[it.el].n} seed found! Mix seeds at the Seed Forge in the Nexus bazaar.`)}
+  toast(`${ELEM[it.el].n} seed found! It's not a spell yet: mix two seeds at the Seed Forge in the Nexus bazaar (see them in the bag, I).`)}
 /* ---- fountain (Nexus) ---- */
 function buildFountain(g,x){
   const fg=new THREE.Group();fg.position.set(x,0,ZMIN+.2);const st=mat('#8a8fa8',{metalness:.5,roughness:.4});
@@ -158,7 +158,7 @@ const lvPips=id=>'●'.repeat(G.spells[id])+'○'.repeat(3-G.spells[id]);
 function spCell(id,attr){const S=SPELLS[id],c=ELEM[S.el].c;return`<button class="gs" ${attr} style="--rc:${c}"><span class="gg">${S.g}</span><small>${S.n}</small><small class="lv">${lvPips(id)}</small></button>`}
 function renderSpells(){
   const el=$('spBook');if(!el||!G)return;
-  $('spSeeds').innerHTML=ELKEYS.filter(k=>G.seeds[k]>0).map(k=>`<span style="color:${ELEM[k].c}">${ELEM[k].n} ×${G.seeds[k]}</span>`).join(' · ')||'no seeds yet';
+  const tot=ELKEYS.reduce((a,k)=>a+G.seeds[k],0);$('spSeedRow').innerHTML=`<div class="seedrow">${ELKEYS.map(k=>`<span class="seed" style="--c:${ELEM[k].c};cursor:default;${G.seeds[k]?'':'opacity:.35'}"><i></i>${ELEM[k].n} <b>×${G.seeds[k]}</b></span>`).join('')}</div><p class="hint" style="margin:6px 0 0;font-size:13px;color:var(--muted)">${tot>=2?'Seeds are not spells. Take two of them to the <b>Seed Forge</b> in the Nexus bazaar to make a new spell.':tot===1?'Seeds are not spells. Find one more, then mix two at the <b>Seed Forge</b> in the Nexus bazaar.':'No seeds yet. They are hidden in the eras and fuel the Seed Forge in the Nexus bazaar.'}</p>`;
   $('spSlots').innerHTML=[0,1].map(i=>{const id=G.slots[i];return id?`<div class="slotwrap"><span class="kb">${i?'E':'Q'}</span>${spCell(id,`data-slot="${i}"`)}</div>`
     :`<div class="slotwrap"><span class="kb">${i?'E':'Q'}</span><button class="gs empty" data-slot="${i}" disabled><span class="gg">·</span><small>empty</small></button></div>`}).join('');
   const known=Object.keys(G.spells);
