@@ -441,7 +441,28 @@ const LANDM={
 
 /* ================= the Crono·Cabina (time machine) ================= */
 function nixieTex(txt){return textTex(txt,{w:256,h:96,font:`400 ${txt.length>4?58:78}px "Nixie One",monospace`,color:'#ffc27a',glowC:'#ff6a00',bg:'#1a0c06'})}
+function buildVortex(g,x){
+  const m=new THREE.Group();m.position.set(x,0,-4.2);
+  const U={t:{value:0}};
+  const sw=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,toneMapped:false,uniforms:U,
+    vertexShader:'varying vec2 v;void main(){v=uv*2.-1.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform float t;varying vec2 v;void main(){float r=length(v);if(r>1.)discard;float a=atan(v.y,v.x);float sp=sin(a*4.+log(r+.02)*9.-t*3.2)*.5+.5;float sp2=sin(a*7.-log(r+.02)*14.+t*2.1)*.5+.5;float core=smoothstep(.55,0.,r);float rim=smoothstep(1.,.78,r);vec3 c=mix(vec3(.12,.0,.3),vec3(.8,.15,1.),sp)+vec3(1.,.3,.5)*sp2*.35*r+vec3(1.,.7,1.)*core*core*.45;gl_FragColor=vec4(c*rim*(.7+.3*core),rim*(.75+.25*core));}'});
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(1.7,64),sw);disc.position.set(0,2.0,0);m.add(disc);
+  const back=new THREE.Mesh(new THREE.CircleGeometry(1.75,48),mat('#08000f',{roughness:1}));back.position.set(0,2.0,-.04);m.add(back);
+  const rings=[];for(let i=0;i<3;i++){const rg=new THREE.Mesh(TOR(1.8+i*.14,.05-i*.012),glow(i?'#ff3a8a':'#b44aff',3));rg.position.set(0,2.0,0);m.add(rg);rings.push(rg)}
+  const arc=mat('#241438',{metalness:.7,roughness:.35});m.add(cyl(arc,0,.12,0,1.5,.24));for(const sx of[-1,1])m.add(box(arc,sx*1.95,1.0,0,.28,2.0,.4));
+  const disp=new THREE.MeshStandardMaterial({color:'#000',emissive:'#ffffff',emissiveIntensity:2.4,emissiveMap:nixieTex('2026')});
+  m.add(box(arc,0,4.28,0,1.6,.6,.3));const dsp=box(disp,0,4.28,.16,1.3,.42,.02,false);m.add(dsp);m.userData.disp=disp;
+  const light=new THREE.PointLight('#b44aff',12,10,1.6);light.position.set(0,2,1.6);m.add(light);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:softTex,color:'#b44aff',transparent:true,opacity:.15,blending:THREE.AdditiveBlending,depthWrite:false}));halo.position.set(0,2,.5);halo.scale.set(6,6,1);m.add(halo);
+  const pad=new THREE.Mesh(geo('padring2',()=>new THREE.RingGeometry(1.5,1.75,48)),addMat('#b44aff',.5));pad.rotation.x=-Math.PI/2;pad.position.y=.03;m.add(pad);
+  const sparks=[];for(let i=0;i<14;i++){const s=sph(glow(i%2?'#ff5aa8':'#c88aff',4),0,2,0,.07,false);m.add(s);sparks.push(s)}
+  WD.anim.push(t=>{U.t.value=t;rings[0].rotation.set(0,0,t*.9);rings[1].rotation.set(0,0,-t*.6);rings[2].rotation.set(0,0,t*.35);pad.material.opacity=.3+Math.sin(t*2)*.15;halo.material.opacity=.14+Math.sin(t*3)*.05;
+    sparks.forEach((s,i)=>{const a=t*(.9+i*.04)+i*.45,r=.35+((t*.25+i/14)%1)*1.35;s.position.set(Math.cos(a)*r,2+Math.sin(a)*r,.05);s.scale.setScalar(1-(r-.35)/1.5)})});
+  g.add(m);return m;
+}
 function buildMachine(g,x){
+  if(typeof DU!=='undefined'&&DU.on&&DU.hunter)return buildVortex(g,x);
   const m=new THREE.Group();m.position.set(x,0,-4.2);
   const brass=mat('#c9a24a',{metalness:.95,roughness:.22}),bak=mat('#1d1712',{roughness:.45,metalness:.15}),dark=mat('#0e0a08',{roughness:.6});
   m.add(cyl(brass,0,.12,0,1.25,.24));m.add(cyl(bak,0,.3,0,1.1,.16));
