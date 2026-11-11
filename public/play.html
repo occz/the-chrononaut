@@ -274,7 +274,9 @@ h1,h2,h3{font-weight:400;margin:0}
     <div class="eyebrow">CHRONO·CABIN MOD.8</div>
     <h1 class="logo">The Chrononaut</h1>
     <p class="lore">History has holes, and you are the patch. Every era hides one event that must happen, Time Hunters are out to stop you, and at the end of the line waits the Time Lord. Beat him, and all of time is yours.</p>
-    <div class="center"><button class="btn" id="start">BEGIN</button><button class="btn ghost" id="duelBtn">ONLINE DUEL</button></div>
+    <div class="center"><button class="btn" id="start">CAMPAIGN</button></div>
+    <div class="center"><button class="btn ghost" id="soloHunter">HUNTER MODE</button><button class="btn ghost" id="duelBtn">ONLINE DUEL</button></div>
+    <p class="controls" style="margin-top:14px"><b>Campaign:</b> patch history · <b>Hunter mode:</b> chase an endless line of Chrononauts · <b>Online duel:</b> you vs a friend</p>
   </div>
 </div>
 
@@ -1188,6 +1190,7 @@ function genWorld(year){
     if(RELIC[year]&&!G.relics[year])placeRelic(r);
     if(activeRepair())placeRepair(r);
     placeSeeds();
+    placeGuardian(year);
     if(year===NX)spawnMerchant();
   }
   setMachineYear(year);
@@ -1284,8 +1287,8 @@ function updateLabels(dt){
   for(const n of WD.npcs){
     if(n.bt>0&&n.bubble&&!n.dying){n.bt-=dt;if(!n.bd){n.bd=document.createElement('div');n.bd.className='bubble'+(n.kind==='hunter'?' h':n.kind==='lord'?' l':'');LBL.appendChild(n.bd)}n.bd.textContent=n.bubble;const p=project(n.x,2.5*(n.k||1)+.3,n.z);n.bd.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;n.bd.hidden=p.behind}
     else if(n.bd){n.bd.remove();n.bd=null}
-    if((n.kind==='hunter'||n.peer)&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
-      const p=project(n.x,2.35,n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
+    if((n.kind==='hunter'||n.peer||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile))&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
+      const p=project(n.x,2.35*(n.k||1),n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
     else if(n.hd){n.hd.remove();n.hd=null}
   }
 }
@@ -1392,7 +1395,7 @@ function streamCitizens(dt){
   for(const c of WD.npcs){if(c.kind!=='citizen'||c.dying)continue;if(!c.hostile&&!(c.flee>0)&&Math.abs(c.x-camX)>75){c.dying=.01;continue}n++}
   if(n<target){const side=Math.random()<.5?-1:1;spawnCitizen(Math.random,camX+side*(22+Math.random()*12))}
 }
-function addNpc(o){const k=o.k||1;const rig=(WD.year===-66000000&&o.kind==='citizen')?makeDinoRig(o.fit):makeRig(o.fit,k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
+function addNpc(o){const k=o.k||1;const dino=WD.year===-66000000&&(o.kind==='citizen'||o.kind==='guardian'),rig=dino?makeDinoRig(o.fit):makeRig(o.fit,k);if(dino&&k>1)rig.g.scale.setScalar(k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
   const n={tx:o.x,tz:o.z,wait:Math.random()*3,moving:false,hostile:false,atkCd:.8,wind:0,swind:0,kbx:0,kbz:0,hitT:0,dying:0,calmT:0,flee:0,bt:0,bubble:'',talkCd:3+Math.random()*6,maxHp:o.hp,...o,rig,k,ang:0};
   WD.npcs.push(n);return n}
 function spawnMerchant(){const n=addNpc({kind:'merchant',fit:MERCHANT_FIT,x:WD.land.x,z:ZMIN-.4,hp:999,sp:0});n.rig.g.rotation.y=0;n.bubble='Coins for power, traveler.';n.bt=4;WD.merchant=n}
@@ -1415,17 +1418,20 @@ function spawnHunter(p){
 function hurtNpc(n,dmg,dx,dz){
   if(n.peer){floatText(n.x,2.2,n.z,String(Math.max(1,Math.round(dmg))),'#fff6d8');SFX.hit();hitStop=.045;burst(n.x,1.3,n.z,'#ffffff',8,3,.25);duelSend({t:'hit',d:Math.max(1,Math.round(dmg)),x:ch.x,z:ch.z});return}
   n.hp-=dmg;n.hitT=.15;hitStop=.045;shk=Math.max(shk,.25);floatText(n.x,2.2*(n.k||1),n.z,String(dmg),'#fff6d8');SFX.hit();
-  const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
+  const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:n.kind==='guardian'?1.4:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
   burst(n.x,1.3*(n.k||1),n.z,'#ffffff',6,3,.25);
   if(n.kind==='citizen'){
     if(!n.hostile){n.bubble=pick(Math.random,['Hey!',"You'll regret that!",'Help!']);n.bt=1.5;
       WD.npcs.forEach(o=>{if(o!==n&&o.kind==='citizen'&&!o.dying&&!o.hostile&&Math.abs(o.x-n.x)<10){if(Math.random()<.6){o.hostile=true;o.calmT=12;o.bubble='Leave them alone!';o.bt=1.5}else{o.flee=3;o.bubble='Run!';o.bt=1.2}}})}
     n.hostile=true;n.calmT=10;n.wind=0;n.atkCd=Math.max(n.atkCd,.45);
   }
+  if(n.kind==='guardian'&&!n.hostile&&n.hp>0){n.hostile=true;n.calmT=6;n.wind=0;n.bubble=pick(Math.random,['You dare?','Then face me!','So be it.']);n.bt=2}
   if(n.hp<=0)killNpc(n);
 }
 function killNpc(n){
   if(n.kind==='lord')return lordDown(n);
+  if(n.kind==='guardian')return guardianDown(n);
+  if(n.kind==='cbot')return botDown(n);
   n.dying=.5;n.hostile=false;n.wind=0;burst(n.x,1.2,n.z,n.kind==='hunter'?'#b44aff':'#7fd8e6',30,5,.4);
   const hunter=n.kind==='hunter',total=Math.round((hunter?(n.elite?2:1)*(20+(Math.random()*11|0)):5+(Math.random()*8|0))*ch.coinK),k=hunter?4:2+(Math.random()*2|0);
   for(let i=0;i<k;i++)dropCoin(n.x+(Math.random()-.5)*1.4,clamp(n.z+(Math.random()-.5)*1.2,ZMIN,ZMAX),Math.max(1,Math.round(total/k)));
@@ -1438,7 +1444,7 @@ function dropCoin(x,z,v){const m=new THREE.Mesh(geo('coin',()=>{const g=new THRE
 function hurtPlayer(dmg,src){
   if(ch.inv>0||G.over)return;dmg=Math.max(1,Math.round(dmg*ch.armor));ch.hp-=dmg;ch.inv=.4;ch.regenWait=6;ch.hurtT=.25;hitStop=.07;shk=Math.max(shk,.6);floatText(ch.x,2.4,ch.z,'-'+dmg,'#ff6b5a');redT=Math.max(redT,.35);SFX.hurt();
   const dx=ch.x-src.x,dz=ch.z-src.z,l=Math.hypot(dx,dz)||1;ch.kbx=dx/l*7;ch.kbz=dz/l*7;
-  if(src.kind==='hunter'&&ch.carry&&missionOpen(G.cur)){setCarry(false);dropItem('item',ch.x+dx/l*2.5,clamp(ch.z+dz/l*1.5,ZMIN,ZMAX));toast(`A Hunter knocked ${artItem()} out of your hands!`,true)}
+  if((src.kind==='hunter'||src.kind==='cbot'||src.kind==='guardian')&&ch.carry&&missionOpen(G.cur)){setCarry(false);dropItem('item',ch.x+dx/l*2.5,clamp(ch.z+dz/l*1.5,ZMIN,ZMAX));toast(`A Hunter knocked ${artItem()} out of your hands!`,true)}
   if(ch.hp<=0)knockout();
 }
 function artItem(){return'the '+ERA[G.cur].mission.item}
@@ -1460,8 +1466,8 @@ function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.
 function playerAttack(){
   if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
-  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer)return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
-    if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
+  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer&&n.kind!=='guardian'&&n.kind!=='cbot')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
+    if((n.kind==='hunter'||n.kind==='cbot')&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
       n.dodgeCd=2.6;n.atkCd=.2;n.lunge=0;n.retreat=0;floatText(ch.x,2.6,ch.z,'DODGED','#d8a0ff');beep(1000,.05);return}
     hurtNpc(n,ch.dmg+(Math.random()*8-4|0),dx,dz)});
 }
@@ -1491,18 +1497,19 @@ function updateCombat(dt){
     if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
     if(n.hostile){
-      const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=1.5,H_=n.kind==='hunter';
+      const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=n.reach||1.5,H_=n.kind==='hunter'||n.kind==='cbot'||n.kind==='guardian';
       if(n.kind==='citizen'){n.calmT-=dt;if(n.calmT<=0&&d>12){n.hostile=false;n.bubble='Hmph.';n.bt=1.2;n.tx=n.x;n.tz=n.z;continue}}
+      if(n.kind==='guardian'){if(d>16){n.calmT-=dt;if(n.calmT<=0){n.hostile=false;n.hp=n.maxHp;n.wind=0;n.lunge=0;n.moving=false;n.bubble='...';n.bt=1.5;continue}}else n.calmT=6}
       n.ang=Math.atan2(dx,dz);
-      if(n.wind>0){n.wind-=dt;n.moving=false;if(n.wind<=0){n.strikeT=.18;n.atkCd=H_?.55:1.1;if(H_)n.retreat=.3;slash(n.x+dx/d*.6,n.z+dz/d*.6,n.ang,H_?'#d05aff':'#ffffff',1.3);if(d<reach+.5)hurtPlayer(H_?24+4*dTier():12+dTier(),n)}continue}
+      if(n.wind>0){n.wind-=dt;n.moving=false;if(n.wind<=0){n.strikeT=.18;n.atkCd=n.atkT||(H_?.55:1.1);if(H_&&!n.guard)n.retreat=.3;slash(n.x+dx/d*.6,n.z+dz/d*.6,n.ang,n.kind==='guardian'?'#ffd24a':n.kind==='cbot'?'#8ad8ff':H_?'#d05aff':'#ffffff',1.3);if(d<reach+.5)hurtPlayer(n.dm||(H_?24+4*dTier():12+dTier()),n)}continue}
       if(H_){n.shootCd-=dt;n.lungeCd-=dt;n.dodgeCd-=dt;
-        if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,14+2*dTier());SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
+        if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,n.shd||(14+2*dTier()));SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
         if(n.retreat>0){n.retreat-=dt;n.x=n.x-dx/d*5*dt;n.z=clamp(n.z-dz/d*5*dt,ZMIN,ZMAX);n.moving=true;continue}
         if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt*(n.slow>0?.5:1);n.z=clamp(n.z+n.lz*14*dt*(n.slow>0?.5:1),ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
         if(d>4&&n.shootCd<=0){n.swind=.4;n.burst=1+(dTier()>=1?1:0);n.shootCd=1.6+Math.random()*.9;continue}
         if(d>reach&&d<6&&n.lungeCd<=0){n.lunge=.24;n.lx=dx/d;n.lz=dz/d;n.lungeCd=1.7+Math.random();continue}}
-      if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=H_?.22:.38;continue}
-      const sp=(H_?4.4:2.4)*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
+      if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=n.windT||(H_?.22:.38);continue}
+      const sp=(n.spd||(H_?4.4:2.4))*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
       n.x=n.x+ex/el*sp;n.z=clamp(n.z+ez/el*sp,ZMIN,ZMAX);n.moving=true;
     }else if(n.flee>0){n.flee-=dt;const dir=n.x<ch.x?-1:1;n.x=n.x+dir*4*dt;n.ang=dir*Math.PI/2;n.moving=true;n.tx=n.x;n.tz=n.z}
   }
@@ -1513,17 +1520,18 @@ function updateCombat(dt){
 function updateNpcs(dt,live){
   for(const n of WD.npcs){
     if(n.dying){n.dying-=dt;animRig(n.rig,dt,{dead:Math.max(0,n.dying)});n.rig.g.position.set(n.x,0,n.z);if(n.dying<=0){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null}continue}
-    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&!n.peer){
+    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&n.kind!=='guardian'&&!n.peer){
       n.wait-=dt;const dx=n.tx-n.x,dz=n.tz-n.z,d=Math.hypot(dx,dz);
       if(n.wait>0||d<.2){n.moving=false;if(n.wait<=0){n.wait=1+Math.random()*4;n.tx=clamp(n.x+(Math.random()-.5)*16,-L+3,L-3);n.tz=ZMIN+Math.random()*(ZMAX-ZMIN)}}
       else{const sp=n.sp*dt;n.x+=dx/d*sp;n.z+=dz/d*sp;n.ang=Math.atan2(dx,dz);n.moving=true;if(d<.3)n.wait=1+Math.random()*4}
       if(mode==='play'&&n.kind==='citizen'){n.talkCd-=dt;if(n.talkCd<=0&&Math.hypot(n.x-ch.x,n.z-ch.z)<3){n.bubble=pick(Math.random,ERA[WD.year].talk);n.bt=2.4;n.talkCd=10+Math.random()*10;n.ang=Math.atan2(ch.x-n.x,ch.z-n.z)}}
     }
     if(n.kind==='merchant'){n.ang=Math.atan2(ch.x-n.x,ch.z-n.z)*.4}
+    if(n.kind==='guardian'&&!n.hostile){const gd=Math.hypot(n.x-ch.x,n.z-ch.z);n.moving=false;if(gd<7){n.ang=Math.atan2(ch.x-n.x,ch.z-n.z);if(!n.greeted){n.greeted=true;n.bubble=n.greet;n.bt=4}}}
     // soft separation from player
     const sx=n.x-ch.x,sz=n.z-ch.z,sd=Math.hypot(sx,sz);if(sd<.7&&sd>0&&n.kind!=='merchant'){n.x+=sx/sd*(.7-sd)*.5;n.z=clamp(n.z+sz/sd*(.7-sd)*.5,ZMIN,ZMAX)}
     n.rig.g.position.set(n.x,0,n.z);faceTo(n.rig,n.ang,dt,10);
-    animRig(n.rig,dt,{moving:n.moving,speed:n.kind==='hunter'?1.4:1,swing:n.strikeT>0?n.strikeT:0,wind:n.wind>0||n.swind>0?1:0,hurt:n.hitT});
+    animRig(n.rig,dt,{moving:n.moving,speed:n.kind==='hunter'||n.kind==='cbot'?1.4:1,swing:n.strikeT>0?n.strikeT:0,wind:n.wind>0||n.swind>0?1:0,hurt:n.hitT});
     if(n.hitT>0)n.rig.g.position.y=.05;
   }
   WD.npcs=WD.npcs.filter(n=>!(n.dying&&n.dying<=0));
@@ -1700,7 +1708,7 @@ function refreshGearVisual(){
 const ELEM={past:{n:'Past',c:'#e8b865'},future:{n:'Future',c:'#5ff5d6'},void:{n:'Void',c:'#b44aff'},ember:{n:'Ember',c:'#ff7a3a'},storm:{n:'Storm',c:'#ffe45a'},echo:{n:'Echo',c:'#7ad0ff'}};
 const ELKEYS=Object.keys(ELEM);
 const MAGIC={cd:[0,0],cdMax:[1,1],haste:0,proj:[],fx:[],tm:[],wells:[],blades:null,ward:null,sparkT:0,warnT:0,forge:[],forgeMsg:''};
-const isFoe=n=>!n.dying&&(n.peer||n.kind==='hunter'||n.kind==='lord'||(n.kind==='citizen'&&!(DU.on&&DU.hunter)));
+const isFoe=n=>!n.dying&&(n.peer||n.kind==='hunter'||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile)||n.kind==='lord'||(n.kind==='citizen'&&!(DU.on&&DU.hunter)));
 const foesIn=(x,z,r)=>WD.npcs.filter(n=>isFoe(n)&&Math.hypot(n.x-x,n.z-z)<=r+(n.kind==='lord'?1:0));
 const pw=id=>1+.3*((G.spells[id]||1)-1);
 function hitFoe(n,dmg,fx,fz){if(n.dying)return;hurtNpc(n,Math.max(1,Math.round(dmg)),n.x-fx,n.z-fz)}
@@ -1898,7 +1906,7 @@ function fuse(){
   SFX.ok();$('sCoins').textContent=G.coins;renderForge();
 }
 /* ================= online duel: Chrononaut vs Time Hunter (2 players, WebSocket relay) ================= */
-const DU={on:false,role:null,hunter:false,ws:null,room:'',host:false,started:false,over:false,seed:0,goal:5,peer:null,peerY:null,range:null,trail:[],sendT:0,pingI:0,tight:null,clue:null};
+const DU={on:false,solo:false,kills:0,role:null,hunter:false,ws:null,room:'',host:false,started:false,over:false,seed:0,goal:5,peer:null,peerY:null,range:null,trail:[],sendT:0,pingI:0,tight:null,clue:null};
 const DUEL_URL='https://the-chrononaut.causal-line.workers.dev/play.html';
 const duelCan=()=>location.protocol.startsWith('http')&&!/claude|anthropic/i.test(location.hostname);
 const duelSend=o=>{if(DU.ws&&DU.ws.readyState===1)try{DU.ws.send(JSON.stringify(o))}catch(e){}};
@@ -1941,11 +1949,12 @@ function duelStart(seed){
 }
 function duelStats(){if(DU.on&&DU.hunter){ch.maxHp=200;ch.dmg=24;ch.spd=1.1;ch.maxMana=999;ch.coinK=0;ch.hp=Math.min(ch.hp,ch.maxHp)}}
 function duelHunterInit(){
-  PSUIT=HUNTER_FIT;buildPlayer();G.timeline=[...YEARS];G.timeline.forEach(y=>{if(hasM(y))G.status[y]='done'});G.tier=99;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;
-  $('mute').hidden=false;arrive(TH,true);
+  PSUIT=HUNTER_FIT;buildPlayer();G.timeline=[...YEARS];G.timeline.forEach(y=>{if(hasM(y))G.status[y]='done'});G.tier=2;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;
+  if(DU.solo)soloNewTarget(true);
+  arrive(TH,true);
 }
 function duelKnockout(){
-  if(DU.hunter){duelSend({t:'ko'});ch.hp=ch.maxHp;ch.inv=2;toast('You were beaten. Regrouping at HQ...',true);travel(TH);return}
+  if(DU.hunter){duelSend({t:'ko'});if(DU.solo)BOT.power+=.1;ch.hp=ch.maxHp;ch.inv=2;toast('You were beaten. Regrouping at HQ...',true);travel(TH);return}
   duelSend({t:'end',runnerWon:false});duelFinish(false,'The Hunter caught you. History is unwritten.');
 }
 function duelWin(){duelSend({t:'end',runnerWon:true});duelFinish(true,'You patched enough of history. The Hunter never found you in time.')}
@@ -1969,11 +1978,12 @@ function duelPeerState(m){
   DU.peer={...m,at:Date.now()};
   if(DU.hunter&&DU.peerY!==m.y){DU.peerY=m.y;DU.tight=null;const idx=YEARS.indexOf(m.y);
     if(idx<0)DU.range={lost:true};
-    else{const w=()=>Math.max(0,1+((Math.random()*4)|0)-((m.m||0)>>1));DU.range={lo:Math.max(0,idx-w()),hi:Math.min(YEARS.length-1,idx+w()),idx}}}
+    else{const w=()=>Math.max(DU.solo?1:0,1+((Math.random()*4)|0)-((m.m||0)>>1));DU.range={lo:Math.max(0,idx-w()),hi:Math.min(YEARS.length-1,idx+w()),idx}}}
 }
 function duelTick(dt){
   if(!G||!WD||DU.over)return;
   const t=performance.now();
+  if(DU.solo){soloTick(dt);if(DU.hunter){ch.mana=ch.maxMana;duelClock();duelClueTick()}return}
   if(!trav&&t-DU.sendT>66){DU.sendT=t;duelSend({t:'s',y:G.cur,x:+ch.x.toFixed(2),z:+ch.z.toFixed(2),fx:+ch.fx.toFixed(2),fz:+ch.fz.toFixed(2),mv:ch.moving?1:0,sw:ch.swing>0?1:0,hp:Math.round(ch.hp),mh:ch.maxHp,m:G.missions||0})}
   if(DU.hunter){ch.mana=ch.maxMana;duelClock();duelClueTick()}
   /* puppet of the other player */
@@ -1984,7 +1994,8 @@ function duelTick(dt){
   if(n){const k=1-Math.pow(.0005,dt);n.x=lerp(n.x,P.x,k);n.z=lerp(n.z,P.z,k);n.ang=Math.atan2(P.fx,P.fz);n.moving=!!P.mv;n.hp=P.hp;n.maxHp=P.mh;n.strikeT=Math.max(0,(n.strikeT||0)-dt);if(P.sw&&!n.swPrev)n.strikeT=.18;n.swPrev=P.sw}
 }
 function duelObj(){
-  if(G.cur===TH)return'<span>Use the machine to jump into history. Read the clock.</span>';
+  if(DU.solo&&BOT.npc&&!BOT.npc.dying)return`<span>Eliminate Chrononaut ${BOT.n}!</span>`;
+  if(G.cur===TH)return DU.solo?`<span>Rank ${RANKS[rankOf(DU.kills)][0]} · ${DU.kills} down. Use the machine to hunt.</span>`:'<span>Use the machine to jump into history. Read the clock.</span>';
   if(WD.clue)return'<span>Temporal residue nearby. Follow the arrow.</span>';
   if(WD.puppet)return'<span>Eliminate the Chrononaut!</span>';
   return'<span>No trace here. Check the clock, then jump.</span>';
@@ -1996,7 +2007,7 @@ function duelClock(){
   else if(R.lost){txt='SIGNAL LOST';sub='He is out of reach, in the Nexus'}
   else{lo=R.lo;hi=R.hi;if(here||(DU.tight&&DU.tight.y===DU.peerY&&Date.now()<DU.tight.until)){lo=hi=R.idx}
     txt=lo===hi?`${fy(YEARS[lo])} · ${ERA[YEARS[lo]].name}`:`${fy(YEARS[lo])}  to  ${fy(YEARS[hi])}`;
-    sub=`${hi-lo+1} era${hi===lo?'':'s'} · he has fixed ${P?P.m||0:0}/${DU.goal}`}
+    sub=DU.solo?`${hi-lo+1} era${hi===lo?'':'s'} · ${BOT.n} · level ${BOT.lvl+1} · rank ${RANKS[rankOf(DU.kills)][0]}`:`${hi-lo+1} era${hi===lo?'':'s'} · he has fixed ${P?P.m||0:0}/${DU.goal}`}
   const me=YEARS.indexOf(G.cur);key=[lo,hi,me,txt,sub].join('|');if(key===DU.ck)return;DU.ck=key;
   $('hcBar').innerHTML=YEARS.map((y,i)=>`<i class="${i>=lo&&i<=hi&&lo>=0?'on':''} ${i===me?'me':''}" title="${fy(y)}"></i>`).join('');$('hcTxt').textContent=txt;$('hcSub').textContent=sub;
 }
@@ -2025,6 +2036,86 @@ function duelClueTick(){
   else{toast(`Residue: the Chrononaut jumped to ${fy(to)}, ${ERA[to].name}, ${age}s ago.`,true);if(DU.peerY===to)DU.tight={y:to,until:Date.now()+25000}}
 }
 
+/* ================= era guardians (all modes) ================= */
+const GUARD_LINES=["I guard this age. Leave me be.","This era is not yours to take.","Walk on, traveler. I will not stop you.","Every age has a keeper. I am this one's."];
+function placeGuardian(year){
+  if(!G||!G.guards||G.guards[year]||year===NX||year===TH||!ERA[year])return;
+  const lk=ERA[year].look,acc=lk.lamps||(lk.sun&&lk.sun[0])||'#ffd27a',r=Math.random;
+  let x;for(let i=0;i<20;i++){x=WD.mx+(r()<.5?-1:1)*(16+r()*20);if(Math.abs(x-WD.land.x)>9)break}
+  const fit={coat:'#26262e',pants:'#16161c',skin:pick(r,['#b89a80','#8a6a50','#d8b898','#6a4a38']),hair:'#1a1410',hat:'visor',hatC:acc,hood:'#1c1c24',cape:acc,belt:acc,scarf:acc,boots:'#101014'};
+  const n=addNpc({kind:'guardian',guard:true,fit,k:WD.year===-66000000?2.3:1.55,x,z:ZMIN+3+r()*(ZMAX-ZMIN-5),hp:430,sp:0});
+  n.maxHp=n.hp;n.greet=pick(r,GUARD_LINES);n.reach=2.5;n.spd=3.3;n.dm=30;n.windT=.5;n.atkT=1.3;
+  Object.assign(n,{shootCd:999,lungeCd:2.5+r()*2,dodgeCd:99,retreat:0,burst:0,lunge:0,lx:0,lz:0,swind:0,calmT:6});
+  WD.guardian=n;
+}
+function guardianDown(n){
+  n.dying=.7;n.hostile=false;n.wind=0;burst(n.x,1.6,n.z,'#ffd24a',70,7,.6);G.guards[WD.year]=true;G.score+=150;
+  const c=Math.round((60+Math.random()*30)*(ch.coinK||1));for(let i=0;i<5;i++)dropCoin(n.x+(Math.random()-.5)*2,clamp(n.z+(Math.random()-.5)*1.6,ZMIN,ZMAX),Math.round(c/5));
+  const rar=Math.random()<.1?4:Math.random()<.38?3:2,g=genGear(null,rar),nm=ERA[WD.year].name.replace(/^The /,'');g.name=`${nm} ${g.name.split(' ').slice(1).join(' ')}`;g.src=nm;
+  dropGear(g,n.x,clamp(n.z+.4,ZMIN,ZMAX));toast(`The Guardian of ${nm} falls. It leaves: ${g.name}`);SFX.ok();GU.uFlash.value=.3;
+}
+
+/* ================= Hunter solo: chase an endless line of AI Chrononauts ================= */
+const RANKS=[['Recruit',0],['Tracker',1],['Hunter',2],['Stalker',4],['Elite Hunter',6],['Master Hunter',9],['Time Marshal',13],['Time Lord',18]];
+const BOT_NAMES=['Ada','Kairos','Mara','Jonas','Idris','Lena','Orion','Vesper','Tomas','Yuki','Silas','Noor'];
+const BOT_COATS=['#3a5a3a','#5a3a3a','#3a3a6a','#6a5a2a','#4a3a5a','#2a5a5a'];
+const BOT={on:false,n:null,y:2026,m:0,lvl:0,t0:0,hpf:1,npc:null,stay:0,mt:0,lt:0,gone:0,respawn:0,power:1,id:0};
+const rankOf=k=>{let r=0;RANKS.forEach((q,i)=>{if(k>=q[1])r=i});return r};
+function soloStart(){
+  audio();Object.assign(DU,{on:true,solo:true,role:'hunter',hunter:true,started:true,over:false,seed:0,peer:null,peerY:null,range:null,trail:[],tight:null,clue:null,kills:0});
+  $('title').hidden=true;newGame();toast('Hunter mode. Track down the Chrononaut. Another one appears after every kill.')
+}
+function soloNewTarget(first){
+  const eras=YEARS.filter(y=>y!==G.cur);BOT.id++;
+  Object.assign(BOT,{on:true,n:pick(Math.random,BOT_NAMES),y:pick(Math.random,eras),m:0,lvl:0,t0:Date.now(),hpf:1,npc:null,stay:15+Math.random()*15,mt:0,lt:0,gone:0,respawn:0,power:1+.28*DU.kills});
+  DU.trail=[];DU.peer=null;DU.peerY=null;DU.range=null;DU.tight=null;botMove(BOT.y,true);
+  if(!first)toast(`New signature detected: Chrononaut ${BOT.n}. Rank ${RANKS[rankOf(DU.kills)][0]}.`,true)
+}
+function botPower(){return BOT.power*(1+Math.min(1.6,BOT.lvl*.22))}
+function botMove(to,silent){
+  if(!silent&&BOT.y!=null)DU.trail.push({from:BOT.y,to,at:Date.now(),found:false});
+  BOT.y=to;BOT.stay=18+Math.random()*22;BOT.gone=0;duelPeerState({y:BOT.y,m:BOT.m});
+}
+function soloTick(dt){
+  if(!BOT.on||!G||G.over)return;
+  const now=Date.now(),el=(now-BOT.t0)/1000;
+  DU.peer={y:BOT.y,m:BOT.m,at:now};
+  if(trav)return;
+  /* the Chrononaut keeps progressing while you search */
+  const lvl=Math.floor(el/45);if(lvl>BOT.lvl){BOT.lvl=lvl;BOT.m=lvl*2;toast(`Chrononaut ${BOT.n} grows stronger (level ${lvl+1}).`,true);if(BOT.y!==G.cur)duelPeerState({y:BOT.y,m:BOT.m})}
+  const fighting=BOT.npc&&!BOT.npc.dying;
+  if(!fighting&&G.cur!==TH&&BOT.y===G.cur){/* he is here: spawn him */
+    if(G.cur!==NX){const r=Math.random,sx=r()<.5?-1:1;const n=addNpc({kind:'cbot',fit:{coat:pick(r,BOT_COATS),pants:'#1e2530',skin:pick(r,NPC_SKIN),hair:pick(r,NPC_HAIR),scarf:pick(r,['#b8452e','#2e8ab8','#8ab82e','#b82e8a']),goggles:true,belt:'#c9a24a',boots:'#2a1a10',hat:'none'},x:clamp(ch.x+sx*(9+r()*4),-L+3,L-3),z:ZMIN+3+r()*(ZMAX-ZMIN-5),hp:1,sp:0,hostile:true});
+      const P=botPower();n.maxHp=Math.round(110*P);n.hp=Math.max(8,Math.round(BOT.hpf*n.maxHp));n.dm=Math.round(10+7*P);n.shd=Math.round(8+3*P);n.spd=Math.min(6.2,3.6+.55*P);n.windT=Math.max(.14,.3-.03*P);n.atkT=Math.max(.35,.85-.1*P);n.guard=false;
+      Object.assign(n,{shootCd:2+Math.random()*2,dodgeCd:1.2,retreat:0,burst:0,lunge:0,lx:0,lz:0,swind:0,lungeCd:1.5,wait:0,fleeCd:3+Math.random()*3});
+      n.bubble=`${BOT.n}: You found me.`;n.bt=2.4;BOT.npc=n;burst(n.x,1.4,n.z,'#8ad8ff',40,6,.5);toast(`Chrononaut ${BOT.n} located!`,true);SFX.ok()}
+  }else if(fighting&&BOT.y!==G.cur){BOT.hpf=BOT.npc.hp/BOT.npc.maxHp;WD.group.remove(BOT.npc.rig.g);if(BOT.npc.bd)BOT.npc.bd.remove();if(BOT.npc.hd)BOT.npc.hd.remove();BOT.npc.bd=BOT.npc.hd=null;WD.npcs=WD.npcs.filter(q=>q!==BOT.npc);BOT.npc=null}
+  if(BOT.npc&&BOT.npc.dying)BOT.npc=null;
+  /* regenerate slowly */
+  if(!BOT.npc&&BOT.hpf<1)BOT.hpf=Math.min(1,BOT.hpf+dt*.012);
+  const npc=BOT.npc;
+  if(npc&&!npc.dying){
+    npc.fleeCd-=dt;
+    if(npc.hp<npc.maxHp*.27&&npc.fleeCd<=0&&Math.random()<dt*.5){/* badly hurt: jump away */
+      BOT.hpf=npc.hp/npc.maxHp;burst(npc.x,1.4,npc.z,'#8ad8ff',50,6,.5);floatText(npc.x,2.6,npc.z,'ESCAPED','#8ad8ff');SFX.whoosh();
+      WD.group.remove(npc.rig.g);if(npc.bd)npc.bd.remove();if(npc.hd)npc.hd.remove();npc.bd=npc.hd=null;WD.npcs=WD.npcs.filter(q=>q!==npc);BOT.npc=null;
+      let to=pick(Math.random,YEARS.filter(y=>y!==G.cur));botMove(to);toast(`${BOT.n} jumped away, wounded. Find the residue.`,true)}
+  }else if(BOT.y!==G.cur){
+    BOT.stay-=dt;if(BOT.stay<=0){
+      let to=Math.random()<.12?NX:pick(Math.random,YEARS.filter(y=>y!==BOT.y));
+      botMove(to);if(to===G.cur){toast(`Chrononaut ${BOT.n} jumps into this era!`,true)}}
+  }
+}
+function botDown(n){
+  n.dying=.6;n.hostile=false;n.wind=0;burst(n.x,1.3,n.z,'#8ad8ff',50,6,.5);BOT.npc=null;BOT.on=false;
+  const before=rankOf(DU.kills);DU.kills++;const after=rankOf(DU.kills);G.score+=100*(1+after);G.tier=2+after;stats();
+  const c=Math.round((40+Math.random()*30)*(1+.2*after));for(let i=0;i<4;i++)dropCoin(n.x+(Math.random()-.5)*1.6,clamp(n.z+(Math.random()-.5)*1.2,ZMIN,ZMAX),Math.round(c/4));
+  const g=genGear(null,Math.max(1,rollRar(.5+.25*after)));dropGear(g,n.x,clamp(n.z+.4,ZMIN,ZMAX));burst(n.x,1.5,n.z,RAR[g.rar].c,24,4,.4);
+  toast(`Chrononaut ${BOT.n} eliminated! ${DU.kills} down.`);SFX.ok();
+  if(after>before)setTimeout(()=>toast(`RANK UP: ${RANKS[after][0]}`),1500);
+  setTimeout(()=>{if(DU.on&&DU.solo&&!DU.over)soloNewTarget(false)},3500);
+}
+
 /* ================= state ================= */
 let G=null,mode='title',T=0,camX=0,camZoom=1,trav=null;
 let panelOpen=false,briefOpen=false,miniOpen=false,shopOpen=false;
@@ -2045,7 +2136,7 @@ function stats(){
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,guards:{},hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
   bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
@@ -2544,7 +2635,8 @@ cv.addEventListener('pointerdown',e=>{
 const hold=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();audio();fn()});
 hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);hold('sp0',()=>castSpell(0));hold('sp1',()=>castSpell(1));
 $('mute').onclick=()=>{setMuted(!muted);if(!muted&&G)setAmbient(G.cur)};
-$('start').onclick=()=>{audio();newGame()};
+$('start').onclick=()=>{audio();DU.on=false;DU.solo=false;DU.hunter=false;newGame()};
+$('soloHunter').onclick=()=>soloStart();
 
 /* ================= main update ================= */
 function updatePlayer(dt){

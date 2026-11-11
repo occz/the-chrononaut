@@ -550,6 +550,7 @@ function genWorld(year){
     if(RELIC[year]&&!G.relics[year])placeRelic(r);
     if(activeRepair())placeRepair(r);
     placeSeeds();
+    placeGuardian(year);
     if(year===NX)spawnMerchant();
   }
   setMachineYear(year);

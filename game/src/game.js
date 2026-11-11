@@ -19,7 +19,7 @@ function stats(){
 
 function newGame(){
   G={timeline:[...TIERS[0],...TIERS[1],...TIERS[2]].sort((a,b)=>a-b),erased:[],status:{},timers:{},bonus:{},repairs:[],score:0,missions:0,repairsDone:0,tier:2,cur:2026,over:null,coins:0,heat:0,kills:0,hunters:0,
-    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
+    up:{mana:0,hp:0,dmg:0,spd:0,time:0,dash:0},relics:{},prev:2026,boss:null,sealed:false,free:false,seed:(DU.on&&DU.seed)?DU.seed:(Math.random()*1e6)|0,guards:{},hints:{},spells:{bolt:1},slots:[null,'bolt'],seeds:{past:0,future:0,void:0,ember:0,storm:0,echo:0},seedGot:{},fusions:0,bag:[],eq:{weapon:null,armor:null,boots:null,trinket:null}};
   bagSeen=0;invOpen=false;$('inv').hidden=true;PSUIT=SUIT;buildPlayer();$('bossbar').hidden=true;stats();ch.hp=ch.maxHp;ch.mana=ch.maxMana;spSel=null;MAGIC.forge=[];MAGIC.forgeMsg='';ch.inv=0;ch.carry=0;setCarry(false);
   G.timeline.filter(hasM).forEach(y=>G.status[y]='open');
   mode='play';$('title').hidden=true;$('end').hidden=true;$('hud').hidden=false;
@@ -518,7 +518,8 @@ cv.addEventListener('pointerdown',e=>{
 const hold=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();audio();fn()});
 hold('bHit',playerAttack);hold('bDash',playerDash);hold('bUse',interact);hold('sp0',()=>castSpell(0));hold('sp1',()=>castSpell(1));
 $('mute').onclick=()=>{setMuted(!muted);if(!muted&&G)setAmbient(G.cur)};
-$('start').onclick=()=>{audio();newGame()};
+$('start').onclick=()=>{audio();DU.on=false;DU.solo=false;DU.hunter=false;newGame()};
+$('soloHunter').onclick=()=>soloStart();
 
 /* ================= main update ================= */
 function updatePlayer(dt){

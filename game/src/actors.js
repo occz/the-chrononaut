@@ -90,8 +90,8 @@ function updateLabels(dt){
   for(const n of WD.npcs){
     if(n.bt>0&&n.bubble&&!n.dying){n.bt-=dt;if(!n.bd){n.bd=document.createElement('div');n.bd.className='bubble'+(n.kind==='hunter'?' h':n.kind==='lord'?' l':'');LBL.appendChild(n.bd)}n.bd.textContent=n.bubble;const p=project(n.x,2.5*(n.k||1)+.3,n.z);n.bd.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;n.bd.hidden=p.behind}
     else if(n.bd){n.bd.remove();n.bd=null}
-    if((n.kind==='hunter'||n.peer)&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
-      const p=project(n.x,2.35,n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
+    if((n.kind==='hunter'||n.peer||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile))&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
+      const p=project(n.x,2.35*(n.k||1),n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
     else if(n.hd){n.hd.remove();n.hd=null}
   }
 }
@@ -198,7 +198,7 @@ function streamCitizens(dt){
   for(const c of WD.npcs){if(c.kind!=='citizen'||c.dying)continue;if(!c.hostile&&!(c.flee>0)&&Math.abs(c.x-camX)>75){c.dying=.01;continue}n++}
   if(n<target){const side=Math.random()<.5?-1:1;spawnCitizen(Math.random,camX+side*(22+Math.random()*12))}
 }
-function addNpc(o){const k=o.k||1;const rig=(WD.year===-66000000&&o.kind==='citizen')?makeDinoRig(o.fit):makeRig(o.fit,k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
+function addNpc(o){const k=o.k||1;const dino=WD.year===-66000000&&(o.kind==='citizen'||o.kind==='guardian'),rig=dino?makeDinoRig(o.fit):makeRig(o.fit,k);if(dino&&k>1)rig.g.scale.setScalar(k);rig.g.position.set(o.x,0,o.z);WD.group.add(rig.g);
   const n={tx:o.x,tz:o.z,wait:Math.random()*3,moving:false,hostile:false,atkCd:.8,wind:0,swind:0,kbx:0,kbz:0,hitT:0,dying:0,calmT:0,flee:0,bt:0,bubble:'',talkCd:3+Math.random()*6,maxHp:o.hp,...o,rig,k,ang:0};
   WD.npcs.push(n);return n}
 function spawnMerchant(){const n=addNpc({kind:'merchant',fit:MERCHANT_FIT,x:WD.land.x,z:ZMIN-.4,hp:999,sp:0});n.rig.g.rotation.y=0;n.bubble='Coins for power, traveler.';n.bt=4;WD.merchant=n}
@@ -221,17 +221,20 @@ function spawnHunter(p){
 function hurtNpc(n,dmg,dx,dz){
   if(n.peer){floatText(n.x,2.2,n.z,String(Math.max(1,Math.round(dmg))),'#fff6d8');SFX.hit();hitStop=.045;burst(n.x,1.3,n.z,'#ffffff',8,3,.25);duelSend({t:'hit',d:Math.max(1,Math.round(dmg)),x:ch.x,z:ch.z});return}
   n.hp-=dmg;n.hitT=.15;hitStop=.045;shk=Math.max(shk,.25);floatText(n.x,2.2*(n.k||1),n.z,String(dmg),'#fff6d8');SFX.hit();
-  const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
+  const l=Math.hypot(dx,dz)||1,kb=n.kind==='citizen'?9:n.kind==='lord'?1.2:n.kind==='guardian'?1.4:4.5;n.kbx=dx/l*kb;n.kbz=dz/l*kb;
   burst(n.x,1.3*(n.k||1),n.z,'#ffffff',6,3,.25);
   if(n.kind==='citizen'){
     if(!n.hostile){n.bubble=pick(Math.random,['Hey!',"You'll regret that!",'Help!']);n.bt=1.5;
       WD.npcs.forEach(o=>{if(o!==n&&o.kind==='citizen'&&!o.dying&&!o.hostile&&Math.abs(o.x-n.x)<10){if(Math.random()<.6){o.hostile=true;o.calmT=12;o.bubble='Leave them alone!';o.bt=1.5}else{o.flee=3;o.bubble='Run!';o.bt=1.2}}})}
     n.hostile=true;n.calmT=10;n.wind=0;n.atkCd=Math.max(n.atkCd,.45);
   }
+  if(n.kind==='guardian'&&!n.hostile&&n.hp>0){n.hostile=true;n.calmT=6;n.wind=0;n.bubble=pick(Math.random,['You dare?','Then face me!','So be it.']);n.bt=2}
   if(n.hp<=0)killNpc(n);
 }
 function killNpc(n){
   if(n.kind==='lord')return lordDown(n);
+  if(n.kind==='guardian')return guardianDown(n);
+  if(n.kind==='cbot')return botDown(n);
   n.dying=.5;n.hostile=false;n.wind=0;burst(n.x,1.2,n.z,n.kind==='hunter'?'#b44aff':'#7fd8e6',30,5,.4);
   const hunter=n.kind==='hunter',total=Math.round((hunter?(n.elite?2:1)*(20+(Math.random()*11|0)):5+(Math.random()*8|0))*ch.coinK),k=hunter?4:2+(Math.random()*2|0);
   for(let i=0;i<k;i++)dropCoin(n.x+(Math.random()-.5)*1.4,clamp(n.z+(Math.random()-.5)*1.2,ZMIN,ZMAX),Math.max(1,Math.round(total/k)));
@@ -244,7 +247,7 @@ function dropCoin(x,z,v){const m=new THREE.Mesh(geo('coin',()=>{const g=new THRE
 function hurtPlayer(dmg,src){
   if(ch.inv>0||G.over)return;dmg=Math.max(1,Math.round(dmg*ch.armor));ch.hp-=dmg;ch.inv=.4;ch.regenWait=6;ch.hurtT=.25;hitStop=.07;shk=Math.max(shk,.6);floatText(ch.x,2.4,ch.z,'-'+dmg,'#ff6b5a');redT=Math.max(redT,.35);SFX.hurt();
   const dx=ch.x-src.x,dz=ch.z-src.z,l=Math.hypot(dx,dz)||1;ch.kbx=dx/l*7;ch.kbz=dz/l*7;
-  if(src.kind==='hunter'&&ch.carry&&missionOpen(G.cur)){setCarry(false);dropItem('item',ch.x+dx/l*2.5,clamp(ch.z+dz/l*1.5,ZMIN,ZMAX));toast(`A Hunter knocked ${artItem()} out of your hands!`,true)}
+  if((src.kind==='hunter'||src.kind==='cbot'||src.kind==='guardian')&&ch.carry&&missionOpen(G.cur)){setCarry(false);dropItem('item',ch.x+dx/l*2.5,clamp(ch.z+dz/l*1.5,ZMIN,ZMAX));toast(`A Hunter knocked ${artItem()} out of your hands!`,true)}
   if(ch.hp<=0)knockout();
 }
 function artItem(){return'the '+ERA[G.cur].mission.item}
@@ -266,8 +269,8 @@ function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.
 function playerAttack(){
   if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
-  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer)return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
-    if(n.kind==='hunter'&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
+  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer&&n.kind!=='guardian'&&n.kind!=='cbot')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
+    if((n.kind==='hunter'||n.kind==='cbot')&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
       n.dodgeCd=2.6;n.atkCd=.2;n.lunge=0;n.retreat=0;floatText(ch.x,2.6,ch.z,'DODGED','#d8a0ff');beep(1000,.05);return}
     hurtNpc(n,ch.dmg+(Math.random()*8-4|0),dx,dz)});
 }
@@ -297,18 +300,19 @@ function updateCombat(dt){
     if(n.slow>0)n.slow-=dt;if(n.frozen>0&&n.kind!=='lord'){n.frozen-=dt;n.moving=false;continue}
     if(n.kind==='lord'){updateLord(n,dt);continue}
     if(n.hostile){
-      const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=1.5,H_=n.kind==='hunter';
+      const dx=ch.x-n.x,dz=ch.z-n.z,d=Math.hypot(dx,dz)||1,reach=n.reach||1.5,H_=n.kind==='hunter'||n.kind==='cbot'||n.kind==='guardian';
       if(n.kind==='citizen'){n.calmT-=dt;if(n.calmT<=0&&d>12){n.hostile=false;n.bubble='Hmph.';n.bt=1.2;n.tx=n.x;n.tz=n.z;continue}}
+      if(n.kind==='guardian'){if(d>16){n.calmT-=dt;if(n.calmT<=0){n.hostile=false;n.hp=n.maxHp;n.wind=0;n.lunge=0;n.moving=false;n.bubble='...';n.bt=1.5;continue}}else n.calmT=6}
       n.ang=Math.atan2(dx,dz);
-      if(n.wind>0){n.wind-=dt;n.moving=false;if(n.wind<=0){n.strikeT=.18;n.atkCd=H_?.55:1.1;if(H_)n.retreat=.3;slash(n.x+dx/d*.6,n.z+dz/d*.6,n.ang,H_?'#d05aff':'#ffffff',1.3);if(d<reach+.5)hurtPlayer(H_?24+4*dTier():12+dTier(),n)}continue}
+      if(n.wind>0){n.wind-=dt;n.moving=false;if(n.wind<=0){n.strikeT=.18;n.atkCd=n.atkT||(H_?.55:1.1);if(H_&&!n.guard)n.retreat=.3;slash(n.x+dx/d*.6,n.z+dz/d*.6,n.ang,n.kind==='guardian'?'#ffd24a':n.kind==='cbot'?'#8ad8ff':H_?'#d05aff':'#ffffff',1.3);if(d<reach+.5)hurtPlayer(n.dm||(H_?24+4*dTier():12+dTier()),n)}continue}
       if(H_){n.shootCd-=dt;n.lungeCd-=dt;n.dodgeCd-=dt;
-        if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,14+2*dTier());SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
+        if(n.swind>0){n.swind-=dt;n.moving=false;if(n.swind<=0){shoot(n.x+dx/d*.5,1.5,n.z+dz/d*.5,dx/d*10,dz/d*10,n.shd||(14+2*dTier()));SFX.shot();if(n.burst>0){n.burst--;n.swind=.16}}continue}
         if(n.retreat>0){n.retreat-=dt;n.x=n.x-dx/d*5*dt;n.z=clamp(n.z-dz/d*5*dt,ZMIN,ZMAX);n.moving=true;continue}
         if(n.lunge>0){n.lunge-=dt;n.x=n.x+n.lx*14*dt*(n.slow>0?.5:1);n.z=clamp(n.z+n.lz*14*dt*(n.slow>0?.5:1),ZMIN,ZMAX);n.moving=true;if(Math.random()<.7)burst(n.x,1,n.z,'#b44aff',1,1,.3,0,0);if(d<reach){n.lunge=0;if(n.atkCd<=0)n.wind=.16}continue}
         if(d>4&&n.shootCd<=0){n.swind=.4;n.burst=1+(dTier()>=1?1:0);n.shootCd=1.6+Math.random()*.9;continue}
         if(d>reach&&d<6&&n.lungeCd<=0){n.lunge=.24;n.lx=dx/d;n.lz=dz/d;n.lungeCd=1.7+Math.random();continue}}
-      if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=H_?.22:.38;continue}
-      const sp=(H_?4.4:2.4)*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
+      if(d<reach){n.moving=false;if(n.atkCd<=0)n.wind=n.windT||(H_?.22:.38);continue}
+      const sp=(n.spd||(H_?4.4:2.4))*dt*(n.slow>0?.4:1),tx=ch.x-dx/d*reach*.8,tz=ch.z-dz/d*reach*.8,ex=tx-n.x,ez=tz-n.z,el=Math.hypot(ex,ez)||1;
       n.x=n.x+ex/el*sp;n.z=clamp(n.z+ez/el*sp,ZMIN,ZMAX);n.moving=true;
     }else if(n.flee>0){n.flee-=dt;const dir=n.x<ch.x?-1:1;n.x=n.x+dir*4*dt;n.ang=dir*Math.PI/2;n.moving=true;n.tx=n.x;n.tz=n.z}
   }
@@ -319,17 +323,18 @@ function updateCombat(dt){
 function updateNpcs(dt,live){
   for(const n of WD.npcs){
     if(n.dying){n.dying-=dt;animRig(n.rig,dt,{dead:Math.max(0,n.dying)});n.rig.g.position.set(n.x,0,n.z);if(n.dying<=0){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null}continue}
-    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&!n.peer){
+    if(live&&!n.hostile&&!(n.flee>0)&&n.kind!=='lord'&&n.kind!=='merchant'&&n.kind!=='guardian'&&!n.peer){
       n.wait-=dt;const dx=n.tx-n.x,dz=n.tz-n.z,d=Math.hypot(dx,dz);
       if(n.wait>0||d<.2){n.moving=false;if(n.wait<=0){n.wait=1+Math.random()*4;n.tx=clamp(n.x+(Math.random()-.5)*16,-L+3,L-3);n.tz=ZMIN+Math.random()*(ZMAX-ZMIN)}}
       else{const sp=n.sp*dt;n.x+=dx/d*sp;n.z+=dz/d*sp;n.ang=Math.atan2(dx,dz);n.moving=true;if(d<.3)n.wait=1+Math.random()*4}
       if(mode==='play'&&n.kind==='citizen'){n.talkCd-=dt;if(n.talkCd<=0&&Math.hypot(n.x-ch.x,n.z-ch.z)<3){n.bubble=pick(Math.random,ERA[WD.year].talk);n.bt=2.4;n.talkCd=10+Math.random()*10;n.ang=Math.atan2(ch.x-n.x,ch.z-n.z)}}
     }
     if(n.kind==='merchant'){n.ang=Math.atan2(ch.x-n.x,ch.z-n.z)*.4}
+    if(n.kind==='guardian'&&!n.hostile){const gd=Math.hypot(n.x-ch.x,n.z-ch.z);n.moving=false;if(gd<7){n.ang=Math.atan2(ch.x-n.x,ch.z-n.z);if(!n.greeted){n.greeted=true;n.bubble=n.greet;n.bt=4}}}
     // soft separation from player
     const sx=n.x-ch.x,sz=n.z-ch.z,sd=Math.hypot(sx,sz);if(sd<.7&&sd>0&&n.kind!=='merchant'){n.x+=sx/sd*(.7-sd)*.5;n.z=clamp(n.z+sz/sd*(.7-sd)*.5,ZMIN,ZMAX)}
     n.rig.g.position.set(n.x,0,n.z);faceTo(n.rig,n.ang,dt,10);
-    animRig(n.rig,dt,{moving:n.moving,speed:n.kind==='hunter'?1.4:1,swing:n.strikeT>0?n.strikeT:0,wind:n.wind>0||n.swind>0?1:0,hurt:n.hitT});
+    animRig(n.rig,dt,{moving:n.moving,speed:n.kind==='hunter'||n.kind==='cbot'?1.4:1,swing:n.strikeT>0?n.strikeT:0,wind:n.wind>0||n.swind>0?1:0,hurt:n.hitT});
     if(n.hitT>0)n.rig.g.position.y=.05;
   }
   WD.npcs=WD.npcs.filter(n=>!(n.dying&&n.dying<=0));
