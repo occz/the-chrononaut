@@ -373,7 +373,7 @@ const LANDM={
     lg.add(box(red,-3.5,2.2,0,2,2.6,2));lg.add(box(bm,-3.5,3.6,0,2.4,.2,2.4));lg.add(mesh(CONE(),bm,1.6,3.6,0,.8,1.4,.8));lg.add(cyl(bm,1.6,3,0,.25,1));
     lg.add(mesh(CONE(),red,3,.7,0,1.4,1.2,1.4));lg.add(sph(glow('#ffe0a0',3),2.7,2.3,0,.25,false));
     for(const x of[-2.8,-1,.8,2.2])for(const z of[-.85,.85]){const w=cyl(red,x,.75,z,.7,.12);w.rotation.x=Math.PI/2;lg.add(w)}g.add(lg);
-    const wm=mat('#6a4a2a');g.add(box(wm,-5.5,3,-1,.3,6,.3));g.add(box(wm,5.5,3,-1,.3,6,.3));g.add(box(wm,0,5.8,-1,11.4,.4,.3));{const s1=sign('1869',5,1,'#ffe0a0',{bg:'#3a2414',i:1.2});s1.position.set(0,6.5,-.8);g.add(s1)}},
+    const wm=mat('#6a4a2a');g.add(box(wm,-5.5,3,-1,.3,6,.3));g.add(box(wm,5.5,3,-1,.3,6,.3));g.add(box(wm,0,5.8,-1,11.4,.4,.3));},
   hangar(g,lk){const wm=mat('#8a7a62',{roughness:.95});g.add(mesh(HALFCYL(),wm,0,0,-4,10,6,8));g.add(box(mat('#1a140e'),0,1.8,-.05,6,3.6,.1,false));
     const fg=new THREE.Group();fg.position.set(2,1.6,2.2);const cl=mat('#e8dcc0',{roughness:.9}),wd=mat('#6a4a2a');
     for(const y of[0,1])fg.add(box(cl,0,y,0,1.3,.05,8));for(const z of[-3.5,-1.8,0,1.8,3.5])fg.add(box(wd,0,.5,z,.05,1,.05));fg.add(box(cl,2.4,.5,0,.5,.05,2));fg.add(box(wd,1.2,.5,0,2.4,.05,.05));
