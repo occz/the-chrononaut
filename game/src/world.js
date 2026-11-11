@@ -324,7 +324,12 @@ const EXTRA={
 
 
 const PYR=()=>geo('pyr',()=>{const g=new THREE.ConeGeometry(.5*Math.SQRT2,1,4);g.rotateY(Math.PI/4);return g});
-function makeDino(col,big){const g=new THREE.Group(),m=mat(col,{roughness:.9,flatShading:true}),dk=mat('#46583a',{roughness:1,flatShading:true});g.userData.legs=[];
+function makeDino(col,big){if(CK){const g=new THREE.Group();g.userData.legs=[];const mp={skin:col,dark:'#46583a',belly:mixCol(col,'#e8e0b0',.55),horn:'#efe6cc',eye:big?'#111111':'#d8c860'};
+  const nk=new THREE.Group();g.userData.neck=nk;
+  if(big){g.add(crPart('sauro_body',mp));nk.position.set(2.3,4.1,0);nk.add(crPart('sauro_neck',mp));g.add(nk);for(const[x,z]of[[1.7,.85],[1.7,-.85],[-1.7,.85],[-1.7,-.85]]){const lg=new THREE.Group();lg.position.set(x,2.2,z);lg.add(crPart('sauro_leg',mp));g.add(lg);g.userData.legs.push(lg)}}
+  else{g.add(crPart('dino_body',mp));nk.position.set(1.2,2.4,0);nk.add(crPart('dino_neck',mp));g.add(nk);for(const z of[.4,-.4]){const lg=new THREE.Group();lg.position.set(0,1.4,z);lg.add(crPart('dino_leg',mp));g.add(lg);g.userData.legs.push(lg)}}
+  return g}
+  const g=new THREE.Group(),m=mat(col,{roughness:.9,flatShading:true}),dk=mat('#46583a',{roughness:1,flatShading:true});g.userData.legs=[];
   if(big){g.add(box(m,0,3.3,0,5,2.2,2.2));const tail=mesh(CONE(),m,-4.4,3.1,0,1.6,4.6,1.6);tail.rotation.z=Math.PI/2;g.add(tail);
     const nk=new THREE.Group();nk.position.set(2.3,4.1,0);const nb=box(m,1.2,1.5,0,.8,3.6,.8);nb.rotation.z=-.5;nk.add(nb);nk.add(box(m,3.1,3.1,0,1.1,.7,.8));nk.add(box(mat('#111'),3.4,3.3,.42,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
     for(const[x,z]of[[1.7,.85],[1.7,-.85],[-1.7,.85],[-1.7,-.85]]){const lg=new THREE.Group();lg.position.set(x,2.2,z);lg.add(box(dk,0,-1,0,.8,2.2,.8));g.add(lg);g.userData.legs.push(lg)}}
@@ -332,7 +337,9 @@ function makeDino(col,big){const g=new THREE.Group(),m=mat(col,{roughness:.9,fla
     const nk=new THREE.Group();nk.position.set(1.2,2.4,0);nk.add(box(m,.3,.6,0,.5,1.2,.5));nk.add(box(m,.8,1.3,0,1.2,.6,.6));nk.add(box(mat('#d8c860'),1,1.4,.31,.12,.12,.02,false));g.add(nk);g.userData.neck=nk;
     for(const z of[.4,-.4]){const lg=new THREE.Group();lg.position.set(0,1.4,z);lg.add(box(dk,0,-.7,0,.4,1.5,.4));g.add(lg);g.userData.legs.push(lg)}}
   return g}
-function makeMammoth(){const g=new THREE.Group(),f=mat('#5a3e2a',{roughness:1,flatShading:true}),dk=mat('#3a281c',{roughness:1});g.userData.legs=[];
+function makeMammoth(){if(CK){const g=new THREE.Group();g.userData.legs=[];const mp={skin:'#5a3e2a',dark:'#3a281c',horn:'#efe6cc',eye:'#111111'};g.add(crPart('mam_body',mp));
+  for(const[x,z]of[[1.2,.8],[1.2,-.8],[-1.2,.8],[-1.2,-.8]]){const lg=new THREE.Group();lg.position.set(x,1.3,z);lg.add(crPart('mam_leg',mp));g.add(lg);g.userData.legs.push(lg)}return g}
+  const g=new THREE.Group(),f=mat('#5a3e2a',{roughness:1,flatShading:true}),dk=mat('#3a281c',{roughness:1});g.userData.legs=[];
   g.add(mesh(ICO(),f,0,2.4,0,4,3,2.6));g.add(mesh(ICO(),f,2.1,2.8,0,2.2,2.4,2));g.add(mesh(ICO(),f,.2,3.9,0,1.8,1.2,1.8));
   const tr=cyl(f,3.2,1.7,0,.28,2.6);tr.rotation.z=.25;g.add(tr);for(const z of[.55,-.55]){const t=mesh(CONE(),mat('#efe6cc'),3,1.9,z,.2,2.4,.2);t.rotation.z=-1.1;g.add(t)}
   for(const[x,z]of[[1.2,.8],[1.2,-.8],[-1.2,.8],[-1.2,-.8]]){const lg=new THREE.Group();lg.position.set(x,1.3,z);lg.add(box(dk,0,-.6,0,.7,1.4,.7));g.add(lg);g.userData.legs.push(lg)}

@@ -13,8 +13,13 @@ let KIT=null;
 const KROUGH={coat:.75,pants:.85,skin:.55,hair:.9,boots:.5,belt:.3,trim:.6,shirt:.8};
 function kitColors(f){return{coat:f.coat,pants:f.pants,skin:f.skin,hair:f.hair,boots:f.boots||'#1a1410',belt:f.belt||'#14100c',trim:'#14100c',shirt:f.shirt||f.hood||'#e8e0d0'}}
 function kitPart(n,f){const o=KIT[n].clone(true),c=kitColors(f);o.traverse(m=>{if(m.isMesh){const k=m.material.name;m.material=mat(c[k]||'#888888',{roughness:KROUGH[k]||.7,metalness:k==='belt'&&f.belt?.85:0});m.castShadow=true}});return o}
-function loadKit(){return new Promise(res=>{try{const b=atob(KIT_B64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
-  new GLTFLoader().parse(u.buffer,'',g=>{try{const k={};for(const n of['leg','arm','torso','head']){const o=g.scene.getObjectByName(n);if(!o)throw 0;k[n]=o}KIT=k}catch(e){KIT=null}res()},()=>res())}catch(e){KIT=null;res()}})}
+function parseGlb(b64,names){return new Promise(res=>{try{const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  new GLTFLoader().parse(u.buffer,'',g=>{try{const k={};for(const n of names){const o=g.scene.getObjectByName(n);if(!o)throw 0;k[n]=o}res(k)}catch(e){res(null)}},()=>res(null))}catch(e){res(null)}})}
+let CK=null;
+const CROUGH={eye:.3,horn:.5,tooth:.4};
+const mixCol=(c,t,f)=>'#'+new THREE.Color(c).lerp(new THREE.Color(t),f).getHexString();
+function crPart(n,map){const o=CK[n].clone(true);o.traverse(m=>{if(m.isMesh){const k=m.material.name;m.material=mat(map[k]||'#888888',{roughness:CROUGH[k]||.85});m.castShadow=true}});return o}
+async function loadKit(){KIT=await parseGlb(KIT_B64,['leg','arm','torso','head']);CK=await parseGlb(CK_B64,['sauro_body','sauro_neck','sauro_leg','dino_body','dino_neck','dino_leg','mam_body','mam_leg','rap_torso','rap_head','rap_leg','tri_torso','tri_head','tri_leg'])}
 
 function makeRig(fit,k=1){
   const g=new THREE.Group(),body=new THREE.Group();g.add(body);body.scale.setScalar(k);
@@ -51,10 +56,16 @@ function makeDinoRig(fit){
   const torso=new THREE.Group();torso.position.y=.9;body.add(torso);const head=new THREE.Group();torso.add(head);
   const legs=[new THREE.Group(),new THREE.Group()];const tri=Math.random()<.4;
   if(tri){legs[0].position.set(0,.7,0);legs[1].position.set(0,.7,0);body.add(legs[0]);body.add(legs[1]);
-    torso.add(box(cm,0,.1,0,.95,.8,1.7));torso.add(box(bl,0,-.2,0,.8,.3,1.5));const tl=mesh(CONE(),cm,0,.05,-1.2,.45,1.2,.45);tl.rotation.x=-Math.PI/2;torso.add(tl);
+    if(CK){const mp={skin:fit.coat,belly:'#d8cfa0',horn:'#efe6cc',frill:'#8a5a3a',dark:mixCol(fit.coat,'#000000',.35),eye:'#140e0a'};
+      torso.add(crPart('tri_torso',mp));head.position.set(0,.1,1.05);head.add(crPart('tri_head',mp));for(const sx of[-1,1])head.add(sph(eye,sx*.28,.1,.3,.05,false));
+      for(const[x,z,i]of[[.35,.55,0],[-.35,.55,1],[.35,-.55,1],[-.35,-.55,0]]){const lp=crPart('tri_leg',mp);lp.position.set(x,0,z);legs[i].add(lp)}}
+    else{torso.add(box(cm,0,.1,0,.95,.8,1.7));torso.add(box(bl,0,-.2,0,.8,.3,1.5));const tl=mesh(CONE(),cm,0,.05,-1.2,.45,1.2,.45);tl.rotation.x=-Math.PI/2;torso.add(tl);
     head.position.set(0,.1,1.05);head.add(box(cm,0,0,.2,.55,.5,.7));head.add(box(mat('#8a5a3a',{flatShading:true}),0,.35,-.05,1.1,.95,.12));
     for(const sx of[-1,1]){const h=mesh(CONE(),horn,sx*.18,.3,.6,.1,.5,.1);h.rotation.x=1.2;head.add(h);head.add(sph(eye,sx*.28,.1,.3,.05,false))}head.add(mesh(CONE(),horn,0,.05,.65,.1,.3,.1));
-    for(const[x,z,i]of[[.35,.55,0],[-.35,.55,1],[.35,-.55,1],[-.35,-.55,0]])legs[i].add(box(cm,x,-.35,z,.28,.7,.3))}
+    for(const[x,z,i]of[[.35,.55,0],[-.35,.55,1],[.35,-.55,1],[-.35,-.55,0]])legs[i].add(box(cm,x,-.35,z,.28,.7,.3))}}
+  else if(CK){const mp={skin:fit.coat,belly:'#d8cfa0',horn:'#efe6cc',dark:mixCol(fit.coat,'#000000',.4),tooth:'#f4f0e0',eye:'#140e0a'};
+    for(const[i,s2]of[[0,-1],[1,1]]){legs[i].position.set(s2*.18,.75,-.05);legs[i].add(crPart('rap_leg',mp));body.add(legs[i])}
+    torso.add(crPart('rap_torso',mp));head.position.set(0,.8,.7);head.add(crPart('rap_head',mp));for(const sx of[-1,1])head.add(sph(eye,sx*.16,.06,.1,.04,false))}
   else{for(const[i,s2]of[[0,-1],[1,1]]){legs[i].position.set(s2*.18,.75,-.05);legs[i].add(box(cm,0,-.37,0,.16,.75,.2));legs[i].add(box(bl,0,-.76,.1,.18,.1,.3));body.add(legs[i])}
     torso.add(box(cm,0,.05,0,.55,.6,1.2));torso.add(box(bl,0,-.2,.05,.45,.2,1));const tl=mesh(CONE(),cm,0,.1,-1.15,.4,1.7,.4);tl.rotation.x=-Math.PI/2;torso.add(tl);
     torso.add(box(cm,0,.45,.55,.25,.5,.3));head.position.set(0,.8,.7);head.add(box(cm,0,0,.15,.3,.28,.6));head.add(box(bl,0,-.12,.2,.26,.08,.5));for(const sx of[-1,1])head.add(sph(eye,sx*.16,.06,.1,.04,false))}
