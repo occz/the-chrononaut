@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Chrononaut — a time-travel action game</title>
+<meta name="description" content="History has holes, and you are the patch. Travel through ten eras, stop the Time Hunters and take the Time Lord's throne. Play free in your browser.">
+<meta property="og:title" content="The Chrononaut">
+<meta property="og:description" content="History has holes, and you are the patch. Play free in your browser.">
+<meta property="og:image" content="img/title.jpg">
+<meta name="theme-color" content="#07060b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Marcellus+SC&display=swap">
+<style>
+:root{--void:#07060b;--bake:#17130f;--bake2:#251f19;--brass:#c9a24a;--brass-hi:#ecd08a;--brass-d:#6e5320;--nixie:#ff8a2a;--nixie-hi:#ffc27a;--cream:#efe4c8;--muted:#a8987a;
+--t:'Marcellus SC',Georgia,serif;--u:'Chakra Petch',system-ui,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--void);color:var(--cream);font-family:var(--u);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{width:min(1080px,100%);margin:0 auto;padding:0 20px}
+.hero{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;overflow:hidden;
+  background:linear-gradient(180deg,#07060bcc,#07060b 92%),url(img/title.jpg) center/cover}
+.hero:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 20%,#07060b 80%)}
+.hero .in{position:relative;padding:60px 20px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.34em;color:var(--brass);margin-bottom:14px}
+h1{font-family:var(--t);font-weight:400;margin:0;font-size:clamp(52px,12vw,112px);line-height:.95;
+  background:linear-gradient(180deg,#fff1cf 0%,#ffc27a 38%,#ff8a2a 62%,#a8461a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px #ff6a0080)}
+.lead{font-size:clamp(17px,2.4vw,21px);max-width:40ch;margin:22px auto 34px;text-wrap:balance;text-shadow:0 2px 14px #000}
+.btn{display:inline-block;text-decoration:none;font-weight:700;letter-spacing:.18em;font-size:18px;color:#fff3e6;padding:15px 44px;border-radius:50px;
+  background:radial-gradient(circle at 40% 25%,#ff8a6a,#c8382c 55%,#7a1a10);border:2px solid var(--brass);box-shadow:0 5px 0 #3d0b06,0 0 30px #ff4a2a55;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(2px)}
+.sub{margin-top:16px;font-size:13px;color:var(--muted)}
+section{padding:80px 0}
+h2{font-family:var(--t);font-weight:400;font-size:clamp(30px,5vw,46px);margin:0 0 14px;color:var(--brass-hi);text-align:center}
+.kick{text-align:center;color:var(--muted);max-width:56ch;margin:0 auto 44px;font-size:17px;text-wrap:balance}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:linear-gradient(180deg,var(--bake2),var(--bake));border:1px solid var(--brass-d);border-radius:14px;padding:22px;box-shadow:inset 0 0 0 3px #0008,inset 0 0 0 4px #6e532044}
+.card h3{margin:0 0 8px;font-size:15px;letter-spacing:.16em;color:var(--nixie);font-weight:700}
+.card p{margin:0;font-size:15.5px;color:var(--cream);opacity:.88}
+.eras{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.eras span{font-family:var(--u);font-weight:600;padding:6px 14px;border-radius:7px;background:#0c0a0e;border:1px solid var(--nixie);color:var(--nixie-hi)}
+.eras span.lock{border-color:var(--brass-d);color:var(--muted)}
+.shots{display:grid;gap:18px}.shots figure{margin:0}
+.shots img{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--brass-d);box-shadow:0 20px 60px #000c}
+.shots figcaption{margin-top:8px;text-align:center;font-size:14px;color:var(--muted)}
+@media(min-width:800px){.shots{grid-template-columns:1fr 1fr}.shots .wide{grid-column:1/-1}}
+.keys{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.k{display:flex;align-items:center;gap:10px;background:#0c0a0e;border:1px solid var(--brass-d);border-radius:10px;padding:10px 16px}
+.k b{min-width:34px;text-align:center;padding:3px 8px;border-radius:6px;background:linear-gradient(180deg,#e2c26c,#a7802f);color:#2a1d08}
+.cta{text-align:center;background:radial-gradient(ellipse at 50% 0,#3a2c1a66,transparent 65%)}
+footer{padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid #ffffff10}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="in">
+  <div class="eyebrow">CHRONO·CABIN MOD.8</div>
+  <h1>The Chrononaut</h1>
+  <p class="lead">History has holes, and you are the patch. Beat the Time Hunters, and at the end of the line take the Time Lord's throne.</p>
+  <a class="btn" href="play.html">PLAY NOW</a>
+  <div class="sub">Free · runs in your browser · desktop and phone</div>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Every era hides one event that must happen</h2>
+  <p class="kick">Find the missing piece, bring it to the landmark and pull off history yourself. Fail, and an era vanishes from the timeline.</p>
+  <div class="grid">
+    <div class="card"><h3>FIX HISTORY</h3><p>Get a lens to the Padua observatory, a golden spike to the railroad, a fuse to Live Aid. Each mission ends in its own mini-game, against a clock that only runs while you are there.</p></div>
+    <div class="card"><h3>PARADOXES</h3><p>Miss an event in the past and a different era is erased. Travel to the future, collect three chronon cells and repair the line before time runs out.</p></div>
+    <div class="card"><h3>TIME HUNTERS</h3><p>They arrive through rifts when the timeline notices you. Stay quiet and they mostly leave you alone; erase citizens and the heat rises.</p></div>
+    <div class="card"><h3>INFINITE WORLDS</h3><p>Every era is generated as you walk. Head left or right as far as you like and find relics, coins and gear far from the time machine.</p></div>
+    <div class="card"><h3>GEAR AND LOOT</h3><p>Weapons, armor, boots and trinkets from Common to Legendary. Equip them in your bag, compare stats and watch them appear on your character.</p></div>
+    <div class="card"><h3>THE TIME LORD</h3><p>Seal the whole line and one thing remains: the final boss. Defeat him and you become the Time Lord, free to roam every year.</p></div>
+  </div>
+</div></section>
+
+<section style="background:#0c0a0e"><div class="wrap">
+  <h2>Ten eras from the start</h2>
+  <p class="kick">Sepia streets, neon future cities and everything between. More open as the line grows.</p>
+  <div class="eras"><span>1903</span><span>1927</span><span>1957</span><span>1969</span><span>1985</span><span>1999</span><span>2026</span><span>2088</span><span>2150</span><span>2240</span><span class="lock">1869</span><span class="lock">1610</span><span class="lock">2400</span><span class="lock">2600</span></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>See it</h2><p class="kick"></p>
+  <div class="shots">
+    <figure class="wide"><img src="img/play.jpg" alt="The Chrononaut gameplay in 2026" loading="lazy"><figcaption>2026, next to the Chrono·Cabin</figcaption></figure>
+    <figure><img src="img/title.jpg" alt="Title screen" loading="lazy"><figcaption>Title screen</figcaption></figure>
+    <figure><img src="img/inventory.jpg" alt="Inventory and character stats" loading="lazy"><figcaption>Inventory, bag and character stats</figcaption></figure>
+  </div>
+</div></section>
+
+<section style="background:#0c0a0e"><div class="wrap">
+  <h2>Controls</h2><p class="kick">On a phone, tap the ground to walk and use the on-screen buttons.</p>
+  <div class="keys">
+    <div class="k"><b>WASD</b> or arrows · walk</div><div class="k"><b>J</b> hit</div><div class="k"><b>K</b> dash</div><div class="k"><b>E</b> use</div><div class="k"><b>I</b> inventory</div>
+  </div>
+</div></section>
+
+<section class="cta"><div class="wrap">
+  <h2>Ready to patch history?</h2><p class="kick">The line will not hold itself.</p>
+  <a class="btn" href="play.html">PLAY NOW</a>
+</div></section>
+<footer>The Chrononaut · a browser game built with Three.js</footer>
+</body>
+</html>
