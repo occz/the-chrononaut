@@ -259,8 +259,9 @@ function knockout(){
   for(let i=0;i<ch.cells;i++)dropItem('cell',clamp(ch.x+(Math.random()-.5)*3,-L+2,L-2),ch.z);ch.cells=0;
   const rp=activeRepair();if(rp&&rp.time!=null)rp.time-=25;else if(missionOpen(G.cur)&&G.timers[G.cur]!=null)G.timers[G.cur]-=25;
   WD.npcs.filter(n=>n.kind==='hunter').forEach(n=>{n.dying=.01});WD.npcs.forEach(n=>{n.hostile=false;n.wind=0;n.flee=0});WD.huntT=10;clearShots();closePortal();
-  ch.x=WD.mx;ch.z=ZMIN+.6;ch.target=null;burst(ch.x,1.5,ch.z,'#ffb35c',40,6,.45);
-  toast(`Knocked out of time! You lost ${lost} coins and 25 seconds.`,true);
+  burst(ch.x,1.5,ch.z,'#ffb35c',40,6,.45);ch.target=null;
+  if(G.cur!==NX)travel(NX);else{ch.x=WD.mx;ch.z=ZMIN+.6}
+  toast(`Knocked out of time! Back at the Nexus. You lost ${lost} coins and 25 seconds.`,true);
 }
 function clearShots(){WD.shots.forEach(s=>scene.remove(s.m));WD.shots=[];WD.rings.forEach(r=>{scene.remove(r.m);r.m.material.dispose()});WD.rings=[]}
 function shoot(x,y,z,vx,vz,dmg,gold){const m=new THREE.Mesh(SPH(),glow(gold?'#ffd24a':'#d05aff',6));m.scale.setScalar(.26);m.position.set(x,y,z);scene.add(m);WD.shots.push({x,z,y,vx,vz,dmg,life:2.6,m,g:gold})}
