@@ -48,9 +48,12 @@ function dropGear(g,x,z){
   WD.group.add(grp);const it={kind:'gear',gear:g,x,z,g:grp,m,t:Math.random()*6};WD.items.push(it);return it;
 }
 function huntDrop(n){
-  const ch_=n.elite?.7:.3;if(Math.random()>ch_)return;
-  const g=genGear(null,n.elite?Math.max(1,rollRar(.8)):undefined);
-  dropGear(g,n.x+(Math.random()-.5),clamp(n.z+(Math.random()-.5),ZMIN,ZMAX));burst(n.x,1.5,n.z,RAR[g.rar].c,24,4,.4);
+  /* every Time Hunter drops gear; elites roll better quality and sometimes a second piece */
+  const n_=n.elite&&Math.random()<.35?2:1;
+  for(let i=0;i<n_;i++){
+    const g=genGear(null,n.elite?Math.max(1,rollRar(1.2)):rollRar(.35));
+    dropGear(g,n.x+(Math.random()-.5)*1.6,clamp(n.z+(Math.random()-.5)*1.4,ZMIN,ZMAX));burst(n.x,1.5,n.z,RAR[g.rar].c,24,4,.4);
+  }
 }
 function maybeWildGear(dt){
   if(!G||G.boss||mode!=='play'||WD.year===TH)return;
