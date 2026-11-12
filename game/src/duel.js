@@ -73,14 +73,19 @@ function duelPeerState(m){
     if(idx<0)DU.range={lost:true};
     else{const w=()=>Math.max(DU.solo?1:0,1+((Math.random()*4)|0)-((m.m||0)>>1));DU.range={lo:Math.max(0,idx-w()),hi:Math.min(YEARS.length-1,idx+w()),idx}}}
 }
+const duelState=()=>({t:'s',y:G.cur,x:+ch.x.toFixed(2),z:+ch.z.toFixed(2),fx:+ch.fx.toFixed(2),fz:+ch.fz.toFixed(2),mv:ch.moving?1:0,sw:ch.swing>0?1:0,hp:Math.round(ch.hp),mh:ch.maxHp,m:G.missions||0,hid:document.hidden?1:0});
+/* a background tab stops running frames: keep sending a heartbeat so the rival does not vanish and HP bars stay live */
+setInterval(()=>{if(document.hidden&&DU.started&&!DU.over&&!DU.solo&&G&&!trav)duelSend(duelState())},700);
+document.addEventListener('visibilitychange',()=>{if(DU.started&&!DU.over&&!DU.solo&&G&&!trav)duelSend(duelState())});
+const peerFresh=P=>!!P&&Date.now()-P.at<(P.hid?25000:4000);
 function duelTick(dt){
   if(!G||!WD||DU.over)return;
   const t=performance.now();
   if(DU.solo){soloTick(dt);if(DU.hunter){ch.mana=ch.maxMana;duelClock();duelClueTick()}return}
-  if(!trav&&t-DU.sendT>66){DU.sendT=t;duelSend({t:'s',y:G.cur,x:+ch.x.toFixed(2),z:+ch.z.toFixed(2),fx:+ch.fx.toFixed(2),fz:+ch.fz.toFixed(2),mv:ch.moving?1:0,sw:ch.swing>0?1:0,hp:Math.round(ch.hp),mh:ch.maxHp,m:G.missions||0})}
+  if(!trav&&t-DU.sendT>66){DU.sendT=t;duelSend(duelState())}
   if(DU.hunter){ch.mana=ch.maxMana;duelClock();duelClueTick()}
   /* puppet of the other player */
-  const P=DU.peer,same=!!P&&P.y===G.cur&&!trav&&Date.now()-P.at<4000;let n=WD.puppet;
+  const P=DU.peer,same=peerFresh(P)&&P.y===G.cur&&!trav;let n=WD.puppet;
   if(same&&!n){n=addNpc({kind:'peer',peer:true,fit:DU.hunter?SUIT:HUNTER_FIT,x:P.x,z:P.z,hp:P.hp||100,sp:0});n.maxHp=P.mh||100;WD.puppet=n;
     if(DU.hunter){toast('Target located!',true);SFX.ok()}else{toast('A Time Hunter has found you!',true);SFX.bad();burst(n.x,1.4,n.z,'#b44aff',40,6,.5)}}
   else if(!same&&n){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null;WD.npcs=WD.npcs.filter(q=>q!==n);WD.puppet=null;n=null}
@@ -95,7 +100,7 @@ function duelObj(){
 }
 function duelClock(){
   const el=$('hclock');el.hidden=false;const R=DU.range,P=DU.peer;let key,lo=-1,hi=-1,txt='',sub='';
-  const here=P&&P.y===G.cur&&Date.now()-P.at<4000;
+  const here=peerFresh(P)&&P.y===G.cur;
   if(!R){txt='SCANNING...';sub='Waiting for a signature'}
   else if(R.lost){txt='SIGNAL LOST';sub='He is out of reach, in the Nexus'}
   else{lo=R.lo;hi=R.hi;if(here||(DU.tight&&DU.tight.y===DU.peerY&&Date.now()<DU.tight.until)){lo=hi=R.idx}
