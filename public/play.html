@@ -2875,7 +2875,7 @@ function openMini(y){
   if(m.type==='targets'){MG.tg=[];MG.dec=[];if(m.skin==='moons'){const side=[-1,1,1,-1],dist=[95,130,175,240];for(let i=0;i<4;i++)MG.tg.push({x:400+side[i]*dist[i]+(r()-.5)*14,y:250+(r()-.5)*10,r:6,got:false});
       for(let i=0;i<16;i++){let x,y;do{x=200+r()*400;y=60+r()*380}while(Math.abs(y-250)<30||Math.hypot(x-400,y-250)<80);MG.dec.push({x,y,r:2+r()*3})}}
     else{for(let i=0;i<4;i++)MG.tg.push({x:120+r()*560,y:90+r()*320,r:16,got:false,ph:r()*6,ax:40+r()*60,ay:20+r()*40,cx:0,cy:0});MG.tg.forEach(t=>{t.cx=t.x;t.cy=t.y});for(let i=0;i<24;i++)MG.dec.push({x:r()*800,y:r()*500,r:10+r()*16,a:r()*6,s:.3+r()})}}
-  if(m.type==='timing'){Object.assign(MG,{p:0,dir:1,sp:.75,zc:.3+r()*.4,zw:.18,hits:0,miss:0,anim:0})}
+  if(m.type==='timing'){Object.assign(MG,{p:0,dir:1,sp:m.skin==='dig'?.55:.75,zc:.3+r()*.4,zw:m.skin==='dig'?.27:.18,hits:0,miss:0,anim:0})}
   if(m.type==='hold'){Object.assign(MG,{pos:.5,vel:0,hold:false,prog:0,wind:0,crashT:0})}
   if(m.type==='tune'){Object.assign(MG,{d:r()<.5?.1:.9,tv:.3+r()*.4,lock:0,drag:false,lx:0,beepT:0})}
   if(m.type==='simon'){Object.assign(MG,{seq:[],len:3,phase:'show',i:0,st:.6,lit:-1,litT:0});for(let i=0;i<5;i++)MG.seq.push(r()*4|0)}
@@ -2890,10 +2890,10 @@ function miniAct(down){
   if(MG.type==='hold'){MG.hold=down;return}
   if(MG.type!=='timing'||!down)return;
   MG.anim=.25;const ok=Math.abs(MG.p-MG.zc)<MG.zw/2;
-  if(ok){MG.hits++;SFX.hit();beep(600+MG.hits*200,.1,'triangle',.07);MG.zw*=.8;MG.sp*=1.15;MG.zc=.15+Math.random()*.7;MG.flash=.2;MG.flashC='#ffd24a';if(MG.hits>=3)miniWin()}
+  if(ok){MG.hits++;SFX.hit();beep(600+MG.hits*200,.1,'triangle',.07);if(MG.skin==='dig'){MG.zw*=.92;MG.sp*=1.06}else{MG.zw*=.8;MG.sp*=1.15}MG.zc=.15+Math.random()*.7;MG.flash=.2;MG.flashC='#ffd24a';if(MG.hits>=3)miniWin()}
   else{MG.miss++;if(MG.skin==='reel'){MG.hits=0;MG.zw=.18;MG.sp=.75;miniBad('Out of sync! Back to zero.')}
     else if(MG.skin==='hammer'){if(MG.miss>=3){MG.hits=0;MG.miss=0;MG.zw=.18;MG.sp=.75;miniBad('Three misses. Start over.')}else miniBad()}
-    else{MG.hits=Math.max(0,MG.hits-1);miniBad('Burn outside the window.')}}
+    else if(MG.skin==='dig')miniBad('Too early or too late. Try again.');else{MG.hits=Math.max(0,MG.hits-1);miniBad('Burn outside the window.')}}
 }
 function miniPoint(px,py,type){
   if(!MG||MG.done)return;const r=mc.getBoundingClientRect(),x=(px-r.left)/r.width*MW,y=(py-r.top)/r.height*MH;
