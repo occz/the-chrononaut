@@ -10,14 +10,14 @@ function aim(range=11){let best=null,bd=range;
   for(const n of WD.npcs){if(!isFoe(n))continue;const dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*ch.fx+dz*ch.fz)/(d||1)>-.3){bd=d;best=n}}
   if(best){const dx=best.x-ch.x,dz=best.z-ch.z,l=Math.hypot(dx,dz)||1;ch.fx=dx/l;ch.fz=dz/l}return best}
 /* ---- visual helpers ---- */
-function mfx(m,life,upd){scene.add(m);MAGIC.fx.push({m,life,max:life,upd})}
+function mfx(m,life,upd){fxRoot.add(m);MAGIC.fx.push({m,life,max:life,upd})}
 function ringFx(x,z,r,c,life=.5,y=.08){const m=new THREE.Mesh(geo('mring',()=>new THREE.RingGeometry(.88,1,56)),addMat(c,.85));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.scale.setScalar(.3);
   mfx(m,life,k=>{m.scale.setScalar(.3+(r-.3)*(1-Math.pow(1-k,2)));m.material.opacity=.85*(1-k)})}
 function boltFx(x1,z1,x2,z2,c){
   for(let j=0;j<3;j++){const pts=[],n=7;for(let i=0;i<=n;i++){const t=i/n,mid=i&&i<n;pts.push(new THREE.Vector3(x1+(x2-x1)*t+(mid?(Math.random()-.5)*.9:0)+j*.03,1.3+(mid?(Math.random()-.5)*.6:0),z1+(z2-z1)*t+(mid?(Math.random()-.5)*.9:0)))}
     const m=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:c,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));m.userData.geo=true;mfx(m,.3,k=>{m.material.opacity=1-k})}
   burst(x2,1.3,z2,c,14,3,.3)}
-function projectile(x,y,z,vx,vz,dmg,c,pierce){const m=new THREE.Mesh(SPH(),glow(c,5));m.scale.setScalar(.34);m.position.set(x,y,z);scene.add(m);MAGIC.proj.push({x,y,z,vx,vz,dmg,c,m,life:1.4,pierce,hit:new Set()})}
+function projectile(x,y,z,vx,vz,dmg,c,pierce){const m=new THREE.Mesh(SPH(),glow(c,5));m.scale.setScalar(.34);m.position.set(x,y,z);fxRoot.add(m);MAGIC.proj.push({x,y,z,vx,vz,dmg,c,m,life:1.4,pierce,hit:new Set()})}
 const later=(t,fn)=>MAGIC.tm.push({t,fn});
 /* ---- spells ---- */
 const SPELLS={
@@ -44,17 +44,17 @@ const SPELLS={
   stasis:{n:'Stasis Field',el:'future',t:2,cost:30,cd:12,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M8 3l4 3 4-3M8 21l4-3 4 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',d:'Time stops around you. Every foe nearby is frozen for 3 s (the Time Lord is immune).',
     cast(p){ringFx(ch.x,ch.z,7.5,'#5ff5d6',.7);for(const n of foesIn(ch.x,ch.z,7.5)){if(n.kind==='lord'){floatText(n.x,3,n.z,'IMMUNE','#5ff5d6');continue}n.frozen=3*p;n.wind=0;n.swind=0;n.lunge=0;n.retreat=0;burst(n.x,1.3,n.z,'#5ff5d6',14,3,.3)}shk=Math.max(shk,.3);SFX.ok()}},
   well:{n:'Gravity Well',el:'void',t:2,cost:28,cd:10,g:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3.5"/><path d="M12 2a10 10 0 1 0 10 10M12 6a6 6 0 1 0 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',d:'A pocket of collapsed time drags foes in and crushes them for 2.6 s.',
-    cast(p){aim(9);const x=ch.x+ch.fx*6,z=clamp(ch.z+ch.fz*6,ZMIN,ZMAX);const m=new THREE.Mesh(SPH(),glow('#b44aff',3));m.scale.setScalar(.8);m.position.set(x,1.2,z);scene.add(m);
+    cast(p){aim(9);const x=ch.x+ch.fx*6,z=clamp(ch.z+ch.fz*6,ZMIN,ZMAX);const m=new THREE.Mesh(SPH(),glow('#b44aff',3));m.scale.setScalar(.8);m.position.set(x,1.2,z);fxRoot.add(m);
       MAGIC.wells.push({x,z,t:2.6*p,tick:0,m,p});ringFx(x,z,6,'#b44aff',.6);SFX.ok()}},
   meteor:{n:'Chrono Meteors',el:'ember',t:2,cost:32,cd:9,g:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="16" cy="16" r="5"/><path d="M12 12 2 2M11 17 3 13M17 11 13 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',d:'Three burning minutes fall from the sky onto your target. 30 damage each.',
     cast(p){const t=aim(12),bx=t?t.x:ch.x+ch.fx*7,bz=t?t.z:ch.z+ch.fz*7;
       for(let i=0;i<3;i++){const x=bx+(i?(Math.random()-.5)*4:0),z=clamp(bz+(i?(Math.random()-.5)*3:0),ZMIN,ZMAX),d=.25+i*.4;
         const mk=new THREE.Mesh(geo('mring',()=>new THREE.RingGeometry(.88,1,56)),addMat('#ff7a3a',.7));mk.rotation.x=-Math.PI/2;mk.position.set(x,.09,z);mk.scale.setScalar(2.2);mfx(mk,d+.45,k=>{mk.material.opacity=.7*(1-k)});
-        const ball=new THREE.Mesh(SPH(),glow('#ff7a3a',5));ball.scale.setScalar(.9);ball.position.set(x,14,z);scene.add(ball);
+        const ball=new THREE.Mesh(SPH(),glow('#ff7a3a',5));ball.scale.setScalar(.9);ball.position.set(x,14,z);fxRoot.add(ball);
         MAGIC.proj.push({meteor:true,x,z,y:14,t:0,d,m:ball,dmg:30*p,life:d+.3,hit:new Set()})}
       SFX.ok()}},
   blades:{n:'Phantom Blades',el:'echo',t:2,cost:26,cd:12,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20 18 4l1 3-9 14zM19 20 6 4 5 7l9 14z"/></svg>',d:'Three spectral blades orbit you for 6 s and cut anything they touch.',
-    cast(p){clearBlades();const g=new THREE.Group();for(let i=0;i<3;i++){const b=box(glow('#7ad0ff',4),0,0,0,.16,.16,1.1,false);b.userData.a=i/3*Math.PI*2;g.add(b)}scene.add(g);
+    cast(p){clearBlades();const g=new THREE.Group();for(let i=0;i<3;i++){const b=box(glow('#7ad0ff',4),0,0,0,.16,.16,1.1,false);b.userData.a=i/3*Math.PI*2;g.add(b)}fxRoot.add(g);
       MAGIC.blades={g,t:6*p,p,cd:new Map()};ringFx(ch.x,ch.z,2.2,'#7ad0ff',.5);SFX.ok()}},
   drain:{n:'Entropy Touch',el:'void',t:2,cost:20,cd:4,g:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 4a9 9 0 1 0 0 16 7 7 0 0 1 0-16z"/></svg>',d:'A cone of decay in front of you. Hurts foes and heals you for 40% of the damage.',
     cast(p){aim(5);const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.8,ch.z+ch.fz*.8,ang,'#b44aff',3.4);let tot=0;
@@ -74,10 +74,10 @@ function castSpell(i){
   if(ch.mana<S.cost){if(T>MAGIC.warnT){MAGIC.warnT=T+1.2;toast('Not enough mana. Refill at the fountain in the Nexus.',true);SFX.bad()}return}
   ch.mana-=S.cost;MAGIC.cd[i]=MAGIC.cdMax[i]=S.cd*(MAGIC.haste>0?.7:1);ch.swing=.18;S.cast(pw(id));
 }
-function clearBlades(){if(MAGIC.blades){scene.remove(MAGIC.blades.g);MAGIC.blades=null}}
+function clearBlades(){if(MAGIC.blades){fxRoot.remove(MAGIC.blades.g);MAGIC.blades=null}}
 function clearMagic(){
-  for(const p of MAGIC.proj)scene.remove(p.m);for(const f of MAGIC.fx){scene.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}
-  for(const w of MAGIC.wells)scene.remove(w.m);clearBlades();if(MAGIC.ward&&MAGIC.ward.m)scene.remove(MAGIC.ward.m);
+  for(const p of MAGIC.proj)fxRoot.remove(p.m);for(const f of MAGIC.fx){fxRoot.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}
+  for(const w of MAGIC.wells)fxRoot.remove(w.m);clearBlades();if(MAGIC.ward&&MAGIC.ward.m)fxRoot.remove(MAGIC.ward.m);
   MAGIC.proj=[];MAGIC.fx=[];MAGIC.tm=[];MAGIC.wells=[];MAGIC.ward=null;MAGIC.haste=0;MAGIC.cd=[0,0];
 }
 function updateMagic(dt){
@@ -87,20 +87,20 @@ function updateMagic(dt){
   // projectiles + meteors
   for(const p of MAGIC.proj){
     if(p.meteor){p.t+=dt;const k=Math.min(1,p.t/p.d);p.m.position.y=14-13*k*k;p.life-=dt;if(!p.done)burst(p.x,p.m.position.y,p.z,'#ff7a3a',1,.5,.4,0,0);
-      if(!p.done&&p.t>=p.d){p.done=true;scene.remove(p.m);burst(p.x,1,p.z,'#ff7a3a',50,7,.5);burst(p.x,1,p.z,'#ffe0a0',20,4,.35);ringFx(p.x,p.z,2.6,'#ff7a3a',.4);shk=Math.max(shk,.5);SFX.hit();for(const n of foesIn(p.x,p.z,2.5))hitFoe(n,p.dmg,p.x,p.z)}continue}
+      if(!p.done&&p.t>=p.d){p.done=true;fxRoot.remove(p.m);burst(p.x,1,p.z,'#ff7a3a',50,7,.5);burst(p.x,1,p.z,'#ffe0a0',20,4,.35);ringFx(p.x,p.z,2.6,'#ff7a3a',.4);shk=Math.max(shk,.5);SFX.hit();for(const n of foesIn(p.x,p.z,2.5))hitFoe(n,p.dmg,p.x,p.z)}continue}
     p.life-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.m.position.set(p.x,p.y,p.z);if(Math.random()<.8)burst(p.x,p.y,p.z,p.c,1,.4,.22,0,0);
     for(const n of WD.npcs){if(!isFoe(n)||p.hit.has(n))continue;if(Math.hypot(n.x-p.x,n.z-p.z)<.85+(n.kind==='lord'?.8:0)){p.hit.add(n);hitFoe(n,p.dmg,p.x-p.vx,p.z-p.vz);burst(p.x,p.y,p.z,p.c,16,4,.3);if(!p.pierce){p.life=0;break}}}
-    if(p.life<=0)scene.remove(p.m)}
+    if(p.life<=0)fxRoot.remove(p.m)}
   MAGIC.proj=MAGIC.proj.filter(p=>p.life>0);
   // effects
-  for(const f of MAGIC.fx){f.life-=dt;const k=1-Math.max(0,f.life/f.max);f.upd(k);if(f.life<=0){scene.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}}
+  for(const f of MAGIC.fx){f.life-=dt;const k=1-Math.max(0,f.life/f.max);f.upd(k);if(f.life<=0){fxRoot.remove(f.m);f.m.material&&f.m.material.dispose();f.m.userData.geo&&f.m.geometry.dispose()}}
   MAGIC.fx=MAGIC.fx.filter(f=>f.life>0);
   for(const t of MAGIC.tm)t.t-=dt;for(const t of MAGIC.tm)if(t.t<=0)t.fn();MAGIC.tm=MAGIC.tm.filter(t=>t.t>0);
   // gravity wells
   for(const w of MAGIC.wells){w.t-=dt;w.tick-=dt;w.m.scale.setScalar(.7+Math.sin(T*10)*.12);w.m.rotation.y+=dt*4;if(Math.random()<.6)burst(w.x+(Math.random()-.5)*5,.5+Math.random()*2,w.z+(Math.random()-.5)*5,'#b44aff',1,-1,.25,0,0);
     for(const n of foesIn(w.x,w.z,6)){if(n.kind==='lord')continue;const dx=w.x-n.x,dz=w.z-n.z,d=Math.hypot(dx,dz)||1;if(d>.5){n.x+=dx/d*4.5*dt;n.z=clamp(n.z+dz/d*4.5*dt,ZMIN,ZMAX)}}
     if(w.tick<=0){w.tick=.5;for(const n of foesIn(w.x,w.z,2.6))hitFoe(n,9*w.p,w.x,w.z)}
-    if(w.t<=0){scene.remove(w.m);burst(w.x,1.2,w.z,'#b44aff',40,5,.4);ringFx(w.x,w.z,3,'#b44aff',.4)}}
+    if(w.t<=0){fxRoot.remove(w.m);burst(w.x,1.2,w.z,'#b44aff',40,5,.4);ringFx(w.x,w.z,3,'#b44aff',.4)}}
   MAGIC.wells=MAGIC.wells.filter(w=>w.t>0);
   // phantom blades
   const B=MAGIC.blades;if(B){B.t-=dt;B.g.position.set(ch.x,1.2,ch.z);
@@ -108,8 +108,8 @@ function updateMagic(dt){
       const bx=ch.x+Math.cos(a)*1.9,bz=ch.z+Math.sin(a)*1.9;for(const n of foesIn(bx,bz,.8)){if((B.cd.get(n)||0)>T)continue;B.cd.set(n,T+.45);hitFoe(n,12*B.p,ch.x,ch.z)}});
     if(B.t<=0){burst(ch.x,1.2,ch.z,'#7ad0ff',24,3,.3);clearBlades()}}
   // ward bubble
-  const W_=MAGIC.ward;if(W_){W_.t-=dt;if(!W_.m){W_.m=new THREE.Mesh(SPH(),new THREE.MeshBasicMaterial({color:'#7ad0ff',transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));W_.m.scale.setScalar(2.6);scene.add(W_.m)}
-    W_.m.position.set(ch.x,1.1,ch.z);W_.m.material.opacity=.14+Math.sin(T*14)*.06;if(W_.t<=0){scene.remove(W_.m);W_.m.material.dispose();MAGIC.ward=null}}
+  const W_=MAGIC.ward;if(W_){W_.t-=dt;if(!W_.m){W_.m=new THREE.Mesh(SPH(),new THREE.MeshBasicMaterial({color:'#7ad0ff',transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));W_.m.scale.setScalar(2.6);fxRoot.add(W_.m)}
+    W_.m.position.set(ch.x,1.1,ch.z);W_.m.material.opacity=.14+Math.sin(T*14)*.06;if(W_.t<=0){fxRoot.remove(W_.m);W_.m.material.dispose();MAGIC.ward=null}}
   // frozen foes and seed sparkles
   MAGIC.sparkT-=dt;if(MAGIC.sparkT<=0){MAGIC.sparkT=.3;
     for(const n of WD.npcs)if(n.frozen>0)burst(n.x,1.4,n.z,'#bff8ff',3,1.5,.25,1,2);

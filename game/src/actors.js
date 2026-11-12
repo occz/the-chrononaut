@@ -96,6 +96,7 @@ function animRig(R,dt,{moving=false,speed=1,swing=0,wind=0,hurt=0,dead=0,dash=0}
 function faceTo(R,ang,dt,k=14){let d=ang-R.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));R.g.rotation.y+=d*Math.min(1,dt*k)}
 
 /* ================= player ================= */
+const fxRoot=new THREE.Group();scene.add(fxRoot);
 const ch={x:0,z:0,fx:1,fz:0,moving:false,target:null,openOnArrive:null,carry:0,cells:0,hp:100,maxHp:100,dmg:20,spd:1,timeB:0,dashK:1,regen:2,armor:1,coinK:1,coolK:1,
   atkCd:0,dashCd:0,dashT:0,dashX:0,dashZ:0,inv:0,swing:0,kbx:0,kbz:0,regenWait:0,stepT:0,rig:null,carryMesh:null,hurtT:0};
 let PSUIT=SUIT;
@@ -106,7 +107,7 @@ function buildPlayer(){if(ch.rig){scene.remove(ch.rig.g)}ch.rig=makeRig(PSUIT,1)
 /* ================= DOM labels (damage, bubbles, arrows) ================= */
 const LBL=$('labels');const labels=[];
 const _v=new THREE.Vector3();
-function project(x,y,z){_v.set(x,y,z).project(camera);return{x:(_v.x*.5+.5)*W,y:(-_v.y*.5+.5)*H,behind:_v.z>1}}
+function project(x,y,z){if(ZN.on)y+=zsurf(x,z);_v.set(x,y,z).project(camera);return{x:(_v.x*.5+.5)*W,y:(-_v.y*.5+.5)*H,behind:_v.z>1}}
 function floatText(x,y,z,txt,c,big){const d=document.createElement('div');d.className='fl';d.textContent=txt;d.style.color=c;if(big)d.style.fontSize='22px';LBL.appendChild(d);labels.push({d,x,y,z,vy:1.4,life:.9,max:.9})}
 function updateLabels(dt){
   for(let i=labels.length-1;i>=0;i--){const l=labels[i];l.life-=dt;l.y+=l.vy*dt;if(l.life<=0){l.d.remove();labels.splice(i,1);continue}const p=project(l.x,l.y,l.z);l.d.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-50%)`;l.d.style.opacity=Math.min(1,l.life/l.max*2)}
@@ -140,7 +141,7 @@ const fxMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending
 const fxPts=new THREE.Points(fxGeo,fxMat);fxPts.frustumCulled=false;scene.add(fxPts);
 const FX=[];let fxHead=0;
 for(let i=0;i<FXN;i++)FX.push({life:0});
-function burst(x,y,z,c,n,sp=4,size=.35,up=2,grav=6){const cc=col(c);for(let i=0;i<n;i++){const p=FX[fxHead];fxHead=(fxHead+1)%FXN;const a=Math.random()*6.28,b=Math.random()*2-1,v=(.3+Math.random())*sp;
+function burst(x,y,z,c,n,sp=4,size=.35,up=2,grav=6){if(ZN.on)y+=zsurf(x,z);const cc=col(c);for(let i=0;i<n;i++){const p=FX[fxHead];fxHead=(fxHead+1)%FXN;const a=Math.random()*6.28,b=Math.random()*2-1,v=(.3+Math.random())*sp;
   p.x=x;p.y=y;p.z=z;p.vx=Math.cos(a)*v*Math.sqrt(1-b*b);p.vz=Math.sin(a)*v*Math.sqrt(1-b*b);p.vy=b*v+up;p.life=p.max=.45+Math.random()*.45;p.c=cc;p.s=size*(.6+Math.random()*.8);p.g=grav}}
 function updateFx(dt){for(let i=0;i<FXN;i++){const p=FX[i];if(p.life>0){p.life-=dt;p.vy-=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;if(p.y<.05){p.y=.05;p.vy*=-.3;p.vx*=.6;p.vz*=.6}
     const k=Math.max(0,p.life/p.max);fxPos[i*3]=p.x;fxPos[i*3+1]=p.y;fxPos[i*3+2]=p.z;fxCol[i*3]=p.c.r*k;fxCol[i*3+1]=p.c.g*k;fxCol[i*3+2]=p.c.b*k;fxSize[i]=p.s*(.5+k*.5)}else fxSize[i]=0}
@@ -148,8 +149,8 @@ function updateFx(dt){for(let i=0;i<FXN;i++){const p=FX[i];if(p.life>0){p.life-=
 
 /* transient meshes: slashes, shockwaves */
 const TRANS=[];
-function slash(x,z,ang,c='#ffe8c0',r=1.6){const m=new THREE.Mesh(geo('slash',()=>new THREE.RingGeometry(.7,1.6,28,1,-1.1,2.2)),addMat(c,.9));m.rotation.x=-Math.PI/2;m.rotation.z=ang-Math.PI/2;m.position.set(x,1.25,z);m.scale.setScalar(r/1.6);scene.add(m);TRANS.push({m,life:.2,max:.2,kind:'slash'})}
-function updateTrans(dt){for(let i=TRANS.length-1;i>=0;i--){const t=TRANS[i];t.life-=dt;t.m.material.opacity=Math.max(0,t.life/t.max)*.9;t.m.scale.multiplyScalar(1+dt*1.5);if(t.life<=0){scene.remove(t.m);t.m.material.dispose();TRANS.splice(i,1)}}}
+function slash(x,z,ang,c='#ffe8c0',r=1.6){const m=new THREE.Mesh(geo('slash',()=>new THREE.RingGeometry(.7,1.6,28,1,-1.1,2.2)),addMat(c,.9));m.rotation.x=-Math.PI/2;m.rotation.z=ang-Math.PI/2;m.position.set(x,1.25,z);m.scale.setScalar(r/1.6);fxRoot.add(m);TRANS.push({m,life:.2,max:.2,kind:'slash'})}
+function updateTrans(dt){for(let i=TRANS.length-1;i>=0;i--){const t=TRANS[i];t.life-=dt;t.m.material.opacity=Math.max(0,t.life/t.max)*.9;t.m.scale.multiplyScalar(1+dt*1.5);if(t.life<=0){fxRoot.remove(t.m);t.m.material.dispose();TRANS.splice(i,1)}}}
 
 /* ================= items ================= */
 function itemMesh(name){

@@ -54,7 +54,7 @@ function zChunk(ci,cj){
   for(let k=0;k<70;k++){const x=ci*ZCS+r()*ZCS,z=cj*ZCS+r()*ZCS,h=zsurf(x,z);if(h<ZLAVA+1.6||h>20||near(x,z))continue;
     const sl=Math.abs(zsurf(x+1,z)-zsurf(x-1,z))+Math.abs(zsurf(x,z+1)-zsurf(x,z-1));if(sl>1.6)continue;
     const a=r(),f=zfbm(x*.04,z*.04,ZN.seed+40,3);
-    if(a<.42&&f>.46)T.push([x,h,z,.6+r()*.9,r()*6]);else if(a<.78)MU.push([x,h,z,.5+r()*1.1,r()*6]);else CR.push([x,h,z,.5+r()*1.2,r()*6])}
+    if(a<.42&&f>.46)T.push([x,h,z,.6+r()*.9,r()*6]);else if(a<.62)MU.push([x,h,z,.3+r()*.6,r()*6]);else CR.push([x,h,z,.4+r()*.9,r()*6])}
   for(let k=0;k<14;k++){const x=ci*ZCS+r()*ZCS,z=cj*ZCS+r()*ZCS,h=zsurf(x,z);if(h<ZLAVA+1||near(x,z))continue;RK.push([x,h,z,.4+r()*r()*2.4,r()*6])}
   const inst=(geo,mat,arr,fn)=>{if(!arr.length)return null;const m=new THREE.InstancedMesh(geo,mat,arr.length);arr.forEach((a,i)=>{fn(a);dm.updateMatrix();m.setMatrixAt(i,dm.matrix)});c.g.add(m);return m};
   const place=a=>{dm.position.set(a[0],a[1]-.05,a[2]);dm.rotation.set(0,a[4],0);dm.scale.setScalar(a[3])};
@@ -190,7 +190,7 @@ function zoneEnter(){
   toast('You stepped into THE ZONE. Everything here wants you dead. Loot is lost if you fall.',true);
 }
 function zoneExit(dead){
-  if(!ZN.on)return;ZN.on=false;const st=ZN.stash;
+  if(!ZN.on)return;ZN.on=false;fxRoot.position.y=0;const st=ZN.stash;
   for(const n of [...ZN.mons])zRemoveMon(n,false);
   scene.remove(ZN.g);ZN.g.traverse(o=>{if(o.isInstancedMesh)o.dispose()});disposeTree(ZN.g);ZN.S.clear();
   scene.remove(ZN.dome);ZN.dome.geometry.dispose();ZN.dome.material.dispose();scene.remove(ZN.lava);
@@ -222,7 +222,7 @@ function zonePlayer(dt){
   else if(ch.target){const dx=ch.target.x-ch.x,dz=ch.target.z-ch.z,d=Math.hypot(dx,dz);if(d<.25)ch.target=null;else{vx=dx/d;vz=dz/d}}
   const l=Math.hypot(vx,vz);ch.moving=l>.01;const sp=5.4*ch.spd*(MAGIC.haste>0?1.6:1);
   const mv=(sx,sz)=>{if(zoneOk(ch.x+sx,ch.z+sz)){ch.x+=sx;ch.z+=sz}else if(zoneOk(ch.x+sx,ch.z)){ch.x+=sx}else if(zoneOk(ch.x,ch.z+sz)){ch.z+=sz}};
-  if(ch.dashT>0){ch.dashT-=dt;mv(ch.dashX*18*dt,ch.dashZ*18*dt);if(Math.random()<.8)burst(ch.x,ch.y+1,ch.z,'#6ad8e8',2,.5,.35,0,0)}
+  if(ch.dashT>0){ch.dashT-=dt;mv(ch.dashX*18*dt,ch.dashZ*18*dt);if(Math.random()<.8)burst(ch.x,1,ch.z,'#6ad8e8',2,.5,.35,0,0)}
   else if(ch.moving){const k=l>1?1/l:1;mv(vx*k*sp*dt,vz*k*sp*dt);ch.fx=vx/l;ch.fz=vz/l;ch.stepT-=dt;if(ch.stepT<=0){ch.stepT=.32;noise(.05,.02,500,300)}}
   if(ch.kbx||ch.kbz){const sx=ch.kbx*dt,sz=ch.kbz*dt;mv(sx,sz);const f=Math.pow(.01,dt);ch.kbx*=f;ch.kbz*=f;if(Math.hypot(ch.kbx,ch.kbz)<.2)ch.kbx=ch.kbz=0}
   const g=zsurf(ch.x,ch.z);ch.y+=(g-ch.y)*Math.min(1,dt*18);if(Math.abs(g-ch.y)<.02)ch.y=g;
@@ -231,17 +231,17 @@ function zonePlayer(dt){
 function zoneTick(dt){
   ZN.time+=dt;
   ch.atkCd-=dt;ch.dashCd-=dt;ch.inv-=dt;ch.swing-=dt;ch.regenWait-=dt;ch.hurtT-=dt;if(ch.regenWait<=0&&ch.hp<ch.maxHp)ch.hp=Math.min(ch.maxHp,ch.hp+ch.regen*.5*dt);
-  zonePlayer(dt);checkPickups();updateMagic(dt);zStream(1);
+  zonePlayer(dt);fxRoot.position.y=ch.y;checkPickups();updateMagic(dt);zStream(1);
   for(const it of WD.items){it.t+=dt;it.m.position.y=zsurf(it.x,it.z)+Math.sin(it.t*2.2)*.15;it.m.rotation.y=it.t*1.6}
   for(const n of [...ZN.mons]){zoneMonTick(n,dt);if(Math.hypot(n.x-ch.x,n.z-ch.z)>75&&!n.dying&&ZN.mons.includes(n))zRemoveMon(n,false)}
-  for(const b of ZN.bolts){b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.m.position.set(b.x,zsurf(b.x,b.z)+1.5,b.z);b.m.rotation.y+=dt*8;if(Math.random()<.5)burst(b.x,b.m.position.y,b.z,'#c46aff',1,.4,.22,0,0);
+  for(const b of ZN.bolts){b.life-=dt;b.x+=b.vx*dt;b.z+=b.vz*dt;b.m.position.set(b.x,zsurf(b.x,b.z)+1.5,b.z);b.m.rotation.y+=dt*8;if(Math.random()<.5)burst(b.x,1.5,b.z,'#c46aff',1,.4,.22,0,0);
     if(Math.hypot(b.x-ch.x,b.z-ch.z)<.8){b.life=0;hurtPlayer(Math.round(b.dm),{x:b.x,z:b.z,kind:'zmon'})}if(b.life<=0)ZN.g.remove(b.m)}
   ZN.bolts=ZN.bolts.filter(b=>b.life>0);
-  for(const s of ZN.slams){s.t-=dt;s.m.material.opacity=.3+.5*(1-s.t/1.5);if(s.t<=0){burst(s.x,zsurf(s.x,s.z)+1,s.z,'#ff5a2a',60,8,.5);shk=Math.max(shk,1);SFX.hit&&SFX.hit();if(Math.hypot(ch.x-s.x,ch.z-s.z)<s.r)hurtPlayer(Math.round(s.dm),{x:s.x,z:s.z,kind:'zmon'});ZN.g.remove(s.m);s.m.material.dispose()}}
+  for(const s of ZN.slams){s.t-=dt;s.m.material.opacity=.3+.5*(1-s.t/1.5);if(s.t<=0){burst(s.x,1,s.z,'#ff5a2a',60,8,.5);shk=Math.max(shk,1);SFX.hit&&SFX.hit();if(Math.hypot(ch.x-s.x,ch.z-s.z)<s.r)hurtPlayer(Math.round(s.dm),{x:s.x,z:s.z,kind:'zmon'});ZN.g.remove(s.m);s.m.material.dispose()}}
   ZN.slams=ZN.slams.filter(s=>s.t>0);
   /* crystals, blooms */
   for(const c of ZN.S.values())for(let i=c.picks.length-1;i>=0;i--){const p=c.picks[i];p.m.rotation.y+=dt*1.8;p.m.position.y=p.y+.15+Math.sin(ZN.time*2.4+p.ph)*.15;
-    if(Math.abs(p.x-ch.x)<1.5&&Math.abs(p.z-ch.z)<1.5){ZN.gotP.add(p.id);c.g.remove(p.m);c.picks.splice(i,1);burst(p.x,p.y+1,p.z,'#ff7ad0',24,4,.3,3);beep&&beep(760,.14,'sine',.07,1.5);
+    if(Math.abs(p.x-ch.x)<1.5&&Math.abs(p.z-ch.z)<1.5){ZN.gotP.add(p.id);c.g.remove(p.m);c.picks.splice(i,1);burst(p.x,1,p.z,'#ff7ad0',24,4,.3,3);beep&&beep(760,.14,'sine',.07,1.5);
       if(p.kind==='coin'){const v=Math.round(p.v*ch.coinK);ZN.loot+=v;floatText(p.x,1.8,p.z,'+'+v,'#ff9ad8')}
       else{G.seeds[p.v]++;toast(`You found a ${ELEM[p.v].n} seed. Mix seeds at the Seed Forge in the Nexus.`)}}}
   /* return gate: stand in it for a moment */
@@ -264,7 +264,7 @@ addEventListener('pointermove',e=>{const d=ZN.drag;if(!ZN.on||!d||d.id!==e.point
   if(!d.moved&&Math.hypot(dx,dy)>9)d.moved=true;if(d.moved){ZN.yaw-=(e.clientX-(d.lx??d.x))*.0065;ZN.pitch=Math.max(.14,Math.min(.9,ZN.pitch+(e.clientY-(d.ly??d.y))*.004))}d.lx=e.clientX;d.ly=e.clientY});
 addEventListener('pointerup',e=>{const d=ZN.drag;if(!ZN.on||!d||d.id!==e.pointerId)return;ZN.drag=null;if(d.moved||busy())return;
   ndc.set(e.clientX/W*2-1,-(e.clientY/H)*2+1);ray.setFromCamera(ndc,camera);const meshes=[];ZN.S.forEach(c=>meshes.push(c.t));const h=ray.intersectObjects(meshes,false)[0];
-  if(h){ch.target={x:h.point.x,z:h.point.z};burst(h.point.x,h.point.y+.1,h.point.z,'#ff7ad0',6,1,.25,0,0)}});
+  if(h){ch.target={x:h.point.x,z:h.point.z};burst(h.point.x,.1,h.point.z,'#ff7ad0',6,1,.25,0,0)}});
 cv.addEventListener('wheel',e=>{if(!ZN.on)return;ZN.dist=Math.max(6,Math.min(22,ZN.dist+e.deltaY*.01));e.preventDefault()},{passive:false});
 /* ---------- hud ---------- */
 function zHud(){
