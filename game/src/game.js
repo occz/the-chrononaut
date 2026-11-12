@@ -189,7 +189,7 @@ function showRepairBrief(rp){
 }
 let introHint=false;
 function hint(k,msg,delay=0){if(!G||G.hints[k])return;G.hints[k]=1;setTimeout(()=>G&&!G.over&&toast(msg),delay)}
-const USE_H={fountain:'the mana fountain',machine:'the time machine',shop:'the Bazaar',land:'the task'};
+const USE_H={fountain:'the mana fountain',machine:'the time machine',shop:'the Bazaar',land:'the task',zone:'the portal to THE ZONE (deadly, loot is lost if you die)'};
 function showIntro(){
   $('briefCard').classList.remove('paradox');$('bDate').textContent='BASE OF OPERATIONS';$('bYear').textContent='2026';$('bEra').textContent='Present Day';
   $('bMustL').textContent='YOUR JOB';$('bMust').textContent='Keep the causal line intact.';
@@ -202,7 +202,7 @@ $('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(intro
 /* ================= interactions ================= */
 function interactable(){
   if(!G||busy()||!WD||ZN.on)return null;
-  if(G.cur===NX&&WD.zgate&&!DU.on&&Math.abs(ch.x-WD.zgate.x)<2.4&&ch.z<ZMIN+2.2)return{k:'zone',label:'THE ZONE'};
+  if(WD.zgate&&Math.abs(ch.x-WD.zgate.x)<2.4&&ch.z<ZMIN+2.2)return{k:'zone',label:'THE ZONE'};
   if(Math.abs(ch.x-WD.mx)<2.2&&ch.z<ZMIN+2)return{k:'machine',label:'MACHINE'};
   if(G.cur===NX&&Math.abs(ch.x-WD.land.x)<2.6&&ch.z<ZMIN+2.2)return{k:'shop',label:'BAZAAR'};
   if(G.cur===NX&&WD.fountain&&Math.abs(ch.x-WD.fountain.x)<2.8&&ch.z<ZMIN+2.6)return{k:'fountain',label:'FOUNTAIN'};
@@ -512,7 +512,7 @@ cv.addEventListener('pointerdown',e=>{
   ndc.set(e.clientX/W*2-1,-(e.clientY/H)*2+1);ray.setFromCamera(ndc,camera);
   const hitObj=(o)=>{if(!o)return false;_box.setFromObject(o);return ray.ray.intersectsBox(_box)};
   if(WD.machine&&hitObj(WD.machine)){ch.target={x:WD.mx,z:ZMIN+.4};ch.openOnArrive='machine';return}
-  if(WD.zgate&&!DU.on&&hitObj(WD.zgate.g)){ch.target={x:WD.zgate.x,z:ZMIN+.4};ch.openOnArrive='zone';return}
+  if(WD.zgate&&hitObj(WD.zgate.g)){ch.target={x:WD.zgate.x,z:ZMIN+.4};ch.openOnArrive='zone';return}
   if(WD.fountain&&hitObj(WD.fountain.g)){ch.target={x:WD.fountain.x,z:ZMIN+.4};ch.openOnArrive='fountain';return}
   if(WD.landGroup&&(G.cur===NX||(missionOpen(G.cur)&&ch.carry))&&hitObj(WD.landGroup)){ch.target={x:WD.land.x,z:ZMIN+.4};ch.openOnArrive=G.cur===NX?'shop':'land';return}
   if(ray.ray.intersectPlane(plane,hitP)){ch.target={x:hitP.x,z:clamp(hitP.z,ZMIN,ZMAX)};ch.openOnArrive=null;
@@ -566,7 +566,7 @@ function frame(now){
   if(!trav&&WD){
     const live=!(invOpen||panelOpen||briefOpen||shopOpen||miniOpen);
     let gdt=dt;if(hitStop>0){hitStop-=dt;gdt=dt*.08}
-    if(DU.on)duelTick(dt);
+    if(DU.on&&!ZN.on)duelTick(dt);
     if(mode==='play'&&G&&!G.over&&live)updateGame(gdt);
     else if(mode==='play'&&G&&miniOpen&&!G.over&&missionOpen(G.cur)){G.timers[G.cur]-=dt;if(G.timers[G.cur]<=0)failMission(G.cur)}
     if(ch.rig&&(mode==='play'||mode==='over')){ch.rig.g.position.set(ch.x,ch.y||0,ch.z);faceTo(ch.rig,Math.atan2(ch.fx,ch.fz),dt,16);

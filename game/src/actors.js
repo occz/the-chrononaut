@@ -296,7 +296,7 @@ function aimAssist(){let best=null,bd=3.4;for(const n of WD.npcs){if(n.dying||n.
 function playerAttack(){
   if(ch.atkCd>0||busy())return;ch.atkCd=.36*(MAGIC.haste>0?.6:1);ch.swing=.18;SFX.swing();aimAssist();imbueProc();
   const ang=Math.atan2(ch.fx,ch.fz);slash(ch.x+ch.fx*.6,ch.z+ch.fz*.6,ang);
-  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer&&n.kind!=='guardian'&&n.kind!=='cbot')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
+  WD.npcs.forEach(n=>{if(n.dying||n.kind==='merchant')return;if(DU.hunter&&!n.peer&&n.kind!=='guardian'&&n.kind!=='cbot'&&n.kind!=='zmon')return;const big=n.kind==='lord'?1.2:0,dx=n.x-ch.x,dz=n.z-ch.z,d=Math.hypot(dx,dz);if(d>2+big)return;if(d>.4&&(dx*ch.fx+dz*ch.fz)/d<.3)return;
     if((n.kind==='hunter'||n.kind==='cbot')&&n.dodgeCd<=0&&n.wind<=0&&n.swind<=0&&Math.random()<.4){burst(n.x,1.3,n.z,'#b44aff',16,4,.35);n.x=ch.x-ch.fx*1.6;n.z=clamp(ch.z-ch.fz*1.2,ZMIN,ZMAX);burst(n.x,1.3,n.z,'#b44aff',16,4,.35);
       n.dodgeCd=2.6;n.atkCd=.2;n.lunge=0;n.retreat=0;floatText(ch.x,2.6,ch.z,'DODGED','#d8a0ff');beep(1000,.05);return}
     hurtNpc(n,ch.dmg+(Math.random()*8-4|0),dx,dz)});

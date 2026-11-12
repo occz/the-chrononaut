@@ -572,7 +572,7 @@ function genWorld(year){
     const beam=new THREE.Mesh(geo('lbeam',()=>new THREE.CylinderGeometry(1.1,1.1,14,32,1,true)),addMat('#ff8a2a',.06));beam.position.set(lx,7,ZMIN+.2);g.add(beam);WD.landBeam=beam}
   if(lk.lamps&&lk.night){for(let i=0;i<(TOUCH?3:4);i++){const p=new THREE.PointLight(lk.lamps,22,15,1.6);p.position.set(0,3.5,FRONT+3.2);g.add(p);WD.lampPool.push(p)}}
   WD.machine=buildMachine(g,WD.mx);
-  if(year===NX&&!DU.on)buildZoneGate(g);
+  if((year===NX&&!DU.on)||(year===TH&&DU.solo))buildZoneGate(g);
   if(year===NX)WD.fountain=buildFountain(g,lx+10);
   buildWeather(g,lk);
   const envScene=new THREE.Scene();envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10,24,12),WD.skyMat));

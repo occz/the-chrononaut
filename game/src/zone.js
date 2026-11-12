@@ -167,7 +167,7 @@ function buildZoneGate(g){
   g.add(gr);WD.zgate={x:gx,g:gr,rg};
   WD.anim.push(t=>{U.t.value=t;ring.rotation.z=t*.8;rg.material.opacity=.5+Math.sin(t*3)*.25})}
 function zoneEnter(){
-  if(ZN.on||!G||DU.on||trav)return;
+  if(ZN.on||!G||(DU.on&&!DU.solo)||trav)return;
   ZN.on=true;ZN.seed=((Math.random()*1e6)|0)+1;ZN.loot=0;ZN.kills=0;ZN.killed=new Set();ZN.spawned=new Set();ZN.gotP=new Set();ZN.mons=[];ZN.S=new Map();ZN.bolts=[];ZN.slams=[];ZN.exitT=0;ZN.time=0;
   ZN.home={x:0,z:0};closePanel();clearMagic();
   const st=ZN.stash={group:WD.group,items:WD.items,npcs:WD.npcs,coins:WD.coins,shots:WD.shots,rings:WD.rings,portal:WD.portal,huntT:WD.huntT,sunOff:WD.sunOff,fog:scene.fog,sc:sun.color.clone(),si:sun.intensity,hc:hemi.color.clone(),hg:hemi.groundColor.clone(),hi:hemi.intensity,exp:renderer.toneMappingExposure,bl:[bloom.strength,bloom.threshold,bloom.radius],px:ch.x,pz:ch.z,mach:WD.machine&&WD.machine.visible};
