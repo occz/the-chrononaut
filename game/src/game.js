@@ -488,7 +488,7 @@ $('saveForm').addEventListener('submit',async e=>{
 
 /* ================= input ================= */
 addEventListener('keydown',e=>{
-  if(EXP.on)return;const k=e.key.toLowerCase();audio();
+  const k=e.key.toLowerCase();audio();
   if(e.target&&e.target.tagName==='INPUT')return;
   if(miniOpen){if(k==='escape'){closeMini();return}if(miniKey(k,true)){e.preventDefault();return}keys.add(k);return}
   if(k==='escape'){if(invOpen)closeInv();if(panelOpen)closePanel();if(shopOpen){shopOpen=false;$('shop').hidden=true}return}
@@ -559,8 +559,7 @@ function frame(now){
   if(fpsEma>1/38){lowT+=dt;if(lowT>3&&DPR>1){DPR=Math.max(1,DPR-.25);resize();lowT=0}}else lowT=0;
   T+=dt;GU.uTime.value=T;fxMat.uniforms.px.value=DPR;
   if(trav)updateTravel(dt);
-  if(EXP.on&&!trav)exploreTick(dt);
-  if(!EXP.on&&!trav&&WD){
+  if(!trav&&WD){
     const live=!(invOpen||panelOpen||briefOpen||shopOpen||miniOpen);
     let gdt=dt;if(hitStop>0){hitStop-=dt;gdt=dt*.08}
     if(DU.on)duelTick(dt);
@@ -584,7 +583,7 @@ function frame(now){
 }
 
 /* ================= boot ================= */
-function boot(){$('exploreBtn').onclick=exploreStart;initInv();initMagicUI();initForges();
+function boot(){initInv();initMagicUI();initForges();
   resize();
   const pool=[1985,2150,1927,1610,2400,2600,2088];const y=pool[(Math.random()*pool.length)|0];
   genWorld(y);camX=0;streamChunks(99);updateWorldStream(0);
