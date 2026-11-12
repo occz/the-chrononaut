@@ -2115,7 +2115,7 @@ function duelRecv(m){
       break;
     case'start':if(!DU.started&&!DU.host){DU.role=m.hostRole==='hunter'?'runner':'hunter';DU.goal=m.goal||5;duelStart(m.seed)}break;
     case's':duelPeerState(m);break;
-    case'hit':if(G&&!G.over&&DU.started)hurtPlayer(m.d,{x:m.x,z:m.z,kind:'hunter'});break;
+    case'hit':if(G&&!G.over&&DU.started){hurtPlayer(m.d,{x:m.x,z:m.z,kind:'hunter'});if(!trav)duelSend(duelState())}break;
     case'trav':DU.trail.push({from:m.from,to:m.to,at:Date.now(),found:false});break;
     case'ko':if(!DU.hunter&&G){G.coins+=40;G.score+=50;toast('You beat the Hunter! +40 coins',false);SFX.ok()}break;
     case'end':duelFinish(DU.hunter?!m.runnerWon:!!m.runnerWon,m.text);break;
@@ -2175,7 +2175,7 @@ function duelTick(dt){
   if(same&&!n){n=addNpc({kind:'peer',peer:true,fit:DU.hunter?SUIT:HUNTER_FIT,x:P.x,z:P.z,hp:P.hp||100,sp:0});n.maxHp=P.mh||100;WD.puppet=n;
     if(DU.hunter){toast('Target located!',true);SFX.ok()}else{toast('A Time Hunter has found you!',true);SFX.bad();burst(n.x,1.4,n.z,'#b44aff',40,6,.5)}}
   else if(!same&&n){WD.group.remove(n.rig.g);if(n.bd)n.bd.remove();if(n.hd)n.hd.remove();n.bd=n.hd=null;WD.npcs=WD.npcs.filter(q=>q!==n);WD.puppet=null;n=null}
-  if(n){const k=1-Math.pow(.0005,dt);n.x=lerp(n.x,P.x,k);n.z=lerp(n.z,P.z,k);n.ang=Math.atan2(P.fx,P.fz);n.moving=!!P.mv;n.hp=P.hp;n.maxHp=P.mh;n.strikeT=Math.max(0,(n.strikeT||0)-dt);if(P.sw&&!n.swPrev)n.strikeT=.18;n.swPrev=P.sw}
+  if(n){const k=1-Math.pow(.0005,dt);n.x=lerp(n.x,P.x,k);n.z=lerp(n.z,P.z,k);n.ang=Math.atan2(P.fx,P.fz);n.moving=!!P.mv;{const now=Date.now();if(n.hp<(n.ph??n.hp))n.lhit=now;n.hp=now-(n.lhit||0)<350?Math.min(n.hp,P.hp):P.hp;n.ph=n.hp}n.maxHp=P.mh;n.strikeT=Math.max(0,(n.strikeT||0)-dt);if(P.sw&&!n.swPrev)n.strikeT=.18;n.swPrev=P.sw}
 }
 function duelObj(){
   if(DU.solo&&BOT.npc&&!BOT.npc.dying)return`<span>Eliminate Chrononaut ${BOT.n}!</span>`;
