@@ -13,18 +13,21 @@ let KIT=null;
 const KROUGH={coat:.75,pants:.85,skin:.55,hair:.9,boots:.5,belt:.3,trim:.6,shirt:.8};
 function kitColors(f){return{coat:f.coat,pants:f.pants,skin:f.skin,hair:f.hair,boots:f.boots||'#1a1410',belt:f.belt||'#14100c',trim:'#14100c',shirt:f.shirt||f.hood||'#e8e0d0'}}
 function kitPart(n,f){const o=KIT[n].clone(true),c=kitColors(f);o.traverse(m=>{if(m.isMesh){const k=m.material.name;m.material=mat(c[k]||'#888888',{roughness:KROUGH[k]||.7,metalness:k==='belt'&&f.belt?.85:0});m.castShadow=true}});return o}
-function parseGlb(b64,names){return new Promise(res=>{try{const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
-  new GLTFLoader().parse(u.buffer,'',g=>{try{const k={};for(const n of names){const o=g.scene.getObjectByName(n);if(!o)throw 0;k[n]=o}res(k)}catch(e){res(null)}},()=>res(null))}catch(e){res(null)}})}
-let CK=null,PK=null,AK=null,FK=null;
+function parseGlb(b64,names,loose){return new Promise(res=>{try{const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  new GLTFLoader().parse(u.buffer,'',g=>{try{const k={};for(const n of names){const o=g.scene.getObjectByName(n);if(!o){if(loose)continue;throw 0}k[n]=o}res(k)}catch(e){res(null)}},()=>res(null))}catch(e){res(null)}})}
+let CK=null,PK=null,AK=null,FK=null,LM=null;
 const CROUGH={eye:.3,horn:.5,tooth:.4};
 const mixCol=(c,t,f)=>'#'+new THREE.Color(c).lerp(new THREE.Color(t),f).getHexString();
 function crPart(n,map){const o=CK[n].clone(true);o.traverse(m=>{if(m.isMesh){const k=m.material.name;m.material=mat(map[k]||'#888888',{roughness:CROUGH[k]||.85});m.castShadow=true}});return o}
 const PROUGH={paint:.3,glass:.1,tire:.9,rim:.3,red:.4,lamp:.4,bark:.95,leaf:.9,iron:.45,stone:.9,wood:.8,awn:.9,belt:.3,tank:.9};
 function prPart(n,map){const o=PK[n].clone(true);o.traverse(m=>{if(m.isMesh){const k=m.material.name,c=map[k]||'#888888';m.material=(k==='lamp'?glow(c,2):mat(c,{roughness:PROUGH[k]||.8,metalness:(k==='paint'||k==='rim')?.5:k==='glass'?.8:k==='iron'?.6:k==='belt'?.85:0}));m.castShadow=true}});return o}
+const LM_NAMES=['pyrbg','pyrsite','cave','burrow','shrew','observatory','loco','station','hangar','palace','radio','radiotower','tvshop','stage','bank','dome',];
 const AROUGH={marble:.6,marble2:.8,mud:1,mud2:1,wood:.85,wood2:.9,thatch:1,trunk:.9,frond:.8,needle:.95,snow:.7,gold:.4,sail:.9,iron:.5,dark:1};
 function akPart(n,map){const o=AK[n].clone(true);o.traverse(m=>{if(m.isMesh){const k=m.material.name,c=map[k]||'#888888';m.material=(k==='fire'?glow(c,3):mat(c,{roughness:AROUGH[k]||.8,metalness:k==='gold'?.8:k==='iron'?.6:0}));m.castShadow=true;m.receiveShadow=true}});return o}
 function futPart(n,map){const o=FK[n].clone(true);o.traverse(m=>{if(m.isMesh){const k=m.material.name,c=map[k]||'#888888';m.material=(k==='glow'?glow(c,3):mat(c,{roughness:k==='glass'?.1:.35,metalness:k==='glass'?.8:(k==='hull'||k==='metal'||k==='iron'||k==='crys')?.6:.1}));m.castShadow=true}});return o}
-async function loadKit(){FK=await parseGlb(FK_B64,['hover','drone','dish','pillar','monolith','sdoor']);AK=await parseGlb(AK_B64,['column','entab','palm','pine','mudhut','longhouse','colosseum','longship']);PK=await parseGlb(PK_B64,['car','tree','lamp','watertank','entrance','balcony']);KIT=await parseGlb(KIT_B64,['leg','arm','torso','head']);CK=await parseGlb(CK_B64,['sauro_body','sauro_neck','sauro_leg','dino_body','dino_neck','dino_leg','mam_body','mam_leg','rap_torso','rap_head','rap_leg','tri_torso','tri_head','tri_leg'])}
+const LMETAL=/^(brass|iron|steel|gold|copper|metal|chrome|bronze)/;
+function lmPart(n,map={}){const o=LM[n].clone(true);o.traverse(m=>{if(m.isMesh){const b=m.material,k=b.name,c=map[k]||('#'+b.color.getHexString());m.material=/^glow/.test(k)?glow(c,3):k==='paint'?glow(c,1.4):mat(c,{roughness:LMETAL.test(k)?.3:Math.max(.55,b.roughness),metalness:LMETAL.test(k)?.8:0,...(k==='glass'?{transparent:true,opacity:.32,roughness:.1,metalness:.5}:{})});m.castShadow=k!=='glass';m.receiveShadow=true}});return o}
+async function loadKit(){LM=await parseGlb(LM_B64,LM_NAMES,true);FK=await parseGlb(FK_B64,['hover','drone','dish','pillar','monolith','sdoor']);AK=await parseGlb(AK_B64,['column','entab','palm','pine','mudhut','longhouse','colosseum','longship']);PK=await parseGlb(PK_B64,['car','tree','lamp','watertank','entrance','balcony']);KIT=await parseGlb(KIT_B64,['leg','arm','torso','head']);CK=await parseGlb(CK_B64,['sauro_body','sauro_neck','sauro_leg','dino_body','dino_neck','dino_leg','mam_body','mam_leg','rap_torso','rap_head','rap_leg','tri_torso','tri_head','tri_leg'])}
 
 function makeRig(fit,k=1){
   const g=new THREE.Group(),body=new THREE.Group();g.add(body);body.scale.setScalar(k);
