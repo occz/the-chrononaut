@@ -2,7 +2,7 @@
 const ELEM={past:{n:'Past',c:'#e8b865'},future:{n:'Future',c:'#5ff5d6'},void:{n:'Void',c:'#b44aff'},ember:{n:'Ember',c:'#ff7a3a'},storm:{n:'Storm',c:'#ffe45a'},echo:{n:'Echo',c:'#7ad0ff'}};
 const ELKEYS=Object.keys(ELEM);
 const MAGIC={cd:[0,0],cdMax:[1,1],haste:0,proj:[],fx:[],tm:[],wells:[],blades:null,ward:null,sparkT:0,warnT:0,forge:[],forgeMsg:''};
-const isFoe=n=>!n.dying&&(n.peer||n.kind==='hunter'||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile)||n.kind==='lord'||(n.kind==='citizen'&&!(DU.on&&DU.hunter)));
+const isFoe=n=>!n.dying&&(n.peer||n.kind==='zmon'||n.kind==='hunter'||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile)||n.kind==='lord'||(n.kind==='citizen'&&!(DU.on&&DU.hunter)));
 const foesIn=(x,z,r)=>WD.npcs.filter(n=>isFoe(n)&&Math.hypot(n.x-x,n.z-z)<=r+(n.kind==='lord'?1:0));
 const pw=id=>1+.3*((G.spells[id]||1)-1);
 function hitFoe(n,dmg,fx,fz){if(n.dying)return;hurtNpc(n,Math.max(1,Math.round(dmg)),n.x-fx,n.z-fz)}

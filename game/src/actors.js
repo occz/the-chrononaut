@@ -114,7 +114,7 @@ function updateLabels(dt){
   for(const n of WD.npcs){
     if(n.bt>0&&n.bubble&&!n.dying){n.bt-=dt;if(!n.bd){n.bd=document.createElement('div');n.bd.className='bubble'+(n.kind==='hunter'?' h':n.kind==='lord'?' l':'');LBL.appendChild(n.bd)}n.bd.textContent=n.bubble;const p=project(n.x,2.5*(n.k||1)+.3,n.z);n.bd.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-100%)`;n.bd.hidden=p.behind}
     else if(n.bd){n.bd.remove();n.bd=null}
-    if((n.kind==='hunter'||n.peer||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile))&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
+    if((n.kind==='hunter'||n.kind==='zmon'||n.peer||n.kind==='cbot'||(n.kind==='guardian'&&n.hostile))&&!n.dying){if(!n.hd){n.hd=document.createElement('div');n.hd.style.cssText='position:absolute;left:0;top:0;width:44px;height:5px;background:#200814;border:1px solid #000;border-radius:2px;overflow:hidden';n.hd.innerHTML=`<i style="display:block;height:100%;background:${n.elite?'#ffd24a':'#b44aff'}"></i>`;LBL.appendChild(n.hd)}
       const p=project(n.x,2.35*(n.k||1),n.z);n.hd.style.transform=`translate(${p.x-22}px,${p.y}px)`;n.hd.firstChild.style.width=(100*Math.max(0,n.hp/n.maxHp))+'%'}
     else if(n.hd){n.hd.remove();n.hd=null}
   }
@@ -256,6 +256,7 @@ function hurtNpc(n,dmg,dx,dz){
   if(n.hp<=0)killNpc(n);
 }
 function killNpc(n){
+  if(n.kind==='zmon')return zoneKill(n);
   if(n.kind==='lord')return lordDown(n);
   if(n.kind==='guardian')return guardianDown(n);
   if(n.kind==='cbot')return botDown(n);
@@ -276,6 +277,7 @@ function hurtPlayer(dmg,src){
 }
 function artItem(){return'the '+ERA[G.cur].mission.item}
 function knockout(){
+  if(ZN.on)return zoneKnockout();
   if(DU.on)return duelKnockout();
   if(G.boss&&G.boss.on)return lordWins();
   const lost=Math.floor(G.coins*.4);G.coins-=lost;ch.hp=ch.maxHp;ch.inv=2;
@@ -302,7 +304,7 @@ function playerAttack(){
 function playerDash(){
   if(ch.dashCd>0||busy())return;ch.dashCd=.9*ch.dashK;ch.dashT=.2;ch.inv=Math.max(ch.inv,.28);SFX.dash();
   let dx=0,dz=0;if(keys.has('arrowleft')||keys.has('a'))dx--;if(keys.has('arrowright')||keys.has('d'))dx++;if(keys.has('arrowup')||keys.has('w'))dz--;if(keys.has('arrowdown')||keys.has('s'))dz++;
-  if(!dx&&!dz){if(ch.target){dx=ch.target.x-ch.x;dz=ch.target.z-ch.z}else{dx=ch.fx;dz=ch.fz}}
+  if(!dx&&!dz){if(ch.target){dx=ch.target.x-ch.x;dz=ch.target.z-ch.z}else{dx=ch.fx;dz=ch.fz}}else if(ZN.on){const r=zRot(dx,dz);dx=r[0];dz=r[1]}
   const l=Math.hypot(dx,dz)||1;ch.dashX=dx/l;ch.dashZ=dz/l;ch.fx=ch.dashX;ch.fz=ch.dashZ;ch.target=null;burst(ch.x,1,ch.z,'#6ad8e8',14,2,.35,0,0);
 }
 function updateCombat(dt){

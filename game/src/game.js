@@ -201,14 +201,15 @@ $('bGo').onclick=()=>{briefOpen=false;$('brief').hidden=true;cv.focus();if(intro
 
 /* ================= interactions ================= */
 function interactable(){
-  if(!G||busy()||!WD)return null;
+  if(!G||busy()||!WD||ZN.on)return null;
+  if(G.cur===NX&&WD.zgate&&!DU.on&&Math.abs(ch.x-WD.zgate.x)<2.4&&ch.z<ZMIN+2.2)return{k:'zone',label:'THE ZONE'};
   if(Math.abs(ch.x-WD.mx)<2.2&&ch.z<ZMIN+2)return{k:'machine',label:'MACHINE'};
   if(G.cur===NX&&Math.abs(ch.x-WD.land.x)<2.6&&ch.z<ZMIN+2.2)return{k:'shop',label:'BAZAAR'};
   if(G.cur===NX&&WD.fountain&&Math.abs(ch.x-WD.fountain.x)<2.8&&ch.z<ZMIN+2.6)return{k:'fountain',label:'FOUNTAIN'};
   if(missionOpen(G.cur)&&!activeRepair()&&ch.carry&&Math.abs(ch.x-WD.land.x)<2.4&&ch.z<ZMIN+2.2)return{k:'land',label:'USE'};
   return null;
 }
-function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='fountain')drinkFountain();else if(it.k==='land')openMini(G.cur)}
+function interact(){const it=interactable();if(!it)return;SFX.click();if(it.k==='machine')openPanel();else if(it.k==='shop')openShop();else if(it.k==='zone')zoneEnter();else if(it.k==='fountain')drinkFountain();else if(it.k==='land')openMini(G.cur)}
 function checkPickups(){
   for(const it of [...WD.items]){if(Math.hypot(it.x-ch.x,it.z-ch.z)>(it.kind==='gear'||it.kind==='mseed'||it.kind==='scroll'?1.2:.9))continue;
     if(it.kind==='item'&&missionOpen(G.cur)&&!ch.carry&&!activeRepair()){removeItem(it);setCarry(true);SFX.pick();burst(ch.x,1.5,ch.z,'#ffb35c',24,3,.35);toast(`You have ${artItem()}! Bring it to the ${ERA[G.cur].mission.label}.`)}
@@ -507,9 +508,11 @@ const _box=new THREE.Box3();
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{
   audio();if(busy())return;if(e.button===2){playerAttack();return}
+  if(ZN.on)return;
   ndc.set(e.clientX/W*2-1,-(e.clientY/H)*2+1);ray.setFromCamera(ndc,camera);
   const hitObj=(o)=>{if(!o)return false;_box.setFromObject(o);return ray.ray.intersectsBox(_box)};
   if(WD.machine&&hitObj(WD.machine)){ch.target={x:WD.mx,z:ZMIN+.4};ch.openOnArrive='machine';return}
+  if(WD.zgate&&!DU.on&&hitObj(WD.zgate.g)){ch.target={x:WD.zgate.x,z:ZMIN+.4};ch.openOnArrive='zone';return}
   if(WD.fountain&&hitObj(WD.fountain.g)){ch.target={x:WD.fountain.x,z:ZMIN+.4};ch.openOnArrive='fountain';return}
   if(WD.landGroup&&(G.cur===NX||(missionOpen(G.cur)&&ch.carry))&&hitObj(WD.landGroup)){ch.target={x:WD.land.x,z:ZMIN+.4};ch.openOnArrive=G.cur===NX?'shop':'land';return}
   if(ray.ray.intersectPlane(plane,hitP)){ch.target={x:hitP.x,z:clamp(hitP.z,ZMIN,ZMAX)};ch.openOnArrive=null;
@@ -535,6 +538,7 @@ function updatePlayer(dt){
   ch.x=ch.x;ch.z=clamp(ch.z,ZMIN,ZMAX);
 }
 function updateGame(dt){
+  if(ZN.on){zoneTick(dt);return}
   updatePlayer(dt);checkPickups();updateCombat(dt);updateMagic(dt);
   const rp=activeRepair();
   if(G.boss&&!G.over){if(!G.boss.on){G.boss.t-=dt;if(G.boss.t<=0)spawnLord()}}
@@ -565,20 +569,20 @@ function frame(now){
     if(DU.on)duelTick(dt);
     if(mode==='play'&&G&&!G.over&&live)updateGame(gdt);
     else if(mode==='play'&&G&&miniOpen&&!G.over&&missionOpen(G.cur)){G.timers[G.cur]-=dt;if(G.timers[G.cur]<=0)failMission(G.cur)}
-    if(ch.rig&&(mode==='play'||mode==='over')){ch.rig.g.position.set(ch.x,0,ch.z);faceTo(ch.rig,Math.atan2(ch.fx,ch.fz),dt,16);
+    if(ch.rig&&(mode==='play'||mode==='over')){ch.rig.g.position.set(ch.x,ch.y||0,ch.z);faceTo(ch.rig,Math.atan2(ch.fx,ch.fz),dt,16);
       animRig(ch.rig,gdt,{moving:ch.moving&&live,speed:ch.spd*1.1,swing:Math.max(0,ch.swing),dash:ch.dashT,hurt:ch.hurtT});ch.rig.g.visible=!(ch.inv>0&&ch.inv<1.5&&Math.sin(T*40)>0&&!ch.dashT)}
-    updateNpcs(gdt,live||mode!=='play');updateItems(dt);
+    if(!ZN.on){updateNpcs(gdt,live||mode!=='play');updateItems(dt)}
     WD.anim.forEach(f=>f(T));WD.chunks.forEach(c=>c.anim.forEach(f=>f(T)));WD.clouds.forEach(c=>{c.position.x+=c.userData.drift*dt;if(c.position.x>200)c.position.x=-200});
-    updateWeather(dt,T,camX);
+    if(!ZN.on)updateWeather(dt,T,camX);
     if(WD.cdSign&&G&&missionOpen(1999)&&G.cur===1999){const t=Math.max(0,G.timers[1999]|0);if(t!==WD.cdT){WD.cdT=t;const m=WD.cdSign.material;m.emissiveMap.dispose();m.emissiveMap=textTex(`23:${String(59-Math.min(59,Math.floor(t/60))).padStart(2,'0')}:${String(59-t%60).padStart(2,'0')}`,{color:'#ff3a3a',glowC:'#ff3a3a'});m.needsUpdate=true}}
-    updateCamera(dt);updateWorldStream(dt);if(G&&mode==='play'){maybeWildGear(dt);maybeWildMagic(dt);cullGear()}
+    if(ZN.on)zoneCamera(dt);else{updateCamera(dt);updateWorldStream(dt)}if(G&&mode==='play'&&!ZN.on){maybeWildGear(dt);maybeWildMagic(dt);cullGear()}
   }
   if(miniOpen&&MG)updateMini(dt);
   updateFx(dt);updateTrans(dt);
   redT=Math.max(0,redT-dt*1.4);GU.uRed.value=redT*.8+(G&&mode==='play'&&ch.hp<ch.maxHp*.25?.25+.1*Math.sin(T*6):0);
   if(!trav&&GU.uFlash.value>0&&GU.uFlash.value<.5)GU.uFlash.value=Math.max(0,GU.uFlash.value-dt*1.2);
   GU.uDesat.value=G&&G.boss&&!G.boss.on?.4:lerp(GU.uDesat.value,0,dt*2);
-  if(mode==='play'||mode==='over'){updateLabels(dt);updateArrow();updateHUD()}else updateLabels(dt);
+  if(mode==='play'||mode==='over'){updateLabels(dt);if(!ZN.on)updateArrow();updateHUD()}else updateLabels(dt);
   composer.render(dt);
 }
 
