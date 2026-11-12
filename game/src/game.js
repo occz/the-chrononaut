@@ -591,7 +591,7 @@ function boot(){initInv();initMagicUI();initForges();
   resize();
   const pool=[1985,2150,1927,1610,2400,2600,2088];const y=pool[(Math.random()*pool.length)|0];
   genWorld(y);camX=0;streamChunks(99);updateWorldStream(0);
-  $('veil').hidden=true;window.__tlReady=true;$('title').hidden=false;setMuted(muted);
+  $('veil').hidden=true;window.__tlReady=true;{const tm=()=>{if(mode==='title'&&!amb&&!muted)setAmbient('title')};for(const ev of['pointerdown','keydown','click'])addEventListener(ev,tm)}$('title').hidden=false;setMuted(muted);
   requestAnimationFrame(t=>{last=t;frame(t)});
   document.fonts&&document.fonts.ready.then(()=>{if(WD&&WD.machine)setMachineYear(WD.year)});
 }
