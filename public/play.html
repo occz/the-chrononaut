@@ -2115,7 +2115,7 @@ function duelRecv(m){
       break;
     case'start':if(!DU.started&&!DU.host){DU.role=m.hostRole==='hunter'?'runner':'hunter';DU.goal=m.goal||5;duelStart(m.seed)}break;
     case's':duelPeerState(m);break;
-    case'hit':if(G&&!G.over&&DU.started){hurtPlayer(m.d,{x:m.x,z:m.z,kind:'hunter'});if(!trav)duelSend(duelState())}break;
+    case'hit':if(G&&!G.over&&DU.started){if(document.hidden)ch.inv=0;hurtPlayer(m.d,{x:m.x,z:m.z,kind:'hunter'});if(!trav)duelSend(duelState())}break;
     case'trav':DU.trail.push({from:m.from,to:m.to,at:Date.now(),found:false});break;
     case'ko':if(!DU.hunter&&G){G.coins+=40;G.score+=50;toast('You beat the Hunter! +40 coins',false);SFX.ok()}break;
     case'end':duelFinish(DU.hunter?!m.runnerWon:!!m.runnerWon,m.text);break;
@@ -2163,7 +2163,7 @@ const duelState=()=>({t:'s',y:G.cur,x:+ch.x.toFixed(2),z:+ch.z.toFixed(2),fx:+ch
 /* a background tab stops running frames: keep sending a heartbeat so the rival does not vanish and HP bars stay live */
 setInterval(()=>{if(document.hidden&&DU.started&&!DU.over&&!DU.solo&&G&&!trav)duelSend(duelState())},700);
 document.addEventListener('visibilitychange',()=>{if(DU.started&&!DU.over&&!DU.solo&&G&&!trav)duelSend(duelState())});
-const peerFresh=P=>!!P&&Date.now()-P.at<(P.hid?25000:4000);
+const peerFresh=P=>!!P&&Date.now()-P.at<(P.hid?8000:4000);
 function duelTick(dt){
   if(!G||!WD||DU.over)return;
   const t=performance.now();
